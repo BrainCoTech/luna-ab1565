@@ -114,11 +114,11 @@ void mp3_audio_mutex_unlock(xSemaphoreHandle handle)
         xSemaphoreGive(handle);
     }
 }
-#if defined(MTK_MP3_STEREO_SUPPORT)
-static uint8_t mp3_codec_decode[27456];
-#else
-static uint8_t mp3_codec_decode[15908];
-#endif
+
+static uint8_t mp3_codec_decode_stereo[32576];
+
+static uint8_t mp3_codec_decode_mono[15908];
+
 #ifdef MTK_MP3_TASK_DEDICATE
 #define VP_MASK_VP_HAPPENING       0x00000004
 #define VP_MASK_DL1_HAPPENING      0x00000008
@@ -218,6 +218,11 @@ volatile mp3_codec_media_handle_t   *g_mp3_codec_task_handle = NULL;
 IPCOMMON_PLUS
 
 void mp3_codec_event_send_from_isr(mp3_codec_queue_event_id_t id, void *parameter);
+static void mp3_codec_event_register_callback(mp3_codec_media_handle_t *handle, mp3_codec_queue_event_id_t reg_id, mp3_codec_internal_callback_t callback);
+static void mp3_codec_decode_open_handler(void *data);
+static void mp3_codec_decode_stop_handler(void *data);
+static void mp3_codec_deocde_hisr_handler(void *data);
+static void mp3_codec_decode_sync_timeout_handler(void *data);
 
 #if defined(HAL_DVFS_MODULE_ENABLED) && !defined(MTK_AVM_DIRECT)
 static bool mp3_dvfs_valid(uint32_t voltage, uint32_t frequency)
@@ -357,7 +362,9 @@ static void mp3_codec_finish_write_data(mp3_codec_media_handle_t *handle)
     handle->waiting = false;
     handle->underflow = false;
 
-    if (MP3_CODEC_STATE_PLAY == handle->state) {
+    /* Local audio only use the decode functions of mp3_codc. */
+    if ((MP3_CODEC_STATE_PLAY == handle->state) ||
+        (handle->linear_buff == 0)) {
         int32_t share_buffer_data_amount = mp3_codec_get_share_buffer_data_count(handle);
         if (mp3_handle_ptr_to_previous_mp3_frame_size(handle) > 0) {
             if (share_buffer_data_amount > mp3_handle_ptr_to_previous_mp3_frame_size(handle)) {
@@ -1038,6 +1045,7 @@ mp3_codec_function_return_state_t mp3_codec_set_memory2(void)
     }
 
 #ifdef MTK_AVM_DIRECT
+#if 0
     int channel_number = 0;
     /* STEP 0: Get channel information from MP3 bit stream */
     channel_number = MP3Dec_GetChannelNumber(handle->share_buff.buffer_base, handle->share_buff.buffer_size);
@@ -1059,6 +1067,7 @@ mp3_codec_function_return_state_t mp3_codec_set_memory2(void)
         MP3_LOG_E("[MP3 Codec]Cannot get MP3 channel information\n", 0);
         return MP3_CODEC_RETURN_ERROR;
     }
+#endif
 #else
     if (handle->state != MP3_CODEC_STATE_READY) {
         return MP3_CODEC_RETURN_ERROR;
@@ -1073,7 +1082,7 @@ mp3_codec_function_return_state_t mp3_codec_set_memory2(void)
 
     /*STEP 1 : Allocate data memory for MP3 decoder*/
 #ifdef MTK_AVM_DIRECT
-    if(channel_number == 1) {
+    if(handle->linear_buff == 1) {
         MP3Dec_GetMemSize_Mono(&share_buff_size, &decode_pcm_buffer_size, &working_buff1_size, &working_buff2_size);
     } else {
         MP3Dec_GetMemSize(&share_buff_size, &decode_pcm_buffer_size, &working_buff1_size, &working_buff2_size);
@@ -1089,10 +1098,10 @@ mp3_codec_function_return_state_t mp3_codec_set_memory2(void)
 #endif
 
     //4bytes aligned
-    share_buff_size = (share_buff_size + 3) & ~0x3;
-    decode_pcm_buffer_size = (decode_pcm_buffer_size + 3) & ~0x3;
-    working_buff1_size = (working_buff1_size + 3) & ~0x3;
-    working_buff2_size = (working_buff2_size + 3) & ~0x3;
+    share_buff_size = (share_buff_size + 3) & ~0x3;               // mono: 5120,  stereo: 5120
+    decode_pcm_buffer_size = (decode_pcm_buffer_size + 3) & ~0x3; // mono: 2304,  stereo: 4608
+    working_buff1_size = (working_buff1_size + 3) & ~0x3;         // mono: 11300, stereo: 16268
+    working_buff2_size = (working_buff2_size + 3) & ~0x3;         // mono: 0,     stereo: 1972
 
     internal_handle->share_buff_size = share_buff_size;
     internal_handle->decode_pcm_buffer_size = decode_pcm_buffer_size;
@@ -1130,21 +1139,32 @@ mp3_codec_function_return_state_t mp3_codec_set_memory2(void)
         return MP3_CODEC_RETURN_ERROR;
     }
 #else
-    if(size_memory_pool > sizeof(mp3_codec_decode)){
-        MP3_LOG_E("MP3 codec memory size error!!! memory_pool size(%d) > mp3_codec_decode(%d)\n",2, size_memory_pool, sizeof(mp3_codec_decode));
-        MP3_LOG_I("MP3 codec memory size error!!!", 0);
-        configASSERT(0);
+    if (handle->linear_buff == 1) {
+        if (size_memory_pool > sizeof(mp3_codec_decode_mono)) {
+            MP3_LOG_E("MP3 codec memory size error!!! memory_pool size(%d) > mp3_codec_decode_mono(%d)\n",2, size_memory_pool, sizeof(mp3_codec_decode_mono));
+            MP3_LOG_I("MP3 codec memory size error!!!", 0);
+            configASSERT(0);
+        }
+        memset(mp3_codec_decode_mono, 0, sizeof(mp3_codec_decode_mono));
+        mp3_handle_ptr_to_mp3_decode_buffer(handle) = mp3_codec_decode_mono;
+    } else {
+        if (size_memory_pool > sizeof(mp3_codec_decode_stereo)) {
+            MP3_LOG_E("MP3 codec memory size error!!! memory_pool size(%d) > mp3_codec_decode_stereo(%d)\n",2, size_memory_pool, sizeof(mp3_codec_decode_stereo));
+            MP3_LOG_I("MP3 codec memory size error!!!", 0);
+            configASSERT(0);
+        }
+        memset(mp3_codec_decode_stereo, 0, sizeof(mp3_codec_decode_stereo));
+        mp3_handle_ptr_to_mp3_decode_buffer(handle) = mp3_codec_decode_stereo;
     }
-    memset(mp3_codec_decode, 0, sizeof(mp3_codec_decode));
-    mp3_handle_ptr_to_mp3_decode_buffer(handle) = mp3_codec_decode;
 #endif
     internal_handle->memory_pool = memory_base = mp3_handle_ptr_to_mp3_decode_buffer(handle);
 
-
-#ifndef MTK_AVM_DIRECT
+    if (handle->linear_buff == 0) {
     //set share buffer
     mp3_codec_set_share_buffer(handle, memory_base, share_buff_size);
     memory_base += share_buff_size;
+    }
+#ifndef MTK_AVM_DIRECT  
     // set decode_pcm_buffer
     internal_handle->decode_pcm_buff.buffer_base_pointer = memory_base;
     internal_handle->decode_pcm_buff.buffer_byte_count = internal_handle->decode_pcm_buffer_size;
@@ -1170,10 +1190,12 @@ mp3_codec_function_return_state_t mp3_codec_set_memory2(void)
 
     /*STEP 2 : Get MP3 Handler */
 #ifdef MTK_AVM_DIRECT
-    if(channel_number == 1) {
+    if(handle->linear_buff == 1) {
         internal_handle->mp3_handle = MP3Dec_Init_Mono(internal_handle->working_buff1, internal_handle->working_buff2);
     } else {
         internal_handle->mp3_handle = MP3Dec_Init(internal_handle->working_buff1, internal_handle->working_buff2);
+        /* To decode local mp3 stream, add decode event handler. */
+        mp3_codec_event_register_callback(handle, MP3_CODEC_QUEUE_EVENT_DECODE,        mp3_codec_deocde_hisr_handler);
     }
 #else
     internal_handle->mp3_handle = MP3Dec_Init(internal_handle->working_buff1, internal_handle->working_buff2);
@@ -1275,10 +1297,6 @@ static void mp3_codec_event_deregister_callback(mp3_codec_media_handle_t *handle
 #endif //MTK_MP3_TASK_DEDICATE
 
 extern void prompt_control_mp3_callback(mp3_codec_media_handle_t *handle, mp3_codec_event_t event);
-static void mp3_codec_decode_open_handler(void *data);
-static void mp3_codec_decode_stop_handler(void *data);
-static void mp3_codec_deocde_hisr_handler(void *data);
-static void mp3_codec_decode_sync_timeout_handler(void *data);
 void mp3_codec_task_main(void *arg)
 {
     MP3_LOG_I("[MP3 Codec]mp3_codec_task_main create\n", 0);
@@ -1920,12 +1938,13 @@ static void mp3_codec_deocde_hisr_handler(void *data)
 
     mp3_codec_internal_handle_t *internal_handle = mp3_handle_ptr_to_internal_ptr(data);
     mp3_codec_media_handle_t *handle = &internal_handle->handle;
-    if(handle->state != MP3_CODEC_STATE_PLAY){
+    if ((handle->state != MP3_CODEC_STATE_PLAY) &&
+       (handle->linear_buff == 1)) {
     #if defined(MTK_AVM_DIRECT)
         mp3_audio_mutex_unlock(g_xSemaphore_Audio);
     #endif
         return;
-    }
+    } 
 
     uint32_t curr_cnt = 0;
     hal_gpt_get_free_run_count(HAL_GPT_CLOCK_SOURCE_1M, &curr_cnt);
@@ -2064,7 +2083,8 @@ static void mp3_codec_deocde_hisr_handler(void *data)
     //taskEXIT_CRITICAL();
 
     int32_t share_data_amount = mp3_codec_get_share_buffer_data_count(handle);
-    //printf("hisr:consumeBS=%d, buffer_size=%d, buff.read=%d, buff.write=%d, share_data_amount=%d, pcm_data_amount=%d, one_frame_bytes=%d\r\n", consumeBS, handle->share_buff.buffer_size, handle->share_buff.read, handle->share_buff.write, share_data_amount, ring_buffer_get_data_byte_count(&internal_handle->stream_out_pcm_buff), one_frame_bytes);
+    MP3_LOG_I("hisr:consumeBS=%d, buffer_size=%d, buff.read=%d, buff.write=%d", 4, consumeBS, handle->share_buff.buffer_size, handle->share_buff.read, handle->share_buff.write);
+    MP3_LOG_I("hisr:share_data_amount=%d, pcm_data_amount=%d, one_frame_bytes=%d\r\n", 3, share_data_amount, ring_buffer_get_data_byte_count(&internal_handle->stream_out_pcm_buff), one_frame_bytes);
 
 
     bool decode_abnormal = false;
