@@ -144,7 +144,7 @@ MTK_AUDIO_AT_CMD_PROMPT_SOUND_ENABLE          = n
 # mp3
 MTK_AUDIO_MP3_ENABLED               = n
 MTK_MP3_DECODER_ENABLED             = y
-MTK_MP3_CODEC_TASK_DEDICATE         = y
+MTK_MP3_CODEC_TASK_DEDICATE         = n
 MTK_MP3_STEREO_SUPPORT              = y
 # wave decoder by charlie
 MTK_WAV_DECODER_ENABLE              = n

@@ -1319,6 +1319,15 @@ static void mp3_codec_task_create(mp3_codec_media_handle_t *handle)
         MP3_LOG_I("[MP3 Codec] create mp3 task(0x%x)\r\n",1, mp3_handle_ptr_to_task_handle(handle));
     }
 }
+
+static void mp3_codec_task_delete(mp3_codec_media_handle_t *handle)
+{
+    if (mp3_handle_ptr_to_task_handle(handle) !=  NULL) {
+        MP3_LOG_I("[MP3 Codec] Delete mp3 task(0x%x)\r\n",1, mp3_handle_ptr_to_task_handle(handle));
+        vTaskDelete(mp3_handle_ptr_to_task_handle(handle));
+        mp3_handle_ptr_to_task_handle(handle) = NULL;
+    }
+}
 #endif
 
 static hal_audio_channel_number_t mp3_codec_translate_decoder_ip_channel_number(uint16_t channel_number)
@@ -1588,11 +1597,13 @@ static void mp3_codec_pcm_out_isr_callback(hal_audio_event_t event, void *data)
             MP3_LOG_I("not here\r\n", 0);
             break;
         case HAL_AUDIO_EVENT_DATA_DIRECT:
+#ifdef MTK_MP3_TASK_DEDICATE
             MP3_LOG_I("[VPC] VP dsp triggered\r\n", 0);
             if (g_app_callback) {
                 MP3_LOG_I("[VPC] aws VP start trigger\n", 0);
                 g_app_callback(PROMPT_CONTROL_MEDIA_PLAY);
             }
+#endif /* MTK_MP3_TASK_DEDICATE */
             break;
     }
 #ifdef MTK_MP3_TASK_DEDICATE
@@ -2504,10 +2515,11 @@ static mp3_codec_function_return_state_t mp3_codec_play_internal(mp3_codec_media
 #if defined(MTK_AVM_DIRECT)
     internal_handle->sampling_rate = mp3_codec_translate_decoder_ip_sample_rate_index((uint16_t)internal_handle->mp3_handle->sampleRateIndex);
     internal_handle->channel_number = mp3_codec_translate_decoder_ip_channel_number(internal_handle->mp3_handle->CHNumber);
-#ifdef MTK_MP3_TASK_DEDICATE
+
     handle->flush_data_flag = 0;
+    // MP3_CODEC_STATE_PLAY must be SET before calling mp3_codec_play_avm().
     handle->state = MP3_CODEC_STATE_PLAY;
-#endif
+
     mp3_codec_play_avm(handle);
 
 #elif defined(MTK_AUDIO_MIXER_SUPPORT)
@@ -2551,7 +2563,8 @@ static mp3_codec_function_return_state_t mp3_codec_play_internal(mp3_codec_media
     // We don't put data (using hal_audio_write_stream_out) first, since we want  stream_out_pcm_buff have maximum amount of data
     hal_audio_start_stream_out(HAL_AUDIO_PLAYBACK_MUSIC);
 #endif
-#ifndef MTK_MP3_TASK_DEDICATE
+#if !defined(MTK_AVM_DIRECT) && \
+    defined(MTK_MP3_TASK_DEDICATE)
     handle->flush_data_flag = 0;
     handle->state = MP3_CODEC_STATE_PLAY;
 #endif
@@ -2805,10 +2818,12 @@ static mp3_codec_function_return_state_t mp3_codec_play(mp3_codec_media_handle_t
     audio_codec_mutex_unlock(); /* temp sol. to protect play/resume flow  */
     // should placed outof audio codec mutex, or will dead lock with vp app layer
     if (!(handle->aws_sync_request)) {
+#ifdef MTK_MP3_TASK_DEDICATE
         if (g_app_callback) {
             MP3_LOG_I("[VPC] non-aws VP start trigger\n", 0);
             g_app_callback(PROMPT_CONTROL_MEDIA_PLAY);
         }
+#endif /* MTK_MP3_TASK_DEDICATE */
     }
 #if defined(MTK_AUDIO_MP3_DEBUG)
     MP3_LOG_I("[MP3 Codec] mp3_codec_play --\r\n", 0);
@@ -2923,6 +2938,11 @@ mp3_codec_function_return_state_t mp3_codec_close(mp3_codec_media_handle_t *hand
     vPortFree(mp3_handle_ptr_to_mp3_decode_buffer(handle));
 #endif
     mp3_handle_ptr_to_mp3_decode_buffer(handle) = NULL;
+
+#ifndef MTK_MP3_TASK_DEDICATE
+    // delete decode task
+    mp3_codec_task_delete(handle);
+#endif
 
     internal_handle->memory_pool = NULL;
     internal_handle->IsMP3Exit = false;
