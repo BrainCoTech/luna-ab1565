@@ -44,7 +44,7 @@ MTK_DEBUG_LEVEL                       = info
 MTK_NVDM_ENABLE                       = y
 
 MTK_USB_DEMO_ENABLED                  = y
-MTK_USB_AUDIO_V1_ENABLE               = y
+MTK_USB_AUDIO_V1_ENABLE               = n
 MTK_USB_AUDIO_V2_ENABLE               = n
 MTK_USB_AUDIO_MICROPHONE              = n
 
@@ -162,6 +162,10 @@ MTK_PURE_LINEIN_PLAYBACK_ENABLE     = n
 MTK_LINEIN_PEQ_ENABLE               = y
 # LINEIN INS
 MTK_LINEIN_INS_ENABLE               = y
+
+# local audio playback
+BRC_LOCAL_AUDIO_ENABLE              = y
+BRC_LOCAL_AUDIO_TEST_ENABLE         = y
 
 # AUDIO LOOPBACK TEST module
 MTK_AUDIO_LOOPBACK_TEST_ENABLE = y
@@ -359,17 +363,16 @@ APPS_LINE_IN_SUPPORT = y
 LINE_IN_ENABLE_WITH_LOW_LEVEL = y
 
 # Enable usb audio enable
-APPS_USB_AUDIO_SUPPORT             = y
+APPS_USB_AUDIO_SUPPORT             = n
 
 # usb audio play enable
-MTK_USB_AUDIO_PLAYBACK_ENABLE      = y
+MTK_USB_AUDIO_PLAYBACK_ENABLE      = n
 
 #Fix afe rate to 48KHZ
 FIXED_SAMPLING_RATE_TO_48KHZ = y
 
 #Enable GATT over BR/EDR
 MTK_GATT_OVER_BREDR_ENABLE = n
-
 
 #Microsoft Swift Pair
 AIR_SWIFT_PAIR_ENABLE = n

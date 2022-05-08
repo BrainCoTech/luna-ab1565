@@ -1391,6 +1391,11 @@ typedef enum {
     HAL_AUDIO_DEVICE_DIGITAL_MIC_L      = 0x0010,  /**<  Stream in: digital mic L. */
     HAL_AUDIO_DEVICE_DIGITAL_MIC_R      = 0x0020,  /**<  Stream in: digital mic R. */
     HAL_AUDIO_DEVICE_DIGITAL_MIC_DUAL   = 0x0030,  /**<  Stream in: digital mic L+R. */
+#ifdef BRC_LOCAL_AUDIO_ENABLE
+    HAL_AUDIO_DEVICE_LOCAL_L            = 0x0044,  /**<  Stream in: local audio playback L. */
+    HAL_AUDIO_DEVICE_LOCAL_R            = 0x0044,  /**<  Stream in: local audio playback R. */
+    HAL_AUDIO_DEVICE_LOCAL_DUAL         = 0x0044,  /**<  Stream in: local audio playback L+R. */
+#endif
 
     HAL_AUDIO_DEVICE_DAC_L              = 0x0100,  /**<  Stream out:speaker L. */
     HAL_AUDIO_DEVICE_DAC_R              = 0x0200,  /**<  Stream out:speaker R. */

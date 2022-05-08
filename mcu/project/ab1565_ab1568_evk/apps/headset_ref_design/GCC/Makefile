@@ -197,6 +197,14 @@ include $(SOURCE_DIR)/middleware/MTK/atci/module.mk
 # Audio module
 include $(SOURCE_DIR)/middleware/MTK/audio/port/$(IC_CONFIG)/module.mk
 
+# audio middleware files
+include $(SOURCE_DIR)/middleware/MTK/audio/module.mk
+
+# BrainCo local playback middleware files
+ifeq ($(BRC_LOCAL_AUDIO_ENABLE), y)
+include $(SOURCE_DIR)/middleware/BrainCo/local_audio_playback/module.mk
+endif
+
 # include the nanopb module.mk
 include $(SOURCE_DIR)/middleware/third_party/nanopb/module.mk
 

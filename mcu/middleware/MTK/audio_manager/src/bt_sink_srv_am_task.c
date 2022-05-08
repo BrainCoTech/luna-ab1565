@@ -111,6 +111,10 @@
 #include "usb_audio_playback.h"
 #endif
 
+#ifdef BRC_LOCAL_AUDIO_ENABLE
+#include "local_audio_playback.h"
+#endif
+
 #if defined (MTK_AUDIO_TRANSMITTER_ENABLE)
 #include "audio_transmitter_playback.h"
 #if defined(AIR_BT_ULTRA_LOW_LATENCY_ENABLE)
@@ -2432,6 +2436,38 @@ static void am_audio_set_play(bt_sink_srv_am_background_t *background_ptr)
         g_rAm_aud_id[bAud_id].use = ID_PLAY_STATE;//ToDO
         g_prCurrent_player->notify_cb(g_prCurrent_player->aud_id, AUD_SINK_OPEN_CODEC, AUD_SINK_PROC_PTR, NULL);
 #endif
+#ifdef BRC_LOCAL_AUDIO_ENABLE
+    } else if (background_ptr->type == LOCAL_AUDIO) {
+        audio_src_srv_report("[Sink][AM][PLAY]LOCAL_AUDIO play.", 0);
+
+        #ifdef __BT_SINK_SRV_AUDIO_SETTING_SUPPORT__
+        {
+            bt_sink_srv_audio_setting_vol_info_t vol_info;
+
+            vol_info.type = VOL_A2DP;
+            vol_info.vol_info.a2dp_vol_info.dev = stream_out->audio_device;
+            vol_info.vol_info.a2dp_vol_info.lev = stream_out->audio_volume;
+
+            audio_src_srv_report("[Sink][AM][PLAY]LOCAL_AUDIO: audio_volume = %d.", 1, stream_out->audio_volume);
+            bt_sink_srv_am_set_volume(STREAM_OUT, &vol_info);
+        }
+        #else
+        aud_set_volume_level(STREAM_OUT, AUD_VOL_AUDIO, stream_out->audio_device, (bt_sink_srv_am_volume_level_t)stream_out->audio_volume);
+        #endif /* __BT_SINK_SRV_AUDIO_SETTING_SUPPORT__ */
+    
+        aud_prepare_a2dp_nvkey(&(background_ptr->local_feature));
+
+        audio_local_audio_playback_open();
+        aud_dl_control(true);
+
+        /* mp3_codec decode is async, delay 20ms for first time decode complete. */
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+
+        audio_local_audio_playback_start();
+
+        g_rAm_aud_id[bAud_id].use = ID_PLAY_STATE;//ToDO
+        g_prCurrent_player->notify_cb(g_prCurrent_player->aud_id, AUD_SELF_CMD_REQ, AUD_CMD_COMPLETE, NULL);
+#endif
 #ifdef MTK_AUDIO_TRANSMITTER_ENABLE
     } else if(background_ptr->type == AUDIO_TRANSMITTER){
 #ifdef MTK_VENDOR_SOUND_EFFECT_ENABLE
@@ -3186,6 +3222,14 @@ static void am_audio_set_stop(bt_sink_srv_am_background_t *background_ptr)
         ami_execute_vendor_se(EVENT_USB_AUDIO_STOP);
 #endif
     }
+#ifdef BRC_LOCAL_AUDIO_ENABLE
+    else if (background_ptr->type == LOCAL_AUDIO) {
+        audio_src_srv_report("[Sink][AM][PLAY]LOCAL_AUDIO stop.", 0);
+        audio_local_audio_playback_stop();
+        aud_dl_control(false);
+        audio_local_audio_playback_close();
+    }
+#endif
 #if defined (MTK_AUDIO_TRANSMITTER_ENABLE)
         else if(background_ptr->type == AUDIO_TRANSMITTER){
         uint16_t scenario_and_id = ((background_ptr->local_context.audio_transmitter_format.scenario_type)<<8) + background_ptr->local_context.audio_transmitter_format.scenario_sub_id;
@@ -4004,6 +4048,12 @@ static void aud_set_volume_stream_req_hdlr(bt_sink_srv_am_amm_struct *amm_ptr)
                     vol_info.type = VOL_USB_AUDIO_IN;
                     vol_info.vol_info.usb_audio_vol_info.dev = g_prCurrent_player->audio_stream_out.audio_device;
                     vol_info.vol_info.usb_audio_vol_info.lev = g_prCurrent_player->audio_stream_out.audio_volume;
+                #ifdef BRC_LOCAL_AUDIO_ENABLE
+                } else if (g_prCurrent_player->type == LOCAL_AUDIO) {
+                    vol_info.type = VOL_A2DP;
+                    vol_info.vol_info.usb_audio_vol_info.dev = g_prCurrent_player->audio_stream_out.audio_device;
+                    vol_info.vol_info.usb_audio_vol_info.lev = g_prCurrent_player->audio_stream_out.audio_volume;
+                #endif
                 } else {
                     // Fix Coverity issue
                     vol_info.type = VOL_DEF;
@@ -5084,6 +5134,12 @@ static void aud_dl_suspend(void)
         {
             hal_audio_dsp_controller_send_message(MSG_MCU2DSP_BLE_AUDIO_DL_SUSPEND, 0, 0, true);
         }
+#ifdef BRC_LOCAL_AUDIO_ENABLE
+        else if(g_prCurrent_player->type == LOCAL_AUDIO)
+        {
+            hal_audio_dsp_controller_send_message(MSG_MCU2DSP_PLAYBACK_SUSPEND, 0, 0, true);
+        }
+#endif
     }
     else
     {
@@ -5274,6 +5330,22 @@ static void aud_dl_resume(void)
                 aud_set_volume_level(STREAM_OUT, AUD_VOL_AUDIO, stream_out->audio_device, (bt_sink_srv_am_volume_level_t)stream_out->audio_volume);
                 #endif /* __BT_SINK_SRV_AUDIO_SETTING_SUPPORT__ */
                 hal_audio_dsp_controller_send_message(MSG_MCU2DSP_BLE_AUDIO_DL_RESUME, 0, 0, true);
+#ifdef BRC_LOCAL_AUDIO_ENABLE
+            } else if (g_prCurrent_player->type == LOCAL_AUDIO) {
+            #ifdef __BT_SINK_SRV_AUDIO_SETTING_SUPPORT__
+            {
+                bt_sink_srv_audio_setting_vol_info_t vol_info;
+                vol_info.type = VOL_A2DP;
+                vol_info.vol_info.a2dp_vol_info.dev = g_prCurrent_player->audio_stream_out.audio_device;
+                vol_info.vol_info.a2dp_vol_info.lev = g_prCurrent_player->audio_stream_out.audio_volume;
+
+                audio_src_srv_report("[Sink][AM][PLAY]LOCAL_AUDIO: audio_volume = %d.", 1, g_prCurrent_player->audio_stream_out.audio_volume);
+                bt_sink_srv_am_set_volume(STREAM_OUT, &vol_info);
+            }
+            #else
+                aud_set_volume_level(STREAM_OUT, AUD_VOL_AUDIO, stream_out->audio_device, (bt_sink_srv_am_volume_level_t)stream_out->audio_volume);
+            #endif /* __BT_SINK_SRV_AUDIO_SETTING_SUPPORT__ */               
+#endif
             }
 #if defined(MTK_EXTERNAL_DSP_NEED_SUPPORT)
             ami_set_afe_param(STREAM_OUT, audio_common.stream_out.stream_sampling_rate, true);

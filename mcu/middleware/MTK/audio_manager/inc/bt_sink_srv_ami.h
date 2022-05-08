@@ -392,6 +392,9 @@ typedef enum {
     BLE          = 9,
     USB_AUDIO_IN = 10,
     AUDIO_TRANSMITTER      = 12,
+#ifdef BRC_LOCAL_AUDIO_ENABLE
+    LOCAL_AUDIO  = 13,
+#endif
     AM_TYPE_TOTAL
 } bt_sink_srv_am_type_t;
 

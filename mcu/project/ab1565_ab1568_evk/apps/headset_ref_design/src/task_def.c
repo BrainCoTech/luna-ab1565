@@ -117,6 +117,10 @@ extern void ama_core_task_handler(void *arg);
 #endif
 extern void app_ui_realtime_task(void *arg);
 
+#ifdef BRC_LOCAL_AUDIO_TEST_ENABLE
+extern void local_audio_test(void *arg);
+#endif
+
 static const tasks_list_t tasks_list[] = {
     { app_ui_realtime_task, UI_REALTIME_TASK_NAME,   UI_REALTIME_TASK_STACKSIZE,  NULL,  UI_REALTIME_TASK_PRIO },
     { bt_task,      BT_TASK_NAME,   BT_TASK_STACKSIZE,  NULL,   BT_TASK_PRIORITY },
@@ -138,6 +142,10 @@ static const tasks_list_t tasks_list[] = {
 #ifdef MTK_AMA_ENABLE
     {ama_port_task_main, AMA_TARGET_TASK_NAME, AMA_TARGET_TASK_STACK_SIZE, NULL, AMA_TARGET_TASK_PRIORITY},
     {ama_core_task_handler, AMA_CORE_TASK_NAME, AMA_CORE_TASK_STACK_SIZE, NULL, AMA_CORE_TASK_PRIORITY},
+#endif
+
+#ifdef BRC_LOCAL_AUDIO_TEST_ENABLE
+    {local_audio_test, "LOCAL_AUDIO_TEST", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},
 #endif
 };
 

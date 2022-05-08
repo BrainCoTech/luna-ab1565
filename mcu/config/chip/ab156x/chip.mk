@@ -625,6 +625,21 @@ CFLAGS += -DAIR_I2S_SLAVE_ENABLE
 endif
 
 ##
+## BRC_LOCAL_AUDIO_ENABLE
+## Brief:       This option is to enable LOCAL AUDIO PLAYBACK.
+## Usage:       Enable the feature by configuring it as y.
+## Path:                middleware/BrainCo/local_playback
+## Dependency:  !MTK_MP3_CODEC_TASK_DEDICATE
+## Notice:      None
+## Relative doc:None
+##
+ifeq ($(MTK_MP3_CODEC_TASK_DEDICATE), n)
+ifeq ($(BRC_LOCAL_AUDIO_ENABLE), y)
+CFLAGS         += -DBRC_LOCAL_AUDIO_ENABLE
+endif
+endif
+
+##
 ## MTK_PURE_LINEIN_PLAYBACK_ENABLE
 ## Brief:       This option is to enable PURE LINEIN PLAYBACK.
 ## Usage:       Enable the feature by configuring it as y.
