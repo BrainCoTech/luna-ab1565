@@ -134,7 +134,7 @@ int audio_local_audio_control_play(local_stream_if_t *stream)
 
     err = local_audio_source_set_stream(stream);
     if (err < 0) {
-        return -EIO;
+        return err;
     }
 
     audio_src_srv_update_state(src->audio_hdl, AUDIO_SRC_SRV_EVT_PREPARE_PLAY);

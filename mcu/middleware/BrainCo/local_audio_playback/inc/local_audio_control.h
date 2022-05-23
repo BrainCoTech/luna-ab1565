@@ -39,7 +39,9 @@ int audio_local_audio_control_deinit(void);
  * 
  * @param stream local stream interface pointer
  * @return int 0 for success, negative if failed.
- * 
+ *   Failed code reason: 
+ *     -EIO local stream I/O operate failed, 
+ *     -ENOTSUP not supported mp3 format.
  * @note
  *   1. This api only allowed at @ready state.
  *   2. When there have terminated event, like finish, error, resource will be release automatically,

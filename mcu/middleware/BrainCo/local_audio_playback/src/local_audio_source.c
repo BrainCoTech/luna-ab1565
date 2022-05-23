@@ -16,8 +16,8 @@
 #define ID3V2_ID            "ID3"
 #define ID3V2_HEADER_SIZE   10
 
-static int local_audio_source_mp3_write(local_stream_if_t *stream);
-static int local_audio_source_mp3_skip_id3v2(local_stream_if_t *stream);
+static int local_audio_source_mp3_write(void);
+static int local_audio_source_mp3_skip_id3v2(void);
 static void local_audio_source_mp3_callback(mp3_codec_media_handle_t *mp3_codec_handle, mp3_codec_event_t event);
 
 static void local_audio_source_play(audio_src_srv_handle_t *handle);
@@ -25,6 +25,25 @@ static void local_audio_source_stop(audio_src_srv_handle_t *handle);
 static void local_audio_source_suspend(audio_src_srv_handle_t *handle, audio_src_srv_handle_t *int_hd);
 static void local_audio_source_reject(audio_src_srv_handle_t *handle);
 static void local_audio_source_exception(audio_src_srv_handle_t *handle, int32_t event, void *param);
+
+static uint32_t MP3_MPEG1_AUDIO_FRAME_BIT_RATE[] = { 
+    0U,
+    32000U,
+    40000U,
+    48000U,
+    56000U,
+    64000U,
+    80000U,
+    96000U,
+    112000U,
+    128000U,
+    160000U,
+    192000U,
+    224000U,
+    256000U,
+    320000U,
+    0U,
+};
 
 static local_audio_source_t s_local_audio_source;
 
@@ -69,6 +88,10 @@ int local_audio_source_init(void)
     src->mp3_hdl = mp3_hdl;
     src->audio_hdl = audio_hdl;
 
+    src->mp3_cache_cur = 0U;
+    src->mp3_cache_end = 0U;
+    src->mp3_cache_total = 0U;
+
     /* For easier get pcm samples from mp3_codec. */ 
     src->stream_out_pcm_buff = &(mp3_handle_ptr_to_internal_ptr(mp3_hdl)->stream_out_pcm_buff);
 
@@ -100,26 +123,27 @@ int local_audio_source_set_stream(local_stream_if_t *stream)
 {
     local_audio_source_t *src = local_audio_get_src();
     int err;
- 
+
     stream->open(stream->private_data);
     if (stream->state == LOCAL_STREAM_STATE_BAD) {
         return -EIO;
     }
+    src->stream = stream;
 
-    err = local_audio_source_mp3_skip_id3v2(stream);
+    err = local_audio_source_mp3_skip_id3v2();
     if (err < 0) {
-        stream->close(stream->private_data);
+        src->stream->close(stream->private_data);
+        src->stream = NULL;
         return -EIO;
     }
 
     /* First time push data to mp3_codec. */
-    err = local_audio_source_mp3_write(stream);
+    err = local_audio_source_mp3_write();
     if (err < 0) {
-        stream->close(stream->private_data);
-        return -EIO;
+        src->stream->close(stream->private_data);
+        src->stream = NULL;
+        return err;
     }
-
-    src->stream = stream;
 
     return 0;
 }
@@ -147,31 +171,103 @@ int local_audio_source_reset_stream(void)
     }
     src->stream = NULL;
 
+    src->mp3_cache_cur = 0U;
+    src->mp3_cache_end = 0U;
+    src->mp3_cache_total = 0U;
+
     return 0;
 }
 
-static int local_audio_source_mp3_write(local_stream_if_t *stream)
+static int local_audio_source_mp3_frame_fetch(local_audio_source_t *src)
 {
-    local_audio_source_t *src = local_audio_get_src();
-	uint32_t length_size, length_read;
-	uint8_t *buffer;
+    local_stream_if_t *stream = src->stream;
+    uint32_t temp_mp3_header;
+    uint32_t bitrate, padding_bit;
+    uint32_t frame_len, read_len;
 
-	src->mp3_hdl->get_write_buffer(src->mp3_hdl, &buffer, &length_size);
-	if (length_size == 0) {
-		return 0;
-	}
+    if (src->mp3_cache_end != 0U) {
+        return 0;
+    }
 
-	length_read = stream->read(stream->private_data, buffer, length_size);
-	if (stream->state == LOCAL_STREAM_STATE_BAD) {
-		return -EIO;
-	}
-    /* All mp3 frames have been pushed to mp3_codec. */
-    if (stream->state == LOCAL_STREAM_STATE_EOF && length_read == 0) {
+    stream->read(stream->private_data, src->mp3_cache, MP3_FRAME_HEADER_SIZE);
+    if (stream->state == LOCAL_STREAM_STATE_BAD) {
+        return -EIO;
+    }
+    if (stream->state == LOCAL_STREAM_STATE_EOF) {
+        /* Reach the end of local stream. */
         return 1;
     }
 
-    /* Update mp3_codec write buffer. */
-    src->mp3_hdl->write_data_done(src->mp3_hdl, length_read);
+    temp_mp3_header  = (src->mp3_cache[0] << 24);
+    temp_mp3_header |= (src->mp3_cache[1] << 16);
+    temp_mp3_header |= (src->mp3_cache[2] << 8);
+    temp_mp3_header |= (src->mp3_cache[3]);
+
+    if (!IS_MP3_HEAD(temp_mp3_header)) {
+        /* Not a valid mp3 header, treat as EOF. */
+        return 1;
+    }
+
+    /* Local audio only support MPEG-1, layer-3, 48KHz, stereo. */
+    if ((((temp_mp3_header>>19)&0x3) != 0x3) ||
+        (((temp_mp3_header>>17)&0x3) != 0x1) ||
+        (((temp_mp3_header>>10)&0x3) != 0x1) ||
+        (((temp_mp3_header>> 6)&0x3) == 0x3)) {
+        return -ENOTSUP;
+    }
+
+    bitrate = MP3_MPEG1_AUDIO_FRAME_BIT_RATE[((temp_mp3_header >> 12) & 0xF)];
+    padding_bit = (temp_mp3_header >> 9) & 0x1;
+
+    frame_len = ((144 * bitrate) / 48000) + padding_bit;
+
+    read_len = stream->read(stream->private_data,
+                            (src->mp3_cache + MP3_FRAME_HEADER_SIZE), 
+                            frame_len - MP3_FRAME_HEADER_SIZE);
+    if ((stream->state == LOCAL_STREAM_STATE_BAD) ||
+        (read_len < (frame_len - MP3_FRAME_HEADER_SIZE))) {
+        return -EIO;
+    }
+
+    src->mp3_cache_cur = 0U;
+    src->mp3_cache_end = frame_len;
+
+    return 0;
+}
+
+static int local_audio_source_mp3_write(void)
+{
+    local_audio_source_t *src = local_audio_get_src();
+	uint32_t buffer_size, write_len;
+	uint8_t *buffer;
+    int err;
+
+    do {
+        err = local_audio_source_mp3_frame_fetch(src);
+        if (err != 0) {
+            return err;
+        }
+
+        src->mp3_hdl->get_write_buffer(src->mp3_hdl, &buffer, &buffer_size);
+        if (buffer_size == 0) {
+            break;
+        }
+
+        write_len = MINIMUM(buffer_size, (src->mp3_cache_end - src->mp3_cache_cur));
+
+        memcpy(buffer, (src->mp3_cache + src->mp3_cache_cur), write_len);
+
+        src->mp3_cache_cur += write_len;
+        /* Reset mp3_cache, if copy cache to mp3_codec is complete. */
+        if (src->mp3_cache_cur == src->mp3_cache_end) {
+            src->mp3_cache_cur = 0U;
+            src->mp3_cache_end = 0U;
+            src->mp3_cache_total++;
+        }
+
+        src->mp3_hdl->write_data_done(src->mp3_hdl, write_len);
+
+    } while ((buffer_size - write_len) > MINIMUM_MP3_FRAME_SIZE);
 
     /* Trigger mp3_codec decode process. */
     src->mp3_hdl->finish_write_data(src->mp3_hdl);
@@ -179,10 +275,12 @@ static int local_audio_source_mp3_write(local_stream_if_t *stream)
 	return 0;
 }
 
-static int local_audio_source_mp3_skip_id3v2(local_stream_if_t *stream)
+static int local_audio_source_mp3_skip_id3v2(void)
 {
-    uint32_t id3v2_size;
+    local_audio_source_t *src = local_audio_get_src();
+    local_stream_if_t *stream = src->stream;
     uint8_t id3v2_buf[ID3V2_HEADER_SIZE];
+    uint32_t id3v2_size;
 
     stream->read(stream->private_data, id3v2_buf, ID3V2_HEADER_SIZE);
     if (stream->state != LOCAL_STREAM_STATE_GOOD) {
@@ -216,7 +314,7 @@ void local_audio_source_mp3_callback(mp3_codec_media_handle_t *mp3_codec_handle,
     int err;
 
 	if (MP3_CODEC_MEDIA_REQUEST == event) {
-        err = local_audio_source_mp3_write(src->stream);
+        err = local_audio_source_mp3_write();
         if (err < 0) {
             local_audio_update_state(ctx, LOCAL_AUDIO_STATE_ERROR);
             audio_src_srv_update_state(src->audio_hdl, AUDIO_SRC_SRV_EVT_PREPARE_STOP);
