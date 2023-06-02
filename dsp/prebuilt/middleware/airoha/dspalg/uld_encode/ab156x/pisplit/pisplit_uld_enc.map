@@ -1,0 +1,553 @@
+
+Discarded input sections
+
+ .note.GNU-stack
+                0x00000000        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .note.GNU-stack
+                0x00000000        0x0 Build/source/source/main_lib_enc.picsl.o
+ .note.GNU-stack
+                0x00000000        0x0 Build/source/source/uld_memory.picsl.o
+ .note.GNU-stack
+                0x00000000        0x0 Build/source/source/uld_com.picsl.o
+ .note.GNU-stack
+                0x00000000        0x0 Build/source/source/uld_enc.picsl.o
+ .note.GNU-stack
+                0x00000000        0x0 Build/source/source/quant.picsl.o
+ .note.GNU-stack
+                0x00000000        0x0 Build/source/source/lattice_filter.picsl.o
+ .note.GNU-stack
+                0x00000000        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+
+Linker script and memory map
+
+LOAD C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+LOAD C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+LOAD Build/source/source/main_lib_enc.picsl.o
+LOAD Build/source/source/uld_memory.picsl.o
+LOAD Build/source/source/uld_com.picsl.o
+LOAD Build/source/source/uld_enc.picsl.o
+LOAD Build/source/source/quant.picsl.o
+LOAD Build/source/source/lattice_filter.picsl.o
+LOAD C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/\libgcc.a
+LOAD C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/\libgcc.a
+LOAD C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+LOAD C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+
+.text           0x00000000      0x8e9
+                0x00000000                _text_start = ABSOLUTE (.)
+ *(.got.plt* .plt*)
+ .got.plt       0x00000000        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+                0x00000000                _GLOBAL_OFFSET_TABLE_
+ .init.literal  0x00000000        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .init.literal  0x00000004        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .literal       0x00000008       0x14 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+                                         0x20 (size before relaxing)
+ .literal       0x0000001c       0x28 Build/source/source/main_lib_enc.picsl.o
+ .literal       0x00000044       0x24 Build/source/source/uld_com.picsl.o
+ .literal       0x00000068       0x10 Build/source/source/uld_enc.picsl.o
+                                         0x18 (size before relaxing)
+ .literal       0x00000078        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .fini.literal  0x0000007c        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .plt           0x00000080        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+ *(.init.literal)
+ *(.init)
+ .init          0x00000080        0x3 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+                0x00000080                _init
+ .init          0x00000083        0x8 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .init          0x0000008b        0x8 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .init          0x00000093        0x2 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+ *(.literal .text .stub .literal.* .text.* .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)
+ *fill*         0x00000095        0x3 00000000
+ .text          0x00000098       0x4a C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ *fill*         0x000000e2        0x2 00000000
+ .text          0x000000e4       0x3d Build/source/source/main_lib_enc.picsl.o
+                0x000000e4                _start
+ *fill*         0x00000121        0x7 00000000
+ .text          0x00000128      0x10f Build/source/source/uld_com.picsl.o
+                0x00000128                ULD_Get_Version
+                0x00000130                ULD_Init
+ *fill*         0x00000237        0x1 00000000
+ .text          0x00000238      0x503 Build/source/source/uld_enc.picsl.o
+                0x00000238                ULD_Enc_Get_MemSize
+                0x00000240                ULD_Enc_Init
+                0x00000258                ULD_Enc_Prcs
+ *fill*         0x0000073b        0x1 00000000
+ .text          0x0000073c       0x1e C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .text          0x0000075a        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+ *fill*         0x0000075a        0x0 00000000
+ *fill*         0x0000075a        0x0 00000000
+ *fill*         0x0000075a        0x2 00000000
+ .literal       0x0000075c        0x0 Build/source/source/uld_memory.picsl.o
+ *fill*         0x0000075c        0x4 00000000
+ .text          0x00000760       0xcc Build/source/source/uld_memory.picsl.o
+                0x00000760                memset
+                0x000007a0                memcpy
+ *fill*         0x0000082c        0x0 00000000
+ *fill*         0x0000082c        0x0 00000000
+ .literal       0x0000082c        0x0 Build/source/source/quant.picsl.o
+ *fill*         0x0000082c        0x4 00000000
+ .text          0x00000830       0xab Build/source/source/quant.picsl.o
+                0x00000830                pack_bs
+                0x00000878                pack_flush
+                0x00000890                unpack_bs
+ .text          0x000008db        0x0 Build/source/source/lattice_filter.picsl.o
+ *fill*         0x000008db        0x0 00000000
+ .text          0x000008db        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+ *(.clib.literal .clib.text)
+ *(.text.*personality*)
+ *(.gnu.warning)
+ *(.fini.literal)
+ *fill*         0x000008db        0x0 00000000
+ *(.fini)
+ *fill*         0x000008db        0x1 00000000
+ .fini          0x000008dc        0x3 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+                0x000008dc                _fini
+ .fini          0x000008df        0x8 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .fini          0x000008e7        0x2 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+                [!provide]                        PROVIDE (__etext = .)
+                [!provide]                        PROVIDE (_etext = .)
+                [!provide]                        PROVIDE (etext = .)
+
+.dynamic        0x000008ec       0xa8
+                0x000008ec        0x4 LONG 0x70000002
+                0x000008f0        0x4 LONG 0x0 _text_start
+ *(.dynamic)
+ .dynamic       0x000008f4       0xa0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+                0x000008f4                _DYNAMIC
+
+.hash           0x00000994       0x10
+ *(.hash)
+ .hash          0x00000994       0x10 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.dynsym         0x000009a4       0x10
+ *(.dynsym)
+ .dynsym        0x000009a4       0x10 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.dynstr         0x000009b4        0x1
+ *(.dynstr)
+ .dynstr        0x000009b4        0x1 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.gnu.version    0x000009b6        0x0
+ *(.gnu.version)
+ .gnu.version   0x000009b6        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.gnu.version_d  0x000009b8        0x0
+ *(.gnu.version_d)
+ .gnu.version_d
+                0x000009b8        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.gnu.version_r  0x000009b8        0x0
+ *(.gnu.version_r)
+ .gnu.version_r
+                0x000009b8        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.rel.init
+ *(.rel.init)
+
+.rela.init
+ *(.rela.init)
+
+.rel.text
+ *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)
+
+.rela.text
+ *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)
+
+.rel.fini
+ *(.rel.fini)
+
+.rela.fini
+ *(.rela.fini)
+
+.rel.rodata
+ *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)
+
+.rela.rodata
+ *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)
+
+.rel.data.rel.ro
+ *(.rel.data.rel.ro*)
+
+.rela.data.rel.ro
+ *(.rel.data.rel.ro*)
+
+.rel.data
+ *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
+
+.rela.data
+ *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)
+
+.rel.tdata
+ *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)
+
+.rela.tdata
+ *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)
+
+.rel.tbss
+ *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)
+
+.rela.tbss
+ *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)
+
+.rel.ctors
+ *(.rel.ctors)
+
+.rela.ctors
+ *(.rela.ctors)
+
+.rel.dtors
+ *(.rel.dtors)
+
+.rela.dtors
+ *(.rela.dtors)
+
+.rel.got
+ *(.rel.got)
+
+.rela.got       0x000009b8      0x174
+ *(.rela.got)
+ .rela.got      0x000009b8      0x174 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.rel.bss
+ *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)
+
+.rela.bss
+ *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)
+
+.rel.plt
+ *(.rel.plt)
+
+.rela.plt       0x00000b2c        0x0
+ *(.rela.plt)
+ .rela.plt      0x00000b2c        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.got            0x00000b2c        0x4
+ *(.got)
+ .got           0x00000b2c        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.got.loc        0x00000b30       0x40
+ *(.got.loc)
+ .got.loc       0x00000b30       0x40 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.clib.rodata
+ *(.clib.rodata)
+
+.rtos.rodata
+ *(.rtos.rodata)
+
+.clib.data
+ *(.clib.data)
+
+.rtos.data
+ *(.rtos.data)
+
+.clib.percpu.data
+ *(.clib.percpu.data)
+
+.rtos.percpu.data
+ *(.rtos.percpu.data)
+
+.rodata
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+
+.interp         0x00000b70        0xb
+ .interp        0x00000b70        0xb C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+
+.rodata1
+ *(.rodata1)
+
+.xt_except_table
+ *(.xt_except_table)
+
+.eh_frame       0x00000b7c        0x4
+ *(.eh_frame)
+ .eh_frame      0x00000b7c        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .eh_frame      0x00000b7c        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+
+.gcc_except_table
+ *(.gcc_except_table)
+ *(.gcc_except_table.*)
+
+.eh_frame
+ *(.eh_frame)
+
+.gcc_except_table
+ *(.gcc_except_table)
+ *(.gcc_except_table.*)
+
+.tdata
+ *(.tdata .tdata.* .gnu.linkonce.td.*)
+
+.tbss
+ *(.tbss .tbss.* .gnu.linkonce.tb.*)
+ *(.tcommon)
+                0x00000b80                . = ALIGN (0x4)
+                [!provide]                        PROVIDE (__preinit_array_start = .)
+
+.preinit_array
+ *(.preinit_array)
+                [!provide]                        PROVIDE (__preinit_array_end = .)
+                [!provide]                        PROVIDE (__init_array_start = .)
+
+.init_array
+ *(.init_array)
+                [!provide]                        PROVIDE (__init_array_end = .)
+                [!provide]                        PROVIDE (__fini_array_start = .)
+
+.fini_array
+ *(.fini_array)
+                [!provide]                        PROVIDE (__fini_array_end = .)
+
+.ctors          0x00000b80        0x8
+ *crtbegin*.o(.ctors)
+ .ctors         0x00000b80        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ *(EXCLUDE_FILE(*crtend*.o) .ctors)
+ *(SORT_BY_NAME(.ctors.*))
+ *(.ctors)
+ .ctors         0x00000b84        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+
+.dtors          0x00000b88        0x8
+ *crtbegin*.o(.dtors)
+ .dtors         0x00000b88        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ *(EXCLUDE_FILE(*crtend*.o) .dtors)
+ *(SORT_BY_NAME(.dtors.*))
+ *(.dtors)
+ .dtors         0x00000b8c        0x4 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+
+.jcr
+ *(.jcr)
+
+.data.rel.ro
+ *(.data.rel.ro.local)
+ *(.data.rel.ro*)
+
+.data           0x00000b90      0x57c
+ *(.data .data.* .gnu.linkonce.d.*)
+ .data          0x00000b90        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+ .data          0x00000b90       0x24 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+                0x00000b90                __dso_handle
+ *fill*         0x00000bb4        0xc 
+ .data          0x00000bc0       0x66 Build/source/source/main_lib_enc.picsl.o
+                0x00000bc0                export_parameter_array
+ .data          0x00000c26        0x0 Build/source/source/uld_memory.picsl.o
+ .data          0x00000c26        0x0 Build/source/source/uld_com.picsl.o
+ *fill*         0x00000c26        0xa 
+ .data          0x00000c30      0x400 Build/source/source/uld_enc.picsl.o
+                0x00000c30                T_Random
+ .data          0x00001030       0xdc Build/source/source/quant.picsl.o
+                0x00001030                T_BS_152kbps
+                0x00001090                T_BS_200kbps
+                0x000010f0                quant_sam_4b
+                0x00001100                quant_sam_3b
+                0x00001108                quant_sam_2b
+ .data          0x0000110c        0x0 Build/source/source/lattice_filter.picsl.o
+ .data          0x0000110c        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .data          0x0000110c        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+ *(.gnu.linkonce.d.*personality*)
+
+.data1
+ *(.data1)
+
+.xt_except_desc
+ *(.xt_except_desc .gnu.linkonce.h.*)
+ *(.xt_except_desc_end)
+                0x0000110c                _edata = .
+                [!provide]                        PROVIDE (edata = .)
+                0x0000110c                __bss_start = .
+
+.bss            0x0000110c        0x8
+ *(.dynbss)
+ *(.bss .bss.* .gnu.linkonce.b.*)
+ .bss           0x0000110c        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+ .bss           0x0000110c        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .bss           0x0000110c        0x4 Build/source/source/main_lib_enc.picsl.o
+                0x0000110c                printf_ptr
+ .bss           0x00001110        0x0 Build/source/source/uld_memory.picsl.o
+ .bss           0x00001110        0x0 Build/source/source/uld_com.picsl.o
+ .bss           0x00001110        0x0 Build/source/source/uld_enc.picsl.o
+ .bss           0x00001110        0x0 Build/source/source/quant.picsl.o
+ .bss           0x00001110        0x4 Build/source/source/lattice_filter.picsl.o
+                0x00001110                gg
+ .bss           0x00001114        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .bss           0x00001114        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+ *(.clib.bss)
+ *(.clib.percpu.bss)
+ *(.rtos.bss)
+ *(.rtos.percpu.bss)
+ *(COMMON)
+                0x00001114                . = ALIGN (0x4)
+                0x00001114                . = ALIGN (0x4)
+                0x00001114                _end = .
+                [!provide]                        PROVIDE (end = .)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x00000000       0x5f
+ *(.comment)
+ .comment       0x00000000       0x28 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+                                         0x29 (size before relaxing)
+ .comment       0x00000028       0x37 Build/source/source/main_lib_enc.picsl.o
+                                         0x38 (size before relaxing)
+ .comment       0x0000005f       0x38 Build/source/source/uld_memory.picsl.o
+ .comment       0x0000005f       0x38 Build/source/source/uld_com.picsl.o
+ .comment       0x0000005f       0x38 Build/source/source/uld_enc.picsl.o
+ .comment       0x0000005f       0x38 Build/source/source/quant.picsl.o
+ .comment       0x0000005f       0x38 Build/source/source/lattice_filter.picsl.o
+ .comment       0x0000005f       0x29 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+
+.xtensa.info    0x00000000      0x1f0
+ .xtensa.info   0x00000000      0x1f0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+ .xtensa.info   0x000001f0        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .xtensa.info   0x000001f0        0x0 Build/source/source/main_lib_enc.picsl.o
+ .xtensa.info   0x000001f0        0x0 Build/source/source/uld_memory.picsl.o
+ .xtensa.info   0x000001f0        0x0 Build/source/source/uld_com.picsl.o
+ .xtensa.info   0x000001f0        0x0 Build/source/source/uld_enc.picsl.o
+ .xtensa.info   0x000001f0        0x0 Build/source/source/quant.picsl.o
+ .xtensa.info   0x000001f0        0x0 Build/source/source/lattice_filter.picsl.o
+ .xtensa.info   0x000001f0        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .xtensa.info   0x000001f0        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info     0x00000000     0x12d9
+ *(.debug_info .gnu.linkonce.wi.*)
+ .debug_info    0x00000000       0xd7 Build/source/source/main_lib_enc.picsl.o
+ .debug_info    0x000000d7      0x109 Build/source/source/uld_memory.picsl.o
+ .debug_info    0x000001e0      0x3ae Build/source/source/uld_com.picsl.o
+ .debug_info    0x0000058e      0xb4f Build/source/source/uld_enc.picsl.o
+ .debug_info    0x000010dd      0x1c5 Build/source/source/quant.picsl.o
+ .debug_info    0x000012a2       0x37 Build/source/source/lattice_filter.picsl.o
+
+.debug_abbrev   0x00000000      0x556
+ *(.debug_abbrev)
+ .debug_abbrev  0x00000000       0xb5 Build/source/source/main_lib_enc.picsl.o
+ .debug_abbrev  0x000000b5       0x93 Build/source/source/uld_memory.picsl.o
+ .debug_abbrev  0x00000148      0x111 Build/source/source/uld_com.picsl.o
+ .debug_abbrev  0x00000259      0x219 Build/source/source/uld_enc.picsl.o
+ .debug_abbrev  0x00000472       0xb8 Build/source/source/quant.picsl.o
+ .debug_abbrev  0x0000052a       0x2c Build/source/source/lattice_filter.picsl.o
+
+.debug_line     0x00000000      0xff4
+ *(.debug_line)
+ .debug_line    0x00000000       0xb3 Build/source/source/main_lib_enc.picsl.o
+ .debug_line    0x000000b3      0x1f6 Build/source/source/uld_memory.picsl.o
+ .debug_line    0x000002a9      0x1ab Build/source/source/uld_com.picsl.o
+ .debug_line    0x00000454      0x9ea Build/source/source/uld_enc.picsl.o
+ .debug_line    0x00000e3e      0x172 Build/source/source/quant.picsl.o
+ .debug_line    0x00000fb0       0x44 Build/source/source/lattice_filter.picsl.o
+
+.debug_frame    0x00000000      0x140
+ *(.debug_frame)
+ .debug_frame   0x00000000       0x28 Build/source/source/main_lib_enc.picsl.o
+ .debug_frame   0x00000028       0x3c Build/source/source/uld_memory.picsl.o
+ .debug_frame   0x00000064       0x3c Build/source/source/uld_com.picsl.o
+ .debug_frame   0x000000a0       0x50 Build/source/source/uld_enc.picsl.o
+ .debug_frame   0x000000f0       0x50 Build/source/source/quant.picsl.o
+
+.debug_str      0x00000000      0x6e1
+ *(.debug_str)
+ .debug_str     0x00000000       0xf1 Build/source/source/main_lib_enc.picsl.o
+                                         0xf5 (size before relaxing)
+ .debug_str     0x000000f1       0x6a Build/source/source/uld_memory.picsl.o
+                                         0xcc (size before relaxing)
+ .debug_str     0x0000015b      0x229 Build/source/source/uld_com.picsl.o
+                                        0x2bf (size before relaxing)
+ .debug_str     0x00000384      0x29f Build/source/source/uld_enc.picsl.o
+                                        0x54e (size before relaxing)
+ .debug_str     0x00000623       0x84 Build/source/source/quant.picsl.o
+                                        0x11f (size before relaxing)
+ .debug_str     0x000006a7       0x3a Build/source/source/lattice_filter.picsl.o
+                                         0x91 (size before relaxing)
+
+.debug_loc      0x00000000      0x8f7
+ *(.debug_loc)
+ .debug_loc     0x00000000       0x13 Build/source/source/main_lib_enc.picsl.o
+ .debug_loc     0x00000013       0xd3 Build/source/source/uld_memory.picsl.o
+ .debug_loc     0x000000e6      0x184 Build/source/source/uld_com.picsl.o
+ .debug_loc     0x0000026a      0x5c1 Build/source/source/uld_enc.picsl.o
+ .debug_loc     0x0000082b       0xcc Build/source/source/quant.picsl.o
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.xt.lit         0x00000000       0x40
+ *(.xt.lit .xt.lit.* .gnu.linkonce.p.*)
+ .xt.lit.plt    0x00000000        0x0 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+ .xt.lit        0x00000000       0x18 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .xt.lit        0x00000018        0x8 Build/source/source/main_lib_enc.picsl.o
+ .xt.lit        0x00000020        0x8 Build/source/source/uld_com.picsl.o
+ .xt.lit        0x00000028        0x8 Build/source/source/uld_enc.picsl.o
+ .xt.lit        0x00000030       0x10 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+
+.xt.insn
+ *(.xt.insn .gnu.linkonce.x.*)
+
+.xt.prop        0x00000000      0x558
+ *(.xt.prop .gnu.linkonce.prop.*)
+ .xt.prop       0x00000000       0x30 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crti.o
+ .xt.prop       0x00000030       0xd8 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtbegin.o
+ .xt.prop       0x00000108       0x30 Build/source/source/main_lib_enc.picsl.o
+ .xt.prop       0x00000138       0x90 Build/source/source/uld_memory.picsl.o
+                                         0x9c (size before relaxing)
+ .xt.prop       0x000001c8       0x84 Build/source/source/uld_com.picsl.o
+ .xt.prop       0x0000024c      0x1b0 Build/source/source/uld_enc.picsl.o
+ .xt.prop       0x000003fc       0xcc Build/source/source/quant.picsl.o
+                                         0xe4 (size before relaxing)
+ .xt.prop       0x000004c8       0x60 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtend.o
+ .xt.prop       0x00000528       0x30 C:/usr/xtensa/XtDevTools/install/builds/RI-2021.8-win32/AB1568_i64B_d32B_512K/xtensa-elf/lib/xcc/crtn.o
+
+/DISCARD/
+ *(.note.GNU-stack)
+OUTPUT(Build/uld_enc_lib/pisplit_uld_enc_position_independent.splitload.lib elf32-xtensa-le)
+
+.debug_ranges   0x00000000      0x188
+ .debug_ranges  0x00000000      0x188 Build/source/source/uld_enc.picsl.o
+
+Memory Configuration
+
+Name             Origin          Length          Used            Unused          Attributes
+*default*        0x00000000      0xffffffff      
