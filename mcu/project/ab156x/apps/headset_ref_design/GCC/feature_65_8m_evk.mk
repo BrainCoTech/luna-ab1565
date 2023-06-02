@@ -534,3 +534,5 @@ AIR_DUAL_CHIP_AUDIO_INTERFACE = i2s
 #                      sd   : The storage type is SD.
 #                      emmc : The storage type is EMMC.
 AIR_RECORD_STORAGE_TYPE = none
+
+BC_MAIN_CONTROLLER_ENABLE = y

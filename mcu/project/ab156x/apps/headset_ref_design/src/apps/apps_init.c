@@ -236,6 +236,10 @@ extern void DrvCharger_SmartCase_Init(void);
 #include "app_head_tracker_idle_activity.h"
 #endif
 
+#ifdef BC_MAIN_CONTROLLER_ENABLE
+#include "app_main_controller.h"
+#endif
+
 static void apps_init_events_senders(void)
 {
     apps_event_key_event_init();
@@ -437,6 +441,9 @@ static void apps_init_multi_va(void)
 
 void apps_init(void)
 {
+#ifdef BC_MAIN_CONTROLLER_ENABLE
+    app_main_controller_power_on();
+#endif    
     /* init LED module. */
 #ifdef LED_ENABLE
     app_led_control_init();

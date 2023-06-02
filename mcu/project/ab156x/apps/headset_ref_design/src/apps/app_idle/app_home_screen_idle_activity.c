@@ -150,6 +150,10 @@
 #include "app_hear_through_activity.h"
 #endif /* AIR_HEARTHROUGH_MAIN_ENABLE */
 
+#ifdef BC_APP_MAIN_CONTROLLER_ENABLE
+#include "app_main_controller.h"
+#endif
+
 #ifdef AIR_DCHS_MODE_ENABLE
 extern void dchs_device_ready_to_off_callback(void);
 #endif
@@ -748,6 +752,9 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
 #endif
                     /* Apply "power off" VP and foreground LED pattern. */
                     apps_config_set_foreground_led_pattern(LED_INDEX_POWER_OFF, 30, false);
+#ifdef BC_APP_MAIN_CONTROLLER_ENABLE
+                    app_main_controller_power_off();
+#endif                    
                     if (charger_exist
 #if defined(AIR_APP_SYSTEM_ON_BY_LINE_IN_ENABLE)
                         || app_line_in_is_plug_in()
