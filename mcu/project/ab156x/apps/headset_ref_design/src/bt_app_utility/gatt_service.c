@@ -50,6 +50,10 @@
 #endif
 #include "bt_gatts_service.h"
 
+#ifdef BC_BLE_US_ENABLE
+#include "ble_us.h"
+#endif
+
 #ifndef MTK_AWS_MCE_ENABLE
 extern const bt_gatts_service_t **bt_get_gatt_server(void);
 #if _MSC_VER >= 1500
@@ -157,6 +161,9 @@ const bt_gatts_service_t *bt_if_clm_gatt_server[] = {
     &ble_dis_service,                     /**< handle range: 0x0060 to 0x0072. */
 #ifdef AIR_CUST_PAIR_ENABLE
     &cust_pair_srv_service,               /**< handle range: 0x0080 to 0x0083. */
+#endif
+#ifdef BC_BLE_US_ENABLE
+    &ble_us_service,                     /**< handle range: 0x0090 to 0x0096. */
 #endif
 #ifdef AIR_AMA_ENABLE
     &ble_ama_service,                     /**< handle range: 0x00D0 to 0x00D5. */

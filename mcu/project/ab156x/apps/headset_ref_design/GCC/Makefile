@@ -455,6 +455,11 @@ endif
 # DIS service module
 include $(SOURCE_DIR)/middleware/airoha/ble_dis/module.mk
 
+# ble uart service module
+ifeq ($(BC_BLE_US_ENABLE), y)
+include $(SOURCE_DIR)/middleware/BrainCo/ble_us/module.mk
+endif
+
 ifeq ($(AIR_WIRELESS_MIC_ENABLE), y)
 FATFS_VERSION=R0.14b
 include $(SOURCE_DIR)/middleware/third_party/fatfs/module.mk
