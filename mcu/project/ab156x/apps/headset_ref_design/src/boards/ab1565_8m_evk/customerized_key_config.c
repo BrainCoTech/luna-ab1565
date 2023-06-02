@@ -379,6 +379,15 @@ const apps_config_key_event_map_t temp_key_long_press1_configs[] = {
         KEY_AVRCP_FAST_REWIND_PRESS,
         (1 << APP_A2DP_PLAYING)
     },
+    {
+        DEVICE_KEY_POWER,
+        KEY_POWER_OFF,
+        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
+        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
+        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
+        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
+        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
+    },    
 };
 
 const apps_config_key_event_map_t temp_key_long_press2_configs[] = {
@@ -517,7 +526,7 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
     {
         APPS_CONFIG_KEY_LONG_PRESS_RELEASE_2,
         DEVICE_KEY_POWER,
-        KEY_WAKE_UP_VOICE_ASSISTANT_CONFIRM,
+        KEY_POWER_OFF,
         0 /* Set to 0, it will be set in apps_config_key_remaper_init_configurable_table by the s_key_config_event_sta_maps */
     },
     {

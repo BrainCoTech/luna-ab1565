@@ -732,3 +732,9 @@ ifeq ($(AIR_BLE_HRS_ENABLE),y)
 C_FILES += $(APPS_SRC)/app_hrs/ble_app_hrs.c
 C_FILES += $(APPS_SRC)/app_hrs/ble_app_hrs_data.c
 endif
+
+ifeq ($(BC_MAIN_CONTROLLER_ENABLE), y)
+CFLAGS += -DBC_MAIN_CONTROLLER_ENABLE
+CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_main_controller
+C_FILES += $(APPS_SRC)/app_main_controller/app_main_controller.c
+endif # BC_MAIN_CONTROLLER_ENABLE
