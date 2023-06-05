@@ -294,7 +294,7 @@ const bt_cm_config_t *bt_customer_config_app_get_cm_config(void)
 
 
 /******************** Config the parameter of sink GAP *******************************************/
-#define BT_SINK_SRV_CM_DB_NAME  "BT_Headset_Demo"                       /* Default BT name */
+#define BT_SINK_SRV_CM_DB_NAME  "Luna"                       /* Default BT name */
 #if defined(AIR_LE_AUDIO_ENABLE) && defined(AIR_LE_AUDIO_DUALMODE_ENABLE)
 #define BT_SINK_SRV_CM_DB_COD 0x244404                                  /* Default BT COD(Class Of Device) refer to BT spec. Enable LE Audio bit. */
 #else
@@ -344,19 +344,13 @@ const bt_gap_config_t *bt_customer_config_get_gap_config(void)
     if (nvkey_status != NVKEY_STATUS_OK || strlen((char *)name) == 0) {
         /* Change BT local name to H_xxx for QA test (xxx is BT addr) */
         bt_bd_addr_t *local_addr;
-#ifdef MTK_AWS_MCE_ENABLE
-        /* Partner use the peer address to fix the BT name change after RHO */
-        if (BT_AWS_MCE_ROLE_PARTNER == bt_device_manager_aws_local_info_get_role()) {
-            local_addr = bt_device_manager_aws_local_info_get_peer_address();
-        } else
-#endif
-        {
-            local_addr = bt_device_manager_get_local_address();
-        }
+        local_addr = bt_device_manager_get_local_address();
+        uint8_t addr_str[13];
 
-        snprintf((char *)name, sizeof(name), "H_%.2X%.2X%.2X%.2X%.2X%.2X",
-                 (*local_addr)[5], (*local_addr)[4], (*local_addr)[3],
-                 (*local_addr)[2], (*local_addr)[1], (*local_addr)[0]);
+        snprintf((char *)addr_str, sizeof(addr_str), "%.2X%.2X%.2X%.2X%.2X%.2X",
+                    (*local_addr)[5], (*local_addr)[4], (*local_addr)[3],
+                    (*local_addr)[2], (*local_addr)[1], (*local_addr)[0]);
+        snprintf((char *)name, sizeof(name), "%s-%s", BT_SINK_SRV_CM_DB_NAME, addr_str + 7);
     }
     name_length = strlen((char *)name);
     if (name_length > sizeof(g_bt_sink_srv_gap_config.device_name) - 1) {
