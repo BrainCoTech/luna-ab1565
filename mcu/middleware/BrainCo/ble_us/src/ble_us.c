@@ -40,7 +40,9 @@ static uint32_t ble_us_rx_write_char_callback(const uint8_t rw, uint16_t handle,
 
 BT_GATTS_NEW_PRIMARY_SERVICE_128(ble_us_primary_service, US_SERVICE_UUID);
 
-BT_GATTS_NEW_CHARC_128(ble_us_rx_char, BT_GATT_CHARC_PROP_WRITE_WITHOUT_RSP,
+BT_GATTS_NEW_CHARC_128(ble_us_rx_char,
+                       BT_GATT_CHARC_PROP_WRITE_WITHOUT_RSP |
+                           BT_GATT_CHARC_PROP_WRITE,
                        US_RX_CHAR_VALUE_HANDLE, US_RX_CHAR_UUID);
 
 BT_GATTS_NEW_CHARC_VALUE_CALLBACK(ble_us_rx_char_value, US_RX_CHAR_UUID128,
@@ -104,8 +106,12 @@ static uint32_t ble_us_rx_write_char_callback(const uint8_t rw, uint16_t handle,
     LOG_MSGID_I(BLE_US, "conn handler %u recieve %d data, offset %d", 3, handle,
                 size, offset);
     m_conn_handle = handle;
-    if (m_recv_data_cb) {
-        ret = m_recv_data_cb(data, size);
+
+    if (rw == BT_GATTS_CALLBACK_WRITE) {
+        if (m_recv_data_cb) {
+            ret = m_recv_data_cb(data, size);
+        }
+        return size;
     }
 
     return 0;
