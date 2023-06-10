@@ -244,6 +244,18 @@ typedef enum {
 #define IAP2_SRV_TASK_PRIORITY          TASK_PRIORITY_NORMAL
 #define IAP2_SRV_QUEUE_LENGTH           50
 
+#ifdef BC_APP_UART_ENABLE
+/* brainco app uart tx task definition */
+#define APP_UART_TX_TASK_NAME              "uart_tx"
+#define APP_UART_TX_TASK_STACKSIZE         (1024*1) /* Unit byte. */
+#define APP_UART_TX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
+
+/* brainco app uart rx task definition */
+#define APP_UART_RX_TASK_NAME              "uart_rx"
+#define APP_UART_RX_TASK_STACKSIZE         (1024*1) /* Unit byte. */
+#define APP_UART_RX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
+#endif
+
 /* Part_2: Application and customer tasks configure information. */
 /* Currently, only UI task and tasks to show example project function which define in apps/project/src/main.c. */
 

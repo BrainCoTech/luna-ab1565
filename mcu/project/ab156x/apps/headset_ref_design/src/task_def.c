@@ -98,6 +98,10 @@ void atci_def_task(void *param)
 #include "app_wireless_mic_realtime_task.h"
 #endif
 
+#ifdef BC_APP_UART_ENABLE
+#include "app_uart.h"
+#endif
+
 /****************************************************************************
  * Types.
  ****************************************************************************/
@@ -152,6 +156,10 @@ static const tasks_list_t tasks_list[] = {
 #endif
 #ifdef AIR_WIRELESS_MIC_ENABLE
     {app_wireless_mic_realtime_task, WIRELESS_MIC_REALTIME_TASK_NAME, WIRELESS_MIC_REALTIME_TASK_STACKSIZE,  NULL,  WIRELESS_MIC_REALTIME_TASK_PRIO },
+#endif
+#ifdef BC_APP_UART_ENABLE
+    {app_uart_tx_task, APP_UART_TX_TASK_NAME, APP_UART_TX_TASK_STACKSIZE,  NULL,  APP_UART_TX_TASK_PRIORITY },
+    {app_uart_rx_task, APP_UART_RX_TASK_NAME, APP_UART_RX_TASK_STACKSIZE,  NULL,  APP_UART_RX_TASK_PRIORITY },
 #endif
 };
 
