@@ -63,6 +63,8 @@ typedef enum {
     KEY_RESET_PAIRED_DEVICES = 0x001A,              /**< Unpair all devices. */
     KEY_RECONNECT_LAST_DEVICE = 0x001E,             /**< Actively reconnect last device. */
 
+    KEY_PRE_POWER_OFF = 0x0015,                     /**< 假关机. */
+
     KEY_WAKE_UP_VOICE_ASSISTANT = 0x0020,           /**< Trigger voice assistant. */
     KEY_WAKE_UP_VOICE_ASSISTANT_CONFIRM = 0x0021,   /**< Used with KEY_WAKE_UP_VOICE_ASSISTANT_NOTIFY. When user press
                                                         key long enough and releaes key after he listened the notify VP,

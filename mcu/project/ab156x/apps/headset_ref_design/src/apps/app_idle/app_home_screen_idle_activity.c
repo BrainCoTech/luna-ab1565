@@ -741,7 +741,12 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             ret = true;
             break;
         }
+        case KEY_PRE_POWER_OFF: {
+            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_PRE_POWER_OFF", 0);
+            break;
+        }
         case KEY_POWER_OFF: {
+            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_POWER_OFF", 0);
 #ifdef AIR_TILE_ENABLE
             if (!app_tile_toa_waiting_authentication()) {
                 if (!app_tile_tmd_is_active() || app_tile_get_battery_state() <= APP_BATTERY_STATE_LOW_CAP) {
@@ -836,6 +841,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             } else if (bt_device_manager_aws_local_info_get_role() != BT_AWS_MCE_ROLE_CLINET)
 #endif
             {
+                APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_DISCOVERABLE", 0);
                 app_bt_state_service_set_bt_visible(true, false, VISIBLE_TIMEOUT);
                 memset((void *)&vp, 0, sizeof(voice_prompt_param_t));
                 vp.vp_index = VP_INDEX_PAIRING;
@@ -843,6 +849,17 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 vp.delay_time = 200;
                 voice_prompt_play(&vp, NULL);
                 //apps_config_set_vp(VP_INDEX_PAIRING, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                /* 断连已连接设备 */
+                bt_bd_addr_t *p_bd_addr = bt_device_manager_remote_get_dev_by_seq_num(1);
+                if (p_bd_addr) {
+                    bt_cm_connect_t connect_param = {
+                        {0},
+                        ~(BT_CM_PROFILE_SERVICE_MASK(
+                            BT_CM_PROFILE_SERVICE_AWS))};
+                        memcpy(connect_param.address, *p_bd_addr,
+                            sizeof(bt_bd_addr_t));
+                        bt_cm_disconnect(&connect_param);
+                }
             }
             ret = true;
             break;

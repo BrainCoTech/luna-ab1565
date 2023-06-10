@@ -381,7 +381,7 @@ const apps_config_key_event_map_t temp_key_long_press1_configs[] = {
     },
     {
         DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
+        KEY_PRE_POWER_OFF,
         (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
         | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
         | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
@@ -402,13 +402,14 @@ const apps_config_key_event_map_t temp_key_long_press3_configs[] = {
     },
     {
         DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
+        KEY_DISCOVERABLE,
+#if defined(AIR_MULTI_POINT_ENABLE) || defined(AIR_LE_AUDIO_ENABLE) || defined(AIR_BT_ULTRA_LOW_LATENCY_ENABLE) || defined(AIR_BLE_ULTRA_LOW_LATENCY_ENABLE)
+        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED)
+        | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_LE_AUDIO_BIS_PLAYING)
+#else
+        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE)
+#endif
+    },    
 };
 
 const apps_config_key_event_map_t temp_key_slong_configs[] = {
@@ -524,15 +525,15 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
         0 /* Set to 0, it will be set in apps_config_key_remaper_init_configurable_table by the s_key_config_event_sta_maps */
     },
     {
-        APPS_CONFIG_KEY_LONG_PRESS_RELEASE_2,
+        APPS_CONFIG_KEY_LONG_PRESS_RELEASE_1,
         DEVICE_KEY_POWER,
         KEY_POWER_OFF,
         0 /* Set to 0, it will be set in apps_config_key_remaper_init_configurable_table by the s_key_config_event_sta_maps */
-    },
+    },    
     {
-        APPS_CONFIG_KEY_LONG_PRESS_2,
+        APPS_CONFIG_KEY_LONG_PRESS_RELEASE_2,
         DEVICE_KEY_POWER,
-        KEY_WAKE_UP_VOICE_ASSISTANT_NOTIFY, /* To support play a "press" VP to notify user long press time, but confirm the action after user release the key */
+        KEY_POWER_OFF,
         0 /* Set to 0, it will be set in apps_config_key_remaper_init_configurable_table by the s_key_config_event_sta_maps */
     },
     {
@@ -544,7 +545,7 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
     {
         APPS_CONFIG_KEY_LONG_PRESS_3,
         DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
+        KEY_DISCOVERABLE,
         0 /* Set to 0, it will be set in apps_config_key_remaper_init_configurable_table by the s_key_config_event_sta_maps */
     },
 };
@@ -596,7 +597,7 @@ const static apps_config_configurable_table_t left_configurable_table[] = {
     {
         APPS_CONFIG_KEY_LONG_PRESS_3,
         DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
+        KEY_DISCOVERABLE,
         0 /* Set to 0, it will be set in apps_config_key_remaper_init_configurable_table by the s_key_config_event_sta_maps */
     },
 };
@@ -645,7 +646,7 @@ const static apps_config_configurable_table_t xiaowei_configurable_table[] = {
     {
         APPS_CONFIG_KEY_LONG_PRESS_3,
         DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
+        KEY_DISCOVERABLE,
         0
     },
 #if 0
@@ -742,7 +743,7 @@ const static apps_config_configurable_table_t xiaoai_configurable_table[] = {
     {
         APPS_CONFIG_KEY_LONG_PRESS_3,
         DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
+        KEY_DISCOVERABLE,
         0
     },
 #endif
@@ -791,7 +792,7 @@ const static apps_config_configurable_table_t ama_configurable_table[] = {
     {
         APPS_CONFIG_KEY_LONG_PRESS_3,
         DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
+        KEY_DISCOVERABLE,
         0
     },
 };
