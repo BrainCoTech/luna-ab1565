@@ -45,6 +45,8 @@ int32_t ble_us_send_data(const uint8_t *data, uint16_t size);
 
 bool ble_us_is_notified(void);
 
+int ble_us_get_mtu(void);
+
 BT_EXTERN_C_END
 
 #endif /*__BLE_US_H__*/

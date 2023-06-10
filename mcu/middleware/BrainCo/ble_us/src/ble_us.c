@@ -147,3 +147,5 @@ int32_t ble_us_send_data(const uint8_t *data, uint16_t size) {
 bool ble_us_is_notified(void) {
     return (m_notify_enabled == BLE_US_CCCD_NOTIFICATION);
 }
+
+int ble_us_get_mtu(void) { return 23; }

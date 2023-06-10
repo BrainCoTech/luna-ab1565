@@ -744,3 +744,9 @@ CFLAGS += -DBC_APP_UART_ENABLE
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_uart
 C_FILES += $(APPS_SRC)/app_uart/app_uart.c
 endif # BC_APP_UART_ENABLE
+
+ifeq ($(BC_APP_US_ENABLE), y)
+CFLAGS += -DBC_APP_US_ENABLE
+CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_us
+C_FILES += $(APPS_SRC)/app_us/app_us.c
+endif # BC_APP_US_ENABLE
