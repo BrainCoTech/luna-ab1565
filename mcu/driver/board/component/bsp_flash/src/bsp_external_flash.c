@@ -90,10 +90,16 @@
 #define max(_a, _b)    (((_a)>(_b))?(_a):(_b))
 #endif
 
+#if (ADDRESS_4BYTES)
+#define CMD_LEN 5
+#else
+#define CMD_LEN 4 
+#endif
+
 /* HAL_SPI_MAXIMUM_POLLING_TRANSACTION_SIZE includes the sent CMD size and received data size
    so it can recieve 32 - 4 (read cmd + 3 byte adress)
 */
-#define SPI_EXT_FLASH_MAX_READ_SIZE_WITH_POLLING  (HAL_SPI_MAXIMUM_POLLING_TRANSACTION_SIZE - 4)
+#define SPI_EXT_FLASH_MAX_READ_SIZE_WITH_POLLING  (HAL_SPI_MAXIMUM_POLLING_TRANSACTION_SIZE - CMD_LEN)
 hal_spi_master_port_t spi_master_port = SPIM_PORT;
 int32_t spi_flash_init = 0;
 static uint32_t QE_bit_status;
@@ -127,6 +133,7 @@ const static flsh_device_info_t support_flash_list[] = {
     {"KH25L12833F", 0x00C22018,  256, 8192 * 8, 0x0B,  8,  0x6B,  8, 0x02, 0, 0x32, 0, 0x5,  0x1, 6,  0,  0},
     {"KH25L6436F",  0x00C22017,  256, 8192 * 4, 0x0B,  8,  0x6B,  8, 0x02, 0, 0x32, 0, 0x5,  0x1, 6,  0,  0},
     {"GD25Q32C",    0x00C86016,  256, 8192 * 2, 0x0B,  8,  0x6B,  8, 0x02, 0, 0x32, 0, 0x35, 0x31, 2, 0,  0},
+    {"GD25S512M",   0x00C8471a,  256, 8192 * 32, 0x0B,  8,  0x6B,  8, 0x02, 0, 0x32, 0, 0x35, 0x31 , 2, 0,  0},    
     {"GD25Q32C",    0x00C84016,  256, 8192 * 2, 0x0B,  8,  0x6B,  8, 0x02, 0, 0x32, 0, 0x35, 0x31, 2, 0,  0}
 };
 
@@ -151,19 +158,19 @@ static void caculate_read_delay_cycle(void)
 {
     if (flash_device_info.frd_delay == 8) {
         //delay 8 cycles + 1 bytes command + 3 bytes address cycle
-        flash_device_info.offset = 1 + 4;
+        flash_device_info.offset = 1 + CMD_LEN;
     } else {
         // 1 bytes command + 3 bytes address cycle
-        flash_device_info.offset = 4;
+        flash_device_info.offset = CMD_LEN;
     }
 
 
     if (flash_device_info.qfrd_delay == 8) {
         //delay 8 cycles + 1 bytes command + 3 bytes address cycle
-        flash_device_info.q_offset = 1 + 4;
+        flash_device_info.q_offset = 1 + CMD_LEN;
     } else {
         // 1 bytes command + 3 bytes address cycle
-        flash_device_info.q_offset = 4;
+        flash_device_info.q_offset = CMD_LEN;
     }
 }
 
@@ -387,6 +394,41 @@ static uint32_t enable_QE_bit(void)
     return EXTERNAL_FLASH_STATUS_ERROR;
 }
 
+static flash_status_t enter_4b_mode(void)
+{
+    int32_t status = FLASH_NOT_INIT;
+    uint8_t cmd[10];
+    uint32_t cmd_indx;
+    uint8_t sr;
+
+    if (spi_flash_init != FLASH_INIT) {
+        return status;
+    }
+#if (ADDRESS_4BYTES) 
+    cmd_indx = 0;
+    cmd[cmd_indx++] = WRITE_ENABLE;
+    if (HAL_SPI_MASTER_STATUS_OK != hal_spi_master_send_polling(spi_master_port, cmd, cmd_indx)) {
+        log_hal_msgid_error("\r\n hal_spi_master_send_polling fail\r\n", 0);
+    }
+    wait_flash_ready(1);
+
+    cmd_indx = 0;
+    cmd[cmd_indx++] = 0xB7;
+    status = hal_spi_master_send_polling(spi_master_port, cmd, cmd_indx);
+
+    if (HAL_SPI_MASTER_STATUS_OK != status) {
+        log_hal_msgid_error("hal_spi_master_send_polling fail\n", 0);
+        return FLASH_BUSY;
+    }
+#endif
+    read_status_register(READ_SR_2, &sr);
+    if (sr & ADS_4B) {
+        log_hal_msgid_info("nor flash 4 bytes\n", 0);
+    }
+
+    return FLASH_STATUS_IDLE;
+}
+
 bsp_external_flash_status_t bsp_external_flash_get_rdid(uint8_t *buffer)
 {
     int32_t status = FLASH_NOT_INIT;
@@ -501,6 +543,8 @@ bsp_external_flash_status_t bsp_external_flash_init(hal_spi_master_port_t master
         }
     }
 
+    enter_4b_mode();
+
     //enable Q bit
     enable_QE_bit();
     caculate_read_delay_cycle();
@@ -541,6 +585,9 @@ static bsp_external_flash_status_t spi_flash_read_polling(uint32_t address, uint
     if (0) {
         //??? maybe use spi read is better
         cmd[cmd_indx++] = SPIQ_READ;
+#if (ADDRESS_4BYTES)
+        cmd[cmd_indx++] = address >> 24;
+#endif
         cmd[cmd_indx++] = address >> 16;  // 1: 3 byte address
         cmd[cmd_indx++] = address >> 8;   // 2: 3 byte address
         cmd[cmd_indx++] = address;        // 3: 3 byte address
@@ -576,6 +623,9 @@ static bsp_external_flash_status_t spi_flash_read_polling(uint32_t address, uint
         }
     } else {
         cmd[cmd_indx++] = FAST_READ;
+#if (ADDRESS_4BYTES)
+        cmd[cmd_indx++] = address >> 24;
+#endif
         cmd[cmd_indx++] = address >> 16;  // 1: 3 byte address
         cmd[cmd_indx++] = address >> 8;   // 2: 3 byte address
         cmd[cmd_indx++] = address;        // 3: 3 byte address
@@ -623,6 +673,9 @@ static bsp_external_flash_status_t spi_flash_read_dma(uint32_t address, uint8_t 
     cmd[cmd_indx++] = SPIQ_READ;
 #else
     cmd[cmd_indx++] = FAST_READ;//SPIQ_READ;
+#endif
+#if (ADDRESS_4BYTES)
+    cmd[cmd_indx++] = address >> 24;
 #endif
     cmd[cmd_indx++] = address >> 16;    // 1: 3 byte address
     cmd[cmd_indx++] = address >> 8;     // 2: 3 byte address
@@ -742,6 +795,9 @@ static bsp_external_flash_status_t spi_flash_write_polling(uint32_t address, uin
     //write with polling
     cmd_indx = 0;
     buffer[cmd_indx++] = SPI_WRITE;
+#if (ADDRESS_4BYTES)
+    buffer[cmd_indx++] = address >> 24;
+    #endif
     buffer[cmd_indx++] = address >> 16;  //1: 3 byte address
     buffer[cmd_indx++] = address >> 8;   //2: 3 byte address
     buffer[cmd_indx++] = address;        //3: 3 byte address
@@ -777,6 +833,9 @@ static int32_t spi_flash_write_dma(uint32_t address, uint8_t *data, int32_t leng
     buffer[cmd_indx++] = SPIQ_WRITE;     //quad page write
 #else
     buffer[cmd_indx++] = SPI_WRITE;      //quad page write
+#endif
+#if (ADDRESS_4BYTES)       
+    buffer[cmd_indx++] = address >> 24;
 #endif
     buffer[cmd_indx++] = address >> 16;  // 1: 3 byte address
     buffer[cmd_indx++] = address >> 8;   // 2: 3 byte address
@@ -851,7 +910,7 @@ bsp_external_flash_status_t bsp_external_flash_write(uint32_t address, uint8_t *
     while (len > 0) {
         write_length = min(len, (WRITE_BUFFER_SIZE - page_offset));
         page_offset = 0;
-        if ((write_length + 4) <= SPI_EXT_FLASH_MAX_READ_SIZE_WITH_POLLING) {
+        if ((write_length + CMD_LEN) <= SPI_EXT_FLASH_MAX_READ_SIZE_WITH_POLLING) {
             status = spi_flash_write_polling(addr, buffer, write_length);
             if (status != EXTERNAL_FLASH_STATUS_OK) {
                 return EXTERNAL_FLASH_STATUS_ERROR;
@@ -933,6 +992,9 @@ bsp_external_flash_status_t bsp_external_flash_erase(uint32_t address, block_siz
             cmd[cmd_indx++] = BLOCK_64K_ERASE;   // BLOCK 64K ERASE
         }
 
+#if (ADDRESS_4BYTES)
+        cmd[cmd_indx++] = address >> 24;
+#endif
         cmd[cmd_indx++] = address >> 16;   // 1: 3 byte address
         cmd[cmd_indx++] = address >> 8;    // 2: 3 byte address
         cmd[cmd_indx++] = address;         // 3: 3 byte address
