@@ -112,6 +112,8 @@ ifeq ($(MTK_USB_DEMO_ENABLED), y)
 include $(SOURCE_DIR)/middleware/MTK/usb/module.mk
 endif
 
+include $(SOURCE_DIR)/middleware/BrainCo/module.mk
+
 ifeq ($(REBOOT_AFTER_EXCEPTION), y)
 CFLAGS += -DREBOOT_AFTER_EXCEPTION
 endif

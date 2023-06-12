@@ -1,0 +1,3 @@
+[submodule "mcu/middleware/BrainCo/morpheus_protobuf"]
+	path = mcu/middleware/BrainCo/morpheus_protobuf
+	url = git@github.com:BrainCoTech/morpheus_protobuf.git
