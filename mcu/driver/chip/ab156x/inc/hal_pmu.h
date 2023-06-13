@@ -60,7 +60,7 @@
 
 #define PMIC_SLAVE_ADDR            0x6B
 #define INVALID_INTERRUPT_VALUE    0xFF
-#define PMU_PRESS_PK_TIME 100000  //100ms
+#define PMU_PRESS_PK_TIME 1500000  // 1.5s 开机
 
 #define PMU_VCORE_CP     0xA20A0204
 typedef enum {
