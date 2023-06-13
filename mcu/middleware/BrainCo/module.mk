@@ -16,6 +16,9 @@ C_FILES  += ${PACKET_SOURCE}/morpheus_protobuf/generated/protobuf-c/main_bt/main
 C_FILES  += ${PACKET_SOURCE}/morpheus_protobuf/generated/protobuf-c/main_bt/bt_to_main.pb-c.c
 C_FILES  += ${PACKET_SOURCE}/morpheus_protobuf/generated/protobuf-c/morpheus_common.pb-c.c
 
+C_FILES  += $(PACKET_SOURCE)/littlefs/lfs.c
+C_FILES  += $(PACKET_SOURCE)/littlefs/lfs_util.c
+
 ###################################################
 # include path
 ###################################################
@@ -24,3 +27,5 @@ CFLAGS  += -I$(SOURCE_DIR)/middleware/BrainCo/proto_msg
 CFLAGS  += -I$(SOURCE_DIR)/middleware/BrainCo/morpheus_protobuf/generated/protobuf-c/
 CFLAGS  += -I$(SOURCE_DIR)/middleware/BrainCo/morpheus_protobuf/Third_Party/protobuf-c
 CFLAGS  += -DFREERTOS
+
+CFLAGS  += -I$(SOURCE_DIR)/middleware/BrainCo/littlefs
