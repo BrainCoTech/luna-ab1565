@@ -1,21 +1,24 @@
 #include "main_controller.h"
 
-#include <time.h>
-
-#include "apps_config_led_index_list.h"
-#include "apps_config_led_manager.h"
+#include "apps_config_event_list.h"
+#include "apps_config_state_list.h"
 #include "apps_config_vp_index_list.h"
 #include "apps_config_vp_manager.h"
 #include "apps_events_event_group.h"
 #include "apps_events_interaction_event.h"
+#include "bt_customer_config.h"
 #include "bt_sink_srv_a2dp.h"
 #include "hal.h"
+#include "morpheus.h"
+#include "morpheus_utils.h"
+
+#include "proto_msg/app_bt/app_bt_msg_helper.h"
+#include "proto_msg/main_bt/main_bt_msg_helper.h"
 #include "syslog.h"
 #include "ui_shell_manager.h"
 
-#define BASE_YEAR 2000
-
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
+log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
 
 #define MAIN_POWEN_EN_PIN HAL_GPIO_9
 #define POWERKEY_PIN HAL_GPIO_8
@@ -47,3 +50,137 @@ void main_controller_powerkey_map(int status) {
 
     hal_gpio_set_output(POWERKEY_PIN, status);
 }
+
+static bool bt_connected;
+static bool ble_connected;
+
+void main_controller_set_state(uint32_t state) {
+    if (state == SYS_CONFIG__STATE__BLE_DISCONNECTED) {
+        ble_connected = false;
+    }
+
+    if (state == SYS_CONFIG__STATE__BLE_CONNECTED) {
+        ble_connected = true;
+    }
+
+    if (state == SYS_CONFIG__STATE__BT_CONNECTED) {
+        bt_connected = true;
+    }
+    if (state == SYS_CONFIG__STATE__BT_DISCONNECTED) {
+        bt_connected = false;
+    }
+
+    BtMain msg = BT_MAIN__INIT;
+    msg.msg_id = 100;
+    SysConfig sys_cfg = SYS_CONFIG__INIT;
+    msg.sys_cfg = &sys_cfg;
+    sys_cfg.state = state;
+    LOG_MSGID_I(MAIN_CONTR, "send state to maincontroller %d", 1, state);
+    send_msg_to_main_controller(&msg);
+}
+
+void main_controller_set_time(uint64_t time) {
+    BtMain msg = BT_MAIN__INIT;
+    msg.msg_id = 101;
+    SysConfig sys_cfg = SYS_CONFIG__INIT;
+    msg.sys_cfg = &sys_cfg;
+    msg.sys_cfg->sync_time = time;
+    send_msg_to_main_controller(&msg);
+}
+
+void audio_config(uint32_t msg_id, AudioConfig *cfg) {
+    LOG_I(MUSIC_CONTR, "main2bt cmd: %d", cfg->cmd);
+    uint8_t status = 0;
+    uint8_t peq_group_id = 0;
+
+    switch (cfg->cmd) {
+        case AUDIO_CONFIG__CMD__PLAY:
+            break;
+
+        case AUDIO_CONFIG__CMD__PAUSE:
+            break;
+
+        case AUDIO_CONFIG__CMD__STOP:
+            break;
+
+        case AUDIO_CONFIG__CMD__LOCAL_PALY:
+
+            break;
+
+        case AUDIO_CONFIG__CMD__LOCAL_PAUSE:
+
+            break;
+
+        default:
+            break;
+    }
+
+    BtMain msg = BT_MAIN__INIT;
+    AudioConfigResp audio_resp = AUDIO_CONFIG_RESP__INIT;
+    msg.msg_id = msg_id;
+    msg.audio_cfg_resp = &audio_resp;
+    audio_resp.resp = AUDIO_CONFIG_RESP__RESP__SUCC;
+    send_msg_to_main_controller(&msg);
+}
+
+void app_vp_play_callback(uint32_t idx, vp_err_code err) {}
+
+void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
+    LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->id);
+
+    // apps_config_set_vp(cfg->id, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true,
+    // app_vp_play_callback);
+
+    BtMain msg = BT_MAIN__INIT;
+    msg.msg_id = msg_id;
+    send_msg_to_main_controller(&msg);
+}
+
+void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
+    // prompt_control_set_level(cfg->volume);
+}
+
+void main_bt_config(MainBt *msg) {
+    if (msg->power_off) {
+        LOG_MSGID_I(MAIN_CONTR, "set power off", 0);
+        send_power_off_flag_to_app();
+        vTaskDelay(1000);
+        ui_shell_send_event(
+            true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
+            (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
+        return;
+    }
+
+    if (msg->get_timestamp) {
+        uint64_t ts = get_time_unix_timestamp();
+        main_controller_set_time(ts);
+    }
+
+    if (msg->power_off || msg->get_timestamp) {
+        BtMain msg1 = BT_MAIN__INIT;
+        msg1.msg_id = msg->msg_id;
+        send_msg_to_main_controller(&msg1);
+    }
+
+    if (msg->entry_pair_mode) {
+        ui_shell_send_event(true, EVENT_PRIORITY_HIGH, EVENT_GROUP_UI_SHELL_KEY,
+                            (KEY_DISCOVERABLE & 0xFF) | ((0x52 & 0xFF) << 8),
+                            NULL, 0, NULL, 0);
+    }
+
+    if (msg->exit_pair_mode) {
+        if (!ship_mode_flag_get()) {
+            // TODO 没有取消事件
+            app_bt_state_service_set_bt_visible(false, false, 0);
+        }
+    }
+
+    /* MCU 固定发送电池电量的msg id为99 */
+    if (msg->msg_id == 99) {
+        LOG_MSGID_I(MAIN_CONTR, "battery_level %d", 1, msg->battery_level);
+    }
+}
+
+bool main_controller_ble_status(void) { return ble_connected; }
+
+bool main_controller_bt_status(void) { return bt_connected; }
