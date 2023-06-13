@@ -2458,7 +2458,7 @@ static void am_audio_set_play(bt_sink_srv_am_background_t *background_ptr)
         aud_prepare_a2dp_nvkey(&(background_ptr->local_feature));
 
         audio_local_audio_playback_open();
-        aud_dl_control(true);
+        // aud_dl_control(true);
 
         /* mp3_codec decode is async, delay 20ms for first time decode complete. */
         vTaskDelay(20 / portTICK_PERIOD_MS);
