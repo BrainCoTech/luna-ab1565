@@ -682,9 +682,14 @@ stream_feature_list_t stream_feature_list_playback[] =
 {
     CODEC_PCM_COPY,
 #ifdef MTK_PEQ_ENABLE
-    FUNC_PEQ_INSTANT,
-    FUNC_PEQ2, //for hybrid ANC L/R ch
+    FUNC_PEQ,
     FUNC_DRC,
+    // FUNC_PEQ2, //for hybrid ANC L/R ch
+#ifndef MTK_ANC_ENABLE
+    FUNC_DRC2,
+#elif (defined(MTK_PEQ_ENABLE) && defined(MTK_ANC_ENABLE) && defined(MTK_DEQ_ENABLE))
+    // FUNC_DEQ,  //for hybrid ANC R ch
+#endif
 #endif
     FUNC_END,
 };
