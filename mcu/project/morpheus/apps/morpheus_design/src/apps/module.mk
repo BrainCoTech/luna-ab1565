@@ -541,3 +541,5 @@ CFLAGS += -DAIR_MS_GIP_ENABLE
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_ms_xbox
 C_FILES += $(APPS_SRC)/app_ms_xbox/app_ms_xbox_idle_activity.c
 endif # AIR_MS_GIP_ENABLE
+
+C_FILES += $(APPS_SRC)/morpheus_utils.c
