@@ -197,7 +197,7 @@ endif
 
 # boot reason check
 MTK_BOOTREASON_CHECK_ENABLE         = y
-MTK_BT_FAST_PAIR_ENABLE             = y
+MTK_BT_FAST_PAIR_ENABLE             = n
 MTK_MINIDUMP_ENABLE                 = y
 MTK_FULLDUMP_ENABLE                 = y
 AIR_SPOT_ENABLE                     = y
