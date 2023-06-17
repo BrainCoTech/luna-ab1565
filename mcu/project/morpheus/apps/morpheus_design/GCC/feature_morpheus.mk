@@ -44,8 +44,8 @@ FLASH_SIZE_8M						  = y
 MTK_DEBUG_LEVEL                       = info
 MTK_NVDM_ENABLE                       = y
 
-MTK_USB_DEMO_ENABLED                  = y
-MTK_USB_AUDIO_V1_ENABLE               = y
+MTK_USB_DEMO_ENABLED                  = n
+MTK_USB_AUDIO_V1_ENABLE               = n
 MTK_USB_AUDIO_V2_ENABLE               = n
 MTK_USB_AUDIO_MICROPHONE              = n
 
@@ -135,7 +135,7 @@ MTK_MBEDTLS_CONFIG_FILE             = config-mtk-fota-race-cmd.h
 MTK_PORT_SERVICE_BT_ENABLE          = y
 MTK_AIRUPDATE_ENABLE                = y
 MTK_SWITCH_TO_RACE_COMMAND_ENABLE   = y
-MTK_RACE_FIND_ME_ENABLE             = y
+MTK_RACE_FIND_ME_ENABLE             = n
 
 # prompt sound
 MTK_PROMPT_SOUND_ENABLE	            = y
@@ -150,26 +150,26 @@ MTK_MP3_STEREO_SUPPORT              = y
 # wave decoder by charlie
 MTK_WAV_DECODER_ENABLE              = n
 # record middleware
-MTK_RECORD_ENABLE                   = y
+MTK_RECORD_ENABLE                   = n
 # audio dump
 MTK_AUDIO_DUMP_ENABLE               = y
 # PEQ
 MTK_PEQ_ENABLE                      = y
 
 # linein playback
-MTK_LINEIN_PLAYBACK_ENABLE          = y
+MTK_LINEIN_PLAYBACK_ENABLE          = n
 MTK_PURE_LINEIN_PLAYBACK_ENABLE     = n
 # LINEIN PEQ
-MTK_LINEIN_PEQ_ENABLE               = y
+MTK_LINEIN_PEQ_ENABLE               = n
 # LINEIN INS
-MTK_LINEIN_INS_ENABLE               = y
+MTK_LINEIN_INS_ENABLE               = n
 
 # AUDIO LOOPBACK TEST module
-MTK_AUDIO_LOOPBACK_TEST_ENABLE = y
-MTK_AUDIO_TRANSMITTER_ENABLE = y
+MTK_AUDIO_LOOPBACK_TEST_ENABLE = n
+MTK_AUDIO_TRANSMITTER_ENABLE = n
 
 # AirDump module
-MTK_AIRDUMP_EN                      = y
+MTK_AIRDUMP_EN                      = n
 
 # amp dc compensation
 MTK_AMP_DC_COMPENSATION_ENABLE      = y
@@ -359,14 +359,14 @@ MTK_AUDIO_HW_IO_CONFIG_ENHANCE = y
 #Gain setting enhance
 MTK_AUDIO_GAIN_SETTING_ENHANCE = y
 
-APPS_LINE_IN_SUPPORT = y
-LINE_IN_ENABLE_WITH_LOW_LEVEL = y
+APPS_LINE_IN_SUPPORT = n
+LINE_IN_ENABLE_WITH_LOW_LEVEL = n
 
 # Enable usb audio enable
-APPS_USB_AUDIO_SUPPORT             = y
+APPS_USB_AUDIO_SUPPORT             = n
 
 # usb audio play enable
-MTK_USB_AUDIO_PLAYBACK_ENABLE      = y
+MTK_USB_AUDIO_PLAYBACK_ENABLE      = n
 
 # UI shell max activity count in activity stack.
 MTK_UI_SHELL_MAX_ACTIVITY_COUNT	= 40
@@ -382,7 +382,7 @@ endif
 FIXED_SAMPLING_RATE_TO_48KHZ = y
 
 # Enable multi point
-AIR_MULTI_POINT_ENABLE = y
+AIR_MULTI_POINT_ENABLE = n
 
 AIR_LINE_IN_ENABLE = y
 AIR_LINE_IN_WITH_LOW_LEVEL_ENABLE = y
