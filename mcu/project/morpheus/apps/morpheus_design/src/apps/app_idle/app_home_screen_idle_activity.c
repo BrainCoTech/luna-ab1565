@@ -129,11 +129,12 @@
 #include "app_swift_pair_idle_activity.h"
 #endif
 #include "bt_sink_srv_le_volume.h"
+#include "main_controller.h"
 
 #define UI_SHELL_IDLE_BT_CONN_ACTIVITY  "[TK_Home]app_home_screen_idle_activity"
 
 #define POWER_OFF_TIMER_NAME       "POWER_OFF"              /* Use a timeout before power off, to show LED and play VP. */
-#define WAIT_TIME_BEFORE_POWER_OFF  (4 * 1000)              /* The delay time to do system power off for playing VP and LED. */
+#define WAIT_TIME_BEFORE_POWER_OFF  (2 * 1000)              /* The delay time to do system power off for playing VP and LED. */
 #define RECONNECT_DEVICE_NUMS       (1)                     /* The max device nums of try to reconnected after power on.  */
 #define TIME_TO_RECONNECT_DEVICE    (10 * 1000)             /* The time of reconnect the connected device. */
 #define TIME_TO_START_VISIBLE_AFTER_POWER_ON   (RECONNECT_DEVICE_NUMS * TIME_TO_RECONNECT_DEVICE)
@@ -626,63 +627,30 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
     switch (action) {
         case KEY_BEFORE_POWER_OFF:  
             apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
+            main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
             vTaskDelay(500);
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY ", go to power off", 0);
+            break;
 
         case KEY_POWER_OFF:
-#ifdef AIR_TILE_ENABLE
-            if (!app_tile_toa_waiting_authentication()) {
-#endif
+            main_controller_power_set(0, 0);
                 /* Apply "power off" VP and foreground LED pattern. */
                 apps_config_set_foreground_led_pattern(LED_INDEX_POWER_OFF, 30, false);
-                if (battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST)
-#if defined(AIR_APP_SYSTEM_ON_BY_LINE_IN_ENABLE)
-                    || app_line_in_is_plug_in()
-#endif
-                ) {
+            if (battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST)) {
                     apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_HIGH, false, NULL);
-#ifdef AIR_TILE_ENABLE
-                    if (!app_tile_tmd_is_active()) {
-#endif
                         APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", Send REQUEST_ON_OFF_BT when Aux/USB in", 0);
                         ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST,
                                             EVENT_GROUP_UI_SHELL_APP_INTERACTION,
                                             APPS_EVENTS_INTERACTION_REQUEST_ON_OFF_BT,
                                             (void *)false, 0,
                                             NULL, 0);
-#ifdef AIR_TILE_ENABLE
                     } else {
-                        _tile_trigger_classic_bt_power_off_flow();
-                    }
-#endif
-                } else {
-#ifdef AIR_TILE_ENABLE
-                    if (!app_tile_tmd_is_active() || app_tile_get_battery_state() <= APP_BATTERY_STATE_LOW_CAP) {
-#endif
+                APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_POWER_OFF", 0);
                         ui_shell_send_event(false, EVENT_PRIORITY_HIGH, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
                                 APPS_EVENTS_INTERACTION_POWER_OFF, NULL, 0, NULL, 0);
-                        apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_EXTREME, true, NULL);
+                // apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_EXTREME, true, NULL);
                         _trigger_power_off_flow(self, true, true);
-#ifdef AIR_TILE_ENABLE
-                    } else {
-                        apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_EXTREME, false, NULL);
-                        _tile_trigger_classic_bt_power_off_flow();
-                    }
-#endif
-#if (defined(AB1565))
-#else
-                    /* When use long press to power off, must wait the key release. */
-                    if (key_event >= AIRO_KEY_LONG_PRESS_1 && key_event <= AIRO_KEY_SLONG) {
-                        local_context->power_off_waiting_release_key = key_id;
-                    }
-#endif
-                }
-#ifdef AIR_TILE_ENABLE
-            } else {
-                APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", allowing Tile association.", 0);
-                app_tile_toa_allow_association();
             }
-#endif
             ret = true;
             break;
         case KEY_LOCAL_PLAY:
@@ -692,6 +660,8 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_LOCAL_FORWARD", 0);
             break; 
         case KEY_POWER_ON:
+            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_POWER_ON", 0);
+
             /* Power on BT if current bt_power_state is disabled. */
             if (local_context->bt_power_state == APP_HOME_SCREEN_BT_POWER_STATE_DISABLED) {
                 app_bt_state_service_set_bt_on_off(true, false, false, false);
