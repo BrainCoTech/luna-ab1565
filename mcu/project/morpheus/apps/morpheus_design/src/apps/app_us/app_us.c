@@ -8,6 +8,7 @@
 #include "apps_events_event_group.h"
 #include "ble_us.h"
 #include "bt_app_common.h"
+#include "bt_device_manager.h"
 #include "bt_sink_srv.h"
 #include "hal_rtc.h"
 #include "main_controller.h"
@@ -88,6 +89,8 @@ void app_us_tx_task() {
                 pos = 0;
                 retry_count = 0;
                 m_mtu = ble_us_get_mtu() - 3;
+                                LOG_MSGID_I(APP_US, "mtu %d", 1, m_mtu);
+
                 if ((tx.data != NULL) && (tx.size != 0)) {
                     do {
                         if (m_mtu == 0) break;
@@ -193,6 +196,33 @@ int app_bt_config(uint32_t msg_id, AppBt *msg) {
 
     send_msg.msg_id = msg_id;
 
+    if (msg->sync_time > 0) {
+    }
+
+    if (msg->power_off) {
+        ui_shell_send_event(
+            true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
+            (0x18 & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
+    }
+
+    if (msg->clear_pair_info) {
+        /* entry pairing mode, unpair all device */
+        ui_shell_send_event(true, EVENT_PRIORITY_HIGH, EVENT_GROUP_UI_SHELL_KEY,
+                            (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8),
+                            NULL, 0, NULL, 0);
+    }
+
+    if (msg->music_sync_progress) {
+        LOG_MSGID_I(APP_US, "music_sync_progress", 0);
+#ifdef BRC_LOCAL_MUSIC_ENABLE
+        send_sync_progress_to_app(msg_id);
+#endif
+    }
+
+    if (msg->music_info) {
+        // set_music_type(msg->music_info->focus || msg->music_info->playing);
+    }
+
     send_msg_to_app(&send_msg);
 
     return 0;
@@ -233,8 +263,34 @@ void bt_board_config(uint32_t msg_id, BoardConfig *board_cfg) {
         board_resp.mac_addr.len = 12;
     }
 
-    if (board_cfg->actived_user_id) {
+    if (board_cfg->model) {
+        /* set model*/
     }
+
+    if (board_cfg->sn) {
+        /* set model*/
+    }
+
+    if (board_cfg->mac_addr.len == 12) {
+        bt_bd_addr_t addr;
+        bt_addr_from_str(board_cfg->mac_addr.data, &addr);
+        bt_connection_manager_device_local_info_store_local_address(&addr);
+        bt_device_manager_db_flush_all(BT_DEVICE_MANAGER_DB_FLUSH_BLOCK);
+    } else if (board_cfg->mac_addr.len == 6) {
+        bt_bd_addr_t addr;
+        for (int i = 0, j = 5; i < 6; i++) {
+            addr[j--] = board_cfg->mac_addr.data[i];
+        }
+        bt_connection_manager_device_local_info_store_local_address(&addr);
+        LOG_MSGID_I(APP_US, "set address %x%x%x%x%x%x", 6, addr[0], addr[1],
+                    addr[2], addr[3], addr[4], addr[5]);
+        bt_device_manager_db_flush_all(BT_DEVICE_MANAGER_DB_FLUSH_BLOCK);
+    }
+
+    if (board_cfg->device_name) {
+        /* set device name */
+    }
+
     if (board_cfg->ship_mode) {
         dut_config = false;
         nvkey_write_data(NVKEYID_BT_DUT_ENABLE, (uint8_t *)(&dut_config),
