@@ -19,6 +19,7 @@ typedef enum {
     PLAY_PLAYING,
     PLAY_NEXT,
     PLAY_REPEAT,
+    PLAY_NEW_ID,
     PLAY_PAUSE,
     PLAY_STOP,
 } player_state_t;
@@ -29,6 +30,7 @@ typedef enum {
     ACTION_PLAY,
     ACTION_FORWARD,
     ACTION_REPEAT,
+    ACTION_NEW_ID,
 } player_action_t;
 
 typedef struct {
