@@ -4,7 +4,8 @@
 
 #include "bt_customer_config.h"
 #include "bt_sink_srv_a2dp.h"
-#include "bt_type.h"
+
+#include "errno.h"
 #include "hal.h"
 #include "nvdm_id_list.h"
 #include "nvkey.h"
@@ -104,4 +105,45 @@ bool ship_mode_flag_get(void) {
         return true;
     }
     return false;
+}
+
+int char2hex(char c, uint8_t *x) {
+    if (c >= '0' && c <= '9') {
+        *x = c - '0';
+    } else if (c >= 'a' && c <= 'f') {
+        *x = c - 'a' + 10;
+    } else if (c >= 'A' && c <= 'F') {
+        *x = c - 'A' + 10;
+    } else {
+        return -EINVAL;
+    }
+
+    return 0;
+}
+
+int bt_addr_from_str(const char *str, bt_bd_addr_t *addr) {
+    int i, j;
+    uint8_t tmp;
+    uint8_t bt_addr[6];
+
+    if (strlen(str) != 12U) {
+        return -EINVAL;
+    }
+
+    for (i = 5; i >= 0; i--) {
+        if (char2hex(str[2 * i], &tmp) < 0) {
+            return -EINVAL;
+        }
+        bt_addr[i] = tmp << 4;
+
+        if (char2hex(str[2 * i + 1], &tmp) < 0) {
+            return -EINVAL;
+        }
+        bt_addr[i] += tmp;
+    }
+
+    memcpy(addr, bt_addr, 6);
+
+
+    return 0;
 }

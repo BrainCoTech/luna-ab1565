@@ -6,6 +6,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bt_type.h"
 
 typedef struct {
     uint32_t size;
@@ -21,6 +22,8 @@ void update_rtc_time_from_local(void);
 bool ship_mode_flag_get(void);
 
 void ship_mode_flag_set(uint32_t flag);
+
+int bt_addr_from_str(const char *str, bt_bd_addr_t *addr);
 
 #ifdef __cplusplus
 }
