@@ -34,20 +34,16 @@
 
 #include "ble_dis.h"
 
-#define MANUFACTURER_NAME               "Airoha"
-#define MODEL_NUMBER                    "AIROHA-DIS-EXAMPLE"
-#define FIRMWARE_REVISION               "Version1.0"
-#define SOFTWARE_REVISION               "Version1.0"
-#define HARDWARE_REVISION               "Version1.0"
+#define MANUFACTURER_NAME               "BrainCo"
+#define MODEL_NUMBER                    "Easleep"
+#define FIRMWARE_REVISION               "1.2.0"
+#define SOFTWARE_REVISION               "1.2.0"
+#define HARDWARE_REVISION               "1.2.0"
 #define SERIAL_NUMBER                   "20180422"
 #define IEEE_DATA                       "Regulatory_Certification"
 #define MANUFACTURER_ID                 0x1122334455
 #define ORG_UNIQUE_ID                   0x667788
 
-#define PNP_ID_VENDOR_ID_SOURCE         0x02
-#define PNP_ID_VENDOR_ID                0x1915
-#define PNP_ID_PRODUCT_ID               0xEEEE
-#define PNP_ID_PRODUCT_VERSION          0x0001
 
 
 bt_status_t ble_dis_get_characteristic_value_callback(ble_dis_charc_type_t charc, void *value)
@@ -107,25 +103,6 @@ bt_status_t ble_dis_get_characteristic_value_callback(ble_dis_charc_type_t charc
                 ble_dis_system_id_t *buffer = (ble_dis_system_id_t *)value;
                 buffer->manufacturer_id = MANUFACTURER_ID;
                 buffer->organizationally_unique_id = ORG_UNIQUE_ID;
-            }
-            break;
-        }
-        case BLE_DIS_CHARC_IEEE_DATA_LIST: {
-            if (value) {
-                ble_dis_ieee_data_t *buffer = (ble_dis_ieee_data_t *)value;
-                buffer->list_length = (uint16_t)strlen(IEEE_DATA);
-                buffer->data_list = (uint8_t *)IEEE_DATA;
-            }
-            break;
-        }
-        case BLE_DIS_CHARC_PNP_ID: {
-            if (value) {
-                ble_dis_pnp_id_t *buffer = (ble_dis_pnp_id_t *)value;
-                buffer->vendor_id_source = PNP_ID_VENDOR_ID_SOURCE;
-                buffer->vendor_id       = PNP_ID_VENDOR_ID;
-                buffer->product_id      = PNP_ID_PRODUCT_ID;
-                buffer->product_version = PNP_ID_PRODUCT_VERSION;
-
             }
             break;
         }
