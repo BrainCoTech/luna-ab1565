@@ -248,6 +248,12 @@ typedef enum {
 #define APP_US_RX_TASK_STACKSIZE         (1024*1) /* Unit byte. */
 #define APP_US_RX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
 
+#ifdef BRC_LOCAL_MUSIC_ENABLE
+#define FILE_RECV_NAME               "file_recv"
+#define FILE_RECV_STACKSIZE          (4096)
+#define FILE_RECV_PRIORITY           TASK_PRIORITY_NORMAL    
+#endif
+
 /* Part_2: Application and customer tasks configure information. */
 /* Currently, only UI task and tasks to show example project function which define in apps/project/src/main.c. */
 
