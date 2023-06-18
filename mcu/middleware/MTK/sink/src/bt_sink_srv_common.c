@@ -84,13 +84,11 @@ bt_status_t bt_sink_srv_common_callback(bt_msg_type_t msg, bt_status_t status, v
     #ifndef MTK_BT_CM_SUPPORT
             result = bt_sink_srv_cm_gap_callback(msg, status, buffer);
     #endif
-            result = bt_sink_srv_hf_gap_callback(msg, status, buffer);
             result = bt_sink_srv_a2dp_common_callback(msg, status, buffer);
             break;
 
         case BT_MODULE_HFP:
         case BT_MODULE_HSP:
-            result = bt_sink_srv_call_common_callback(msg, status, buffer);
             break;
 
         case BT_MODULE_A2DP:
@@ -268,15 +266,11 @@ bt_status_t bt_sink_srv_convert_bt_clock_2_gpt_count(const bt_clock_t *bt_clock,
 void bt_sink_srv_register_callback_init(void)
 {
     bt_callback_manager_register_callback(bt_callback_type_app_event,
-                                      (uint32_t)(MODULE_MASK_GAP | MODULE_MASK_SYSTEM | MODULE_MASK_HFP |
-                                              MODULE_MASK_HSP | MODULE_MASK_AVRCP | MODULE_MASK_A2DP |
+                                      (uint32_t)(MODULE_MASK_GAP | MODULE_MASK_SYSTEM | MODULE_MASK_AVRCP | MODULE_MASK_A2DP |
                                               MODULE_MASK_PBAPC | MODULE_MASK_SPP | MODULE_MASK_AWS_MCE |
                                               MODULE_MASK_MM | MODULE_MASK_AVM | MODULE_MASK_SDP
                                               | MODULE_MASK_HID),
                                       (void *)bt_sink_srv_common_callback);
-    bt_callback_manager_register_callback(bt_callback_type_hfp_get_init_params,
-                                      0,
-                                      (void *)bt_sink_srv_hf_get_init_params);
     bt_callback_manager_register_callback(bt_callback_type_a2dp_get_init_params,
                                       0,
                                       (void *)bt_sink_srv_a2dp_get_init_params);
@@ -293,9 +287,7 @@ void bt_sink_srv_register_aws_mce_report_callback(void)
 uint32_t bt_sink_srv_get_volume(bt_bd_addr_t *bd_addr, bt_sink_srv_volume_type_t type)
 {
     uint32_t volume = 0xffffffff;
-    if(type == BT_SINK_SRV_VOLUME_HFP) {
-        bt_sink_srv_hf_get_speaker_volume(bd_addr, &volume);
-    } else if(type == BT_SINK_SRV_VOLUME_A2DP) {
+    if(type == BT_SINK_SRV_VOLUME_A2DP) {
         bt_sink_srv_a2dp_get_volume(bd_addr, &volume);
     }
     
@@ -325,7 +317,6 @@ uint32_t bt_sink_srv_get_device_state(const bt_bd_addr_t *device_address, bt_sin
 
             bt_sink_srv_memcpy(&device_state.address, &address_list[i], sizeof(bt_bd_addr_t));
             device_state.music_state = bt_sink_srv_music_get_music_state(&device_state.address);
-            bt_sink_srv_call_get_device_state(&device_state);
 
             bt_sink_srv_report_id("[Sink][Common]get device state, address:0x%x-%x-%x-%x-%x-%x", 6,
                 device_state.address[0], device_state.address[1], device_state.address[2],

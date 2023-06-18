@@ -105,8 +105,6 @@ bt_status_t default_bt_sink_srv_hsp_common_callback(bt_msg_type_t msg, bt_status
 #ifdef MTK_BT_CM_SUPPORT
 void bt_sink_srv_call_init(void)
 {
-    bt_cm_profile_service_register(BT_CM_PROFILE_SERVICE_HFP, (bt_cm_profile_service_handle_callback_t)bt_sink_srv_hf_cm_callback_handler);
-    bt_cm_profile_service_register(BT_CM_PROFILE_SERVICE_HSP, (bt_cm_profile_service_handle_callback_t)bt_sink_srv_hsp_cm_callback_handler);
 }
 #endif
 
@@ -116,8 +114,6 @@ bt_status_t bt_sink_srv_call_action_handler(bt_sink_srv_action_t action, void *p
     switch (action) {
         case BT_SINK_SRV_ACTION_PROFILE_INIT: {
             bt_sink_srv_call_psd_init();
-            bt_sink_srv_hf_action_handler(action, parameters);
-            bt_sink_srv_hsp_action_handler(action, parameters);
             bt_sink_srv_aws_mce_call_action_handler(action, parameters);
         }
         break;
