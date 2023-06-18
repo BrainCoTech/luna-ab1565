@@ -1320,12 +1320,27 @@ static bt_status_t bt_app_common_check_ble_conn_interval(bt_handle_t connection_
             param.conn_interval_max = target_interval;
             param.conn_latency = 0;
             param.supervision_timeout = 0x0258;/** TBC: 6000ms : 600 * 10 ms. */
+            param.minimum_ce_length = 6;
+            param.maximum_ce_length = 6;
             s_waiting_conn_interval = true;
             LOG_MSGID_I(BT_APP, "Set connection interval : 0x%x->0x%x",
                         2, g_conn_interval, target_interval);
             set_param_ret = bt_gap_le_update_connection_parameter(&param);
             LOG_MSGID_I(BT_APP, "Set connection interval : 0x%x, result = %d",
                         2, target_interval, set_param_ret);
+
+            /* Set LE max data length. */
+            bt_hci_cmd_le_set_data_length_t data_length_cmd;
+            data_length_cmd.connection_handle = connection_handle;
+            data_length_cmd.tx_octets = 0xFB;
+            data_length_cmd.tx_time = 0x0848;
+            bt_gap_le_update_data_length(&data_length_cmd);
+            /*Set LE PHY 2M. */
+            bt_hci_le_set_phy_t phy;
+            phy.tx = BT_HCI_LE_PHY_MASK_2M;
+            phy.rx = BT_HCI_LE_PHY_MASK_2M;
+            bt_gap_le_set_phy(connection_handle, &phy);
+    
             if (BT_STATUS_SUCCESS != set_param_ret) {
                 s_waiting_conn_interval = false;
             }
