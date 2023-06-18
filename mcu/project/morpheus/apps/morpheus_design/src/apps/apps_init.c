@@ -63,7 +63,9 @@
 #include "app_rho_idle_activity.h"
 #endif
 #include "ui_shell_manager.h"
+#ifdef MTK_BT_HFP_ENABLE
 #include "app_hfp_idle_activity.h"
+#endif
 #include "app_music_idle_activity.h"
 #include "apps_config_features_dynamic_setting.h"
 #include "apps_config_led_manager.h"
@@ -238,7 +240,9 @@ static void apps_init_applications(void)
 #ifdef APPS_USB_AUDIO_SUPPORT
     ui_shell_start_activity(NULL, app_usb_audio_idle_activity_proc, ACTIVITY_PRIORITY_IDLE_BACKGROUND, NULL, 0);
 #endif
+#ifdef MTK_BT_HFP_ENABLE
     ui_shell_start_activity(NULL, app_hfp_idle_activity_proc, ACTIVITY_PRIORITY_IDLE_BACKGROUND, NULL, 0);
+#endif
     ui_shell_start_activity(NULL, app_music_idle_activity_proc, ACTIVITY_PRIORITY_IDLE_BACKGROUND, NULL, 0);
 #ifdef MTK_FOTA_ENABLE
     ui_shell_start_activity(NULL, app_fota_idle_activity_proc, ACTIVITY_PRIORITY_IDLE_BACKGROUND, NULL, 0);

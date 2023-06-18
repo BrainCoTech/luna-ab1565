@@ -48,6 +48,7 @@ BT_SINK_SRV_FILES = $(BT_SINK_SRV_SRC)/bt_sink_srv.c \
 
 # Sink call related
 BT_SINK_SRV_CALL_SRC = middleware/MTK/sink/src/call
+ifdef MTK_BT_HFP_ENABLE
 BT_SINK_SRV_FILES += $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_call_audio.c \
                      $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_call.c \
                      $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_call_pseudo_dev.c \
@@ -56,6 +57,9 @@ BT_SINK_SRV_FILES += $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_call_audio.c \
                      $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_hf_call_manager.c \
                      $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_hf_multipoint.c \
                      $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_pbapc.c
+else
+BT_SINK_SRV_FILES +=  $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_pbapc.c
+endif
 ifeq ($(MTK_AWS_MCE_ENABLE), y)
 BT_SINK_SRV_FILES += $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_aws_mce_call.c \
 		             $(BT_SINK_SRV_CALL_SRC)/bt_sink_srv_call_rho.c

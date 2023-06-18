@@ -131,10 +131,12 @@ C_FILES += $(APPS_SRC)/app_music/app_music_utils.c
 C_FILES += $(APPS_SRC)/app_music/app_music_activity.c
 
 #hfp part
+ifeq ($(MTK_BT_HFP_ENABLE),y)
 C_FILES += $(APPS_SRC)/app_hfp/app_hfp_idle_activity.c
 C_FILES += $(APPS_SRC)/app_hfp/app_hfp_utils.c
 C_FILES += $(APPS_SRC)/app_hfp/app_hfp_activity.c
 C_FILES += $(APPS_SRC)/app_hfp/app_hfp_va_activity.c
+endif
 
 # FIND ME
 C_FILES += $(APPS_SRC)/app_fm/app_fm_idle_activity.c
@@ -325,7 +327,9 @@ ifeq ($(MTK_FOTA_ENABLE),y)
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_fota
 endif
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_gsound
+ifeq ($(MTK_BT_HFP_ENABLE),y)
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_hfp
+endif
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_idle
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_ull
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_multi_va
@@ -556,3 +560,7 @@ C_FILES +=   $(APPS_SRC)/music_file/music_file.c
 C_FILES +=   $(APPS_SRC)/music_file/music_solution.c
 C_FILES +=   $(APPS_SRC)/music_file/music_file_receiver.c
 C_FILES +=   $(APPS_SRC)/app_local_music/app_local_music.c
+
+ifeq ($(BRC_LOCAL_MUSIC_ENABLE), y)
+CFLAGS += -DBRC_LOCAL_MUSIC_ENABLE
+endif
