@@ -546,6 +546,7 @@ CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_us
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_uart
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/filesystem
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/music_file
+CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_local_music
 
 C_FILES += $(APPS_SRC)/morpheus_utils.c
 C_FILES +=   $(APPS_SRC)/app_us/app_us.c
@@ -554,3 +555,4 @@ C_FILES +=   $(APPS_SRC)/filesystem/filesystem.c
 C_FILES +=   $(APPS_SRC)/music_file/music_file.c
 C_FILES +=   $(APPS_SRC)/music_file/music_solution.c
 C_FILES +=   $(APPS_SRC)/music_file/music_file_receiver.c
+C_FILES +=   $(APPS_SRC)/app_local_music/app_local_music.c

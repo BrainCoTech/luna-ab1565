@@ -7,4 +7,7 @@
 #define FW_VERSION "0.0.1"
 #define MODEL "Easleep"
 
+#define FIXED_LOCAL_VOLUME 1
+#define LOCAL_DEFAULT_VOLUME 13
+
 #endif

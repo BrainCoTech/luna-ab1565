@@ -85,6 +85,7 @@
 #include "app_uart.h"
 #ifdef BRC_LOCAL_MUSIC_ENABLE
 #include "music_file_receiver.h"
+#include "app_local_music.h"
 #endif
 
 void atci_def_task(void *param)
@@ -155,6 +156,7 @@ static const tasks_list_t tasks_list[] = {
     {app_us_rx_task, APP_US_RX_TASK_NAME, APP_US_RX_TASK_STACKSIZE,  NULL,  APP_US_RX_TASK_PRIORITY },
 #ifdef BRC_LOCAL_MUSIC_ENABLE
     {file_receiver_task, FILE_RECV_NAME, FILE_RECV_STACKSIZE, NULL, FILE_RECV_PRIORITY},
+    {app_local_music_task, "local_music", 1024, NULL, TASK_PRIORITY_HIGH},
 #endif
 #ifdef BRC_LOCAL_AUDIO_TEST_ENABLE
     {local_audio_test, "LOCAL_AUDIO_TEST", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},

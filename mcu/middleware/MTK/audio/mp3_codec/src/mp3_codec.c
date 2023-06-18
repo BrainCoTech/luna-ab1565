@@ -117,7 +117,7 @@ void mp3_audio_mutex_unlock(xSemaphoreHandle handle)
 
 static uint8_t mp3_codec_decode_stereo[32576];
 
-static uint8_t mp3_codec_decode_mono[15908];
+static uint8_t *mp3_codec_decode_mono = mp3_codec_decode_stereo;
 
 #ifdef MTK_MP3_TASK_DEDICATE_BRC
 #define VP_MASK_VP_HAPPENING       0x00000004
