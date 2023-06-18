@@ -618,17 +618,18 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
         action = apps_config_key_event_remapper_map_action(key_id, key_event);
     }
 
+    if (event_id == 0x5218) action = KEY_POWER_OFF;
+    if (event_id == 0x5217) action = KEY_POWER_ON;
+    if (event_id == 0x5202) action = KEY_DISCOVERABLE;
+
+
     switch (action) {
-        case KEY_BT_OFF:{
-            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", Send REQUEST_ON_OFF_BT", 0);
-            ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST,
-                                EVENT_GROUP_UI_SHELL_APP_INTERACTION,
-                                APPS_EVENTS_INTERACTION_REQUEST_ON_OFF_BT,
-                                (void *)false, 0,
-                                NULL, 0);
-            ret = true;
+        case KEY_BEFORE_POWER_OFF:  
+            apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
+            vTaskDelay(500);
+            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY ", go to power off", 0);
             break;
-        }
+
         case KEY_POWER_OFF:
 #ifdef AIR_TILE_ENABLE
             if (!app_tile_toa_waiting_authentication()) {
@@ -685,6 +686,12 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
 #endif
             ret = true;
             break;
+        case KEY_LOCAL_PLAY:
+            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_LOCAL_PLAY", 0);
+            break;
+        case KEY_LOCAL_FORWARD:     
+            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_LOCAL_FORWARD", 0);
+            break; 
         case KEY_POWER_ON:
             /* Power on BT if current bt_power_state is disabled. */
             if (local_context->bt_power_state == APP_HOME_SCREEN_BT_POWER_STATE_DISABLED) {

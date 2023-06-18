@@ -56,7 +56,9 @@ typedef enum {
 
     KEY_VOICE_UP = 0x000A,                          /**< Volume up. */
     KEY_VOICE_DN = 0x000B,                          /**< Volume down. */
-    KEY_BT_OFF = 0x0016,                            /**< BT off. */
+
+    KEY_BEFORE_POWER_OFF = 0x0011,
+    
     KEY_POWER_ON = 0x0017,                          /**< It's a SW power on, so power on BT. */
     KEY_POWER_OFF = 0x0018,                         /**< System power off, but if device is not support power key, may do BT off only. */
     KEY_SYSTEM_REBOOT = 0x0019,                     /**< Trigger system reboot. */
@@ -82,6 +84,10 @@ typedef enum {
     KEY_MUTE_MIC = 0x3E,                    /**< Mute or unMute micphone. */
 
     KEY_3WAY_HOLD_ACTIVE_ACCEPT_OTHER = 0x0040, /**< Accept the new incoming call and hold current call. */
+
+    KEY_LOCAL_PLAY = 0x0043,                    /**< Start or resume music playing. */
+    KEY_LOCAL_PAUSE = 0x0045,                   /**< Pause music playing. */
+    KEY_LOCAL_FORWARD = 0x004A,                 /**< When playing music, play next track. */
 
     KEY_AVRCP_PLAY = 0x0053,                    /**< Start or resume music playing. */
     KEY_AVRCP_PAUSE = 0x0055,                   /**< Pause music playing. */
