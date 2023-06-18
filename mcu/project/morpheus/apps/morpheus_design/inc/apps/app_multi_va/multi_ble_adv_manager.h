@@ -71,7 +71,7 @@ typedef enum {
 /**
  * @brief Define the maximum le connection count of this software..
  */
-#define MULTI_ADV_MAX_CONN_COUNT    (2)
+#define MULTI_ADV_MAX_CONN_COUNT    (1)
 
 /**
  *  @brief This structure defines the BLE adv information, it include parameter, data and scan response.
