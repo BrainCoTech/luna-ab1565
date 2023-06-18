@@ -144,6 +144,8 @@ static bool bt_app_adv_restart_flag = false;
 
 #include "apps_control_touch_key_status.h"
 
+#include "ble_us.h"
+
 log_create_module(BT_APP, PRINT_LEVEL_INFO);
 void bt_app_common_reset_context(void);
 
@@ -621,9 +623,6 @@ static bool ble_adv_increase_interval = false;
 
 static bool bt_app_is_power_on  = false;
 
-#define BT_APP_BLE_AIR_SERVICE_UUID                \
-        {0x45, 0x4C, 0x42, 0x61, 0x68, 0x6F, 0x72, 0x69,               \
-         0x41, 0x03, 0xAB, 0x2D, 0x4D, 0x49, 0x52, 0x50}
 
 void bt_app_common_cmd_disable_advertising(void)
 {
@@ -743,7 +742,7 @@ bt_status_t bt_app_common_generate_default_adv_data(
         }
 
         /* adv_data AD_TYPE_128_BIT_UUID_COMPLETE */
-        uint8_t uuid[] =  BT_APP_BLE_AIR_SERVICE_UUID;
+        uint8_t uuid[] =  BLE_US_SERVICE_UUID;
         if (len + (sizeof(uuid) + 2) <= max_len) {
             adv_data->data[len] = sizeof(uuid) + 1;
             adv_data->data[len + 1] = BT_GAP_LE_AD_TYPE_128_BIT_UUID_COMPLETE;
@@ -768,9 +767,6 @@ bt_status_t bt_app_common_advtising_start(uint16_t adv_interval_min,
                                           uint8_t *unique_id,
                                           uint8_t unique_id_len)
 {
-#define BT_APP_BLE_AIR_SERVICE_UUID                \
-        {0x45, 0x4C, 0x42, 0x61, 0x68, 0x6F, 0x72, 0x69,               \
-         0x41, 0x03, 0xAB, 0x2D, 0x4D, 0x49, 0x52, 0x50}
 
     uint8_t len = 0;
     uint8_t count = bt_device_manager_le_get_bonded_number();
@@ -869,7 +865,7 @@ bt_status_t bt_app_common_advtising_start(uint16_t adv_interval_min,
 
     if (len + 18 <= BT_HCI_LE_ADVERTISING_DATA_LENGTH_MAXIMUM) {
         /* adv_data AD_TYPE_128_BIT_UUID_COMPLETE */
-        uint8_t uuid[] =  BT_APP_BLE_AIR_SERVICE_UUID;
+        uint8_t uuid[] =  BLE_US_SERVICE_UUID;
         adv_data.advertising_data[len] = 17;
         adv_data.advertising_data[len + 1] = BT_GAP_LE_AD_TYPE_128_BIT_UUID_COMPLETE;
         memcpy(&(adv_data.advertising_data[len + 2]), uuid, sizeof(uuid));
