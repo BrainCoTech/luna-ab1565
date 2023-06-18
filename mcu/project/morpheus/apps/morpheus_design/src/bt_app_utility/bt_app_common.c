@@ -656,7 +656,7 @@ bt_status_t bt_app_common_generate_default_adv_data(
         adv_param->primary_advertising_interval_min = 0;
         adv_param->primary_advertising_interval_max = 0;
         adv_param->primary_advertising_channel_map = 0x07;
-        adv_param->own_address_type = BT_ADDR_RANDOM;
+        adv_param->own_address_type = BT_ADDR_PUBLIC;
         adv_param->advertising_filter_policy = 0;
         adv_param->advertising_tx_power = 0;
         adv_param->primary_advertising_phy = 0x01;
@@ -781,11 +781,11 @@ bt_status_t bt_app_common_advtising_start(uint16_t adv_interval_min,
         .advertising_interval_min = 0x0500,
         .advertising_interval_max = 0x0500,
         .advertising_type = BT_HCI_ADV_TYPE_CONNECTABLE_UNDIRECTED,
-        .own_address_type = BT_ADDR_RANDOM,
+        .own_address_type = BT_ADDR_PUBLIC,
         .advertising_channel_map = 7,
         .advertising_filter_policy = 0
     };
-
+    count = 0;
     if (count) {
         int i;
         for (i = 0; i < count; i++) {
@@ -1112,7 +1112,7 @@ bt_status_t bt_app_common_ext_advertising_start_test(uint8_t instance)
         .primary_advertising_interval_min = 0x00100,
         .primary_advertising_interval_max = 0x00400,
         .primary_advertising_channel_map = 0x07,
-        .own_address_type = BT_ADDR_RANDOM,
+        .own_address_type = BT_ADDR_PUBLIC,
         .peer_address = {
             .type = BT_ADDR_PUBLIC,
             .addr = {0},
@@ -1369,9 +1369,7 @@ static bt_status_t bt_app_common_event_callback(bt_msg_type_t msg, bt_status_t s
     switch (msg) {
         case BT_POWER_ON_CNF: {
             bt_app_is_power_on = true;
-            bt_app_common_generate_local_address(bt_local_random_addr);
 
-            bt_gap_le_set_random_address((bt_bd_addr_ptr_t)bt_local_random_addr);
             bt_gatts_set_max_mtu(BT_APP_COMMON_GATT_MTU);
             break;
         }
