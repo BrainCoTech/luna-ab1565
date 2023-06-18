@@ -38,6 +38,8 @@
 
 #ifdef BSP_EXTERNAL_SERIAL_FLASH_ENABLED
 
+#define ADDRESS_4BYTES 1
+
 //Quad program should be 256 byte one time
 #define WRITE_BUFFER_SIZE     (0x100)
 #define FLASH_DADA_MAX_LENGTH (0x1000)
@@ -46,11 +48,15 @@
 #define FLASH_INIT      (2)
 #define FLASH_NOT_INIT  (-1)
 
-//only support 3bytes address
-#define ADDRESS_MASK        (0x00FFFFFF)
-#define ADDRESS_CHECK_MASK  (0xFF000000)
+// support 4bytes address
+#define ADDRESS_MASK        (0x0FFFFFFF)
+#define ADDRESS_CHECK_MASK  (0xF0000000)
 
+#if (ADDRESS_4BYTES)
+#define COMMAND_LENGTH    (0x9)
+#else
 #define COMMAND_LENGTH    (0x8)
+#endif
 
 typedef enum {
     FLASH_STATUS_IDLE = 0,
@@ -106,6 +112,7 @@ typedef struct {
 #define READ_SR_2        (0x35)
 #define WRITE_SR_2       (0x31)
 #define QE_ENABLE_WB     (0x2)
+#define ADS_4B           (0x01)
 
 
 #endif //_BSP_SPI_SERIAL_FLASH_PORT_H_
