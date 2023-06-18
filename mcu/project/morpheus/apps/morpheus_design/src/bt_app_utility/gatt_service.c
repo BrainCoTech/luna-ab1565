@@ -76,6 +76,8 @@ extern const bt_gatts_service_t bt_if_gap_service;
 extern const bt_gatts_service_t bt_if_dogp_service;
 extern const bt_gatts_service_t ble_bas_service;
 */
+extern const bt_gatts_service_t ble_us_service;
+extern const bt_gatts_service_t ble_bas_service;
 #ifdef MTK_BLE_IAS
 extern const bt_gatts_service_t ble_ias_service;
 #endif
@@ -122,9 +124,7 @@ const bt_gatts_service_t *bt_if_clm_gatt_server[] = {
     &bt_if_dtp_service, //0x0014-0x0017
 #endif
     /*&bt_if_dogp_service,*/ /**< handle range: 0x0020 to 0x0025. */
-#ifdef __BLE_BAS__
     &ble_bas_service,/**< handle range: 0x0031 to 0x0034. */
-#endif
 #ifdef MTK_BLE_IAS
     &ble_ias_service,/**< handle range: 0x0040 to 0x0042. */
 #endif
@@ -132,6 +132,7 @@ const bt_gatts_service_t *bt_if_clm_gatt_server[] = {
     &ble_air_service,/**< handle range: 0x0051 to 0x0056. */
 #endif
     &ble_dis_service,/**< handle range: 0x0060 to 0x0072. */
+    &ble_us_service,/**< handle range: 0x0091 to 0x0096. */
 #ifdef MTK_AMA_ENABLE
     &ble_ama_service,/**handle range: 0x00D0 to 0x00D5. */
 #endif
