@@ -1443,6 +1443,7 @@ static bt_status_t bt_app_common_event_callback(bt_msg_type_t msg, bt_status_t s
 
         case BT_GAP_LE_DISCONNECT_IND: {
             bt_gap_le_disconnect_ind_t *disc_ind = (bt_gap_le_disconnect_ind_t *)buff;
+            LOG_MSGID_I(BT_APP, "ble disconnect reason: %x", 1, disc_ind->reason);
             char conn_string[31] = {0};
             snprintf((char *)conn_string, 31, "LE disconnected, handle 0x%04x", disc_ind->connection_handle);
             bt_app_common_at_cmd_print_report(conn_string);
