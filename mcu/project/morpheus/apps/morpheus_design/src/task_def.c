@@ -81,6 +81,9 @@
 #include "bt_init.h"
 #include "hal_audio.h"
 #include "bt_power_on_config.h"
+#include "app_us.h"
+#include "app_uart.h"
+
 void atci_def_task(void *param)
 {
     while (1) {
@@ -139,6 +142,11 @@ static const tasks_list_t tasks_list[] = {
     {ama_port_task_main, AMA_TARGET_TASK_NAME, AMA_TARGET_TASK_STACK_SIZE, NULL, AMA_TARGET_TASK_PRIORITY},
     {ama_core_task_handler, AMA_CORE_TASK_NAME, AMA_CORE_TASK_STACK_SIZE, NULL, AMA_CORE_TASK_PRIORITY},
 #endif
+
+    {app_uart_tx_task, APP_UART_TX_TASK_NAME, APP_UART_TX_TASK_STACKSIZE,  NULL,  APP_UART_TX_TASK_PRIORITY },
+    {app_uart_rx_task, APP_UART_RX_TASK_NAME, APP_UART_RX_TASK_STACKSIZE,  NULL,  APP_UART_RX_TASK_PRIORITY },
+    {app_us_tx_task, APP_US_TX_TASK_NAME, APP_US_TX_TASK_STACKSIZE,  NULL,  APP_US_TX_TASK_PRIORITY },
+    {app_us_rx_task, APP_US_RX_TASK_NAME, APP_US_RX_TASK_STACKSIZE,  NULL,  APP_US_RX_TASK_PRIORITY },
 };
 
 #define tasks_list_count  (sizeof(tasks_list) / sizeof(tasks_list_t))

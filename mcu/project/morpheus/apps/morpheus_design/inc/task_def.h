@@ -232,6 +232,22 @@ typedef enum {
 #define IAP2_SRV_TASK_PRIORITY          TASK_PRIORITY_NORMAL
 #define IAP2_SRV_QUEUE_LENGTH           50
 
+#define APP_UART_TX_TASK_NAME              "uart_tx"
+#define APP_UART_TX_TASK_STACKSIZE         (1024*1) /* Unit byte. */
+#define APP_UART_TX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
+
+#define APP_UART_RX_TASK_NAME              "uart_rx"
+#define APP_UART_RX_TASK_STACKSIZE         (1024*1) /* Unit byte. */
+#define APP_UART_RX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
+
+#define APP_US_TX_TASK_NAME              "us_tx"
+#define APP_US_TX_TASK_STACKSIZE         (1024*1) /* Unit byte. */
+#define APP_US_TX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
+
+#define APP_US_RX_TASK_NAME              "us_rx"
+#define APP_US_RX_TASK_STACKSIZE         (1024*1) /* Unit byte. */
+#define APP_US_RX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
+
 /* Part_2: Application and customer tasks configure information. */
 /* Currently, only UI task and tasks to show example project function which define in apps/project/src/main.c. */
 
