@@ -265,6 +265,7 @@ static uint32_t ble_dis_system_id_callback(const uint8_t rw, uint16_t handle, vo
     return 0;
 }
 
+#if 0
 static uint32_t ble_dis_ieee_data_callback(const uint8_t rw, uint16_t handle, void *data, uint16_t size, uint16_t offset)
 {
     LOG_MSGID_I(BLE_DIS, "ble_dis_ieee_data_callback, opcode:%d, size:%d offset = %d\r\n", 3, rw, size, offset);
@@ -303,7 +304,7 @@ static uint32_t ble_dis_pnp_id_callback(const uint8_t rw, uint16_t handle, void 
     }
     return 0;
 }
-
+#endif
 
 
 BT_GATTS_NEW_PRIMARY_SERVICE_16(ble_dis_primary_service, BLE_DIS_UUID16);
@@ -346,6 +347,7 @@ BT_GATTS_NEW_CHARC_16(ble_dis_char4_manufacturer_name_string, BT_GATT_CHARC_PROP
 BT_GATTS_NEW_CHARC_VALUE_CALLBACK(ble_dis_manufacturer_name_string, BT_SIG_UUID_MANUFACTURER_NAME_STRING,
                                   BT_GATTS_REC_PERM_READABLE,
                                   ble_dis_manufacturer_name_string_callback);
+#if 0
 //IEEE
 BT_GATTS_NEW_CHARC_16(ble_dis_char4_ieee_data, BT_GATT_CHARC_PROP_READ, BLE_DIS_IEEE_DATA_VALUE_HANDLE, BLE_DIS_IEEE_DATA_UUID16);
 BT_GATTS_NEW_CHARC_VALUE_CALLBACK(ble_dis_ieee_data, BT_SIG_UUID_IEEE_DATA,
@@ -356,7 +358,7 @@ BT_GATTS_NEW_CHARC_16(ble_dis_char4_pnp_id, BT_GATT_CHARC_PROP_READ, BLE_DIS_PNP
 BT_GATTS_NEW_CHARC_VALUE_CALLBACK(ble_dis_pnp_id, BT_SIG_UUID_PNP_ID,
                                   BT_GATTS_REC_PERM_READABLE,
                                   ble_dis_pnp_id_callback);
-
+#endif
 
 
 static const bt_gatts_service_rec_t *ble_dis_service_rec[] = {
@@ -375,15 +377,21 @@ static const bt_gatts_service_rec_t *ble_dis_service_rec[] = {
     (const bt_gatts_service_rec_t *) &ble_dis_software_revision_string,
     (const bt_gatts_service_rec_t *) &ble_dis_char4_manufacturer_name_string,
     (const bt_gatts_service_rec_t *) &ble_dis_manufacturer_name_string,
+#if 0
     (const bt_gatts_service_rec_t *) &ble_dis_char4_ieee_data,
     (const bt_gatts_service_rec_t *) &ble_dis_ieee_data,
     (const bt_gatts_service_rec_t *) &ble_dis_char4_pnp_id,
     (const bt_gatts_service_rec_t *) &ble_dis_pnp_id,
+#endif
 };
 
 const bt_gatts_service_t ble_dis_service = {
     .starting_handle = 0x0060,
+#if 0    
     .ending_handle = 0x0072,
+#else
+    .ending_handle = 0x0068,
+#endif
     .required_encryption_key_size = 0,
     .records = ble_dis_service_rec
 };
