@@ -178,6 +178,9 @@ include $(SOURCE_DIR)/middleware/MTK/bluetooth_service/module.mk
 # ble battery service module
 #include $(SOURCE_DIR)/middleware/MTK/ble_bas/module.mk
 
+# ble uart service module
+include $(SOURCE_DIR)/middleware/BrainCo/ble_us/module.mk
+
 # IAS service module
 ifeq ($(MTK_BLE_IAS), y)
 include $(SOURCE_DIR)/middleware/MTK/ble_ias/module.mk
