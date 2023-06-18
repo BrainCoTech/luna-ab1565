@@ -65,6 +65,7 @@
 #ifdef MTK_AWS_MCE_ENABLE
 #include "bt_aws_mce_srv.h"
 #endif
+#include "main_controller.h"
 
 #define UI_SHELL_IDLE_BT_CONN_ACTIVITY "[TK_BT_CONN]app_bt_conn_componet_in_homescreen"
 
@@ -223,6 +224,7 @@ bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t even
                         local_ctx->bt_power_off = false;
                         APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY" Agent connection_state set true", 0);
                         apps_config_set_vp(VP_INDEX_CONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                        main_controller_set_state(SYS_CONFIG__STATE__BT_CONNECTED);                        
                         bt_conn_component_update_mmi();
                         local_ctx->conn_device_num = 1;
                         memcpy(&(local_ctx->conn_device[0].addr), &(remote_update->address), sizeof(bt_bd_addr_t));
@@ -249,6 +251,7 @@ bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t even
                                 memset(&(local_ctx->conn_device), 0, sizeof(app_conn_device_info_t) * APP_CONN_MAX_DEVICE_NUM);
                                 bt_conn_component_update_mmi();
                                 apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                                main_controller_set_state(SYS_CONFIG__STATE__BT_DISCONNECTED);
                             } else {
                                 apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
                             }
