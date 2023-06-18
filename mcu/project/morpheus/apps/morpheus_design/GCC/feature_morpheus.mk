@@ -147,6 +147,7 @@ MTK_AUDIO_MP3_ENABLED               = y
 MTK_MP3_DECODER_ENABLED             = y
 MTK_MP3_CODEC_TASK_DEDICATE         = y
 MTK_MP3_STEREO_SUPPORT              = y
+MTK_MP3_CODEC_TASK_DEDICATE_BRC     = n
 # wave decoder by charlie
 MTK_WAV_DECODER_ENABLE              = n
 # record middleware

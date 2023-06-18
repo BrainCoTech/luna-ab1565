@@ -179,7 +179,7 @@ typedef enum {
 
 /* For MP3 codec task */
 #define MP3_CODEC_TASK_NAME       "mp3_codec_task"
-#ifndef MTK_MP3_TASK_DEDICATE
+#ifndef MTK_MP3_TASK_DEDICATE_BRC
 #define MP3_CODEC_TASK_STACKSIZE  2048
 #else
 #define MP3_CODEC_TASK_STACKSIZE  384    /* For MP3 task dedicate in Task List. Size: 1.5k/sizeof(StackType_t). */

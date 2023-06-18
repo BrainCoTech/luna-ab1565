@@ -119,7 +119,7 @@ static uint8_t mp3_codec_decode_stereo[32576];
 
 static uint8_t mp3_codec_decode_mono[15908];
 
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
 #define VP_MASK_VP_HAPPENING       0x00000004
 #define VP_MASK_DL1_HAPPENING      0x00000008
 volatile uint32_t g_vp_task_mask;
@@ -200,7 +200,7 @@ extern volatile uint8_t g_audio_dl_suspend_by_user;
 #define SHARE_BUFFER_TOO_LESS_SLEEP_TIME_IN_MS 30
 #define SHARE_BUFFER_TOO_LESS_SLEEP_LOOP_TIMES 10
 
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
 volatile mp3_codec_media_handle_t   *g_mp3_codec_task_handle = NULL;
 #endif
 
@@ -1282,7 +1282,7 @@ static void mp3_codec_event_register_callback(mp3_codec_media_handle_t *handle, 
     return;
 }
 
-#ifndef MTK_MP3_TASK_DEDICATE
+#ifndef MTK_MP3_TASK_DEDICATE_BRC
 static void mp3_codec_event_deregister_callback(mp3_codec_media_handle_t *handle, mp3_codec_queue_event_id_t dereg_id)
 {
     uint32_t id_idx;
@@ -1294,14 +1294,14 @@ static void mp3_codec_event_deregister_callback(mp3_codec_media_handle_t *handle
     }
     return;
 }
-#endif //MTK_MP3_TASK_DEDICATE
+#endif //MTK_MP3_TASK_DEDICATE_BRC
 
 extern void prompt_control_mp3_callback(mp3_codec_media_handle_t *handle, mp3_codec_event_t event);
 void mp3_codec_task_main(void *arg)
 {
     MP3_LOG_I("[MP3 Codec]mp3_codec_task_main create\n", 0);
 
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
     mp3_codec_open(prompt_control_mp3_callback);
     arg = (mp3_codec_media_handle_t *)g_mp3_codec_task_handle;
 
@@ -1328,7 +1328,7 @@ void mp3_codec_task_main(void *arg)
 }
 
 
-#ifndef MTK_MP3_TASK_DEDICATE
+#ifndef MTK_MP3_TASK_DEDICATE_BRC
 static void mp3_codec_task_create(mp3_codec_media_handle_t *handle)
 {
     if (mp3_handle_ptr_to_task_handle(handle) ==  NULL) {
@@ -1463,7 +1463,7 @@ static void mp3_codec_pcm_out_isr_callback(hal_audio_event_t event, void *data)
     uint32_t total_stream_out_amount = 0;
     uint32_t current_cnt = 0;
 #endif
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
     mp3_codec_mutex_lock(handle);
 #endif
     mp3_codec_internal_handle_t *internal_handle = mp3_handle_ptr_to_internal_ptr(data);
@@ -1476,13 +1476,13 @@ static void mp3_codec_pcm_out_isr_callback(hal_audio_event_t event, void *data)
     if (1 == internal_handle->media_bitstream_end) {
         MP3_LOG_I("[MP3 Codec] isr just return becase media_bitstream_end == 1\r\n", 0);
     #if defined(MTK_AUDIO_MIXER_SUPPORT)
-    #ifndef MTK_MP3_TASK_DEDICATE
+    #ifndef MTK_MP3_TASK_DEDICATE_BRC
         handle->handler(handle, MP3_CODEC_MEDIA_BITSTREAM_END);
     #endif
     #else
         mp3_codec_event_send_from_isr(MP3_CODEC_QUEUE_EVENT_DECODE, data); // "handle->handler(handle, MP3_CODEC_MEDIA_BITSTREAM_END)" is called in "mp3_codec_deocde_hisr_handler"
     #endif
-    #ifdef MTK_MP3_TASK_DEDICATE
+    #ifdef MTK_MP3_TASK_DEDICATE_BRC
         mp3_codec_mutex_unlock(handle);
     #endif
         return;
@@ -1537,11 +1537,11 @@ static void mp3_codec_pcm_out_isr_callback(hal_audio_event_t event, void *data)
                     MP3_LOG_I("[MP3 Codec] curr_cnt=%d, write stream_out_pcm_buff. out_buf_ptr = 0x%x, stream_out_amount =%d \r\n",3, (curr_cnt / 1000), out_buf_ptr, stream_out_amount);
 #endif
 #if defined(MTK_AVM_DIRECT)
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
                     if(!(g_vp_task_mask & VP_LOCAL_MASK_MUTE_SHARED_BUF)){
 #endif
                     hal_audio_write_stream_out_by_type(internal_handle->message_type, out_buf_ptr, stream_out_amount);
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
                     }
 #endif
 #elif defined(MTK_AUDIO_MIXER_SUPPORT)
@@ -1564,11 +1564,11 @@ static void mp3_codec_pcm_out_isr_callback(hal_audio_event_t event, void *data)
                     MP3_LOG_I("[MP3 Codec] curr_cnt=%d, stream_out_pcm_buff no data. loop_idx=%d\r\n",2, (curr_cnt / 1000), loop_idx);
 #endif
 #if defined(MTK_AVM_DIRECT)
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
                     if(!(g_vp_task_mask & VP_LOCAL_MASK_MUTE_SHARED_BUF)){
 #endif
                     hal_audio_write_stream_out_by_type(internal_handle->message_type, out_buf_ptr, 0);
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
                     }
 #endif
 #elif defined(MTK_AUDIO_MIXER_SUPPORT)
@@ -1615,16 +1615,16 @@ static void mp3_codec_pcm_out_isr_callback(hal_audio_event_t event, void *data)
             MP3_LOG_I("not here\r\n", 0);
             break;
         case HAL_AUDIO_EVENT_DATA_DIRECT:
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
             MP3_LOG_I("[VPC] VP dsp triggered\r\n", 0);
             if (g_app_callback) {
                 MP3_LOG_I("[VPC] aws VP start trigger\n", 0);
                 g_app_callback(PROMPT_CONTROL_MEDIA_PLAY);
             }
-#endif /* MTK_MP3_TASK_DEDICATE */
+#endif /* MTK_MP3_TASK_DEDICATE_BRC */
             break;
     }
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
     mp3_codec_mutex_unlock(handle);
 #endif
 #if defined(MTK_AUDIO_MIXER_SUPPORT)
@@ -1789,7 +1789,7 @@ static int32_t mp3_codec_get_next_mp3_frame_size(uint8_t *mp3_header, uint8_t *b
     return ret;
 }
 
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
 extern void prompt_control_gpt_callback(void *user_data);
 TickType_t xTimeOUT_VP = 0;
 static void mp3_codec_decode_open_handler(void *data)
@@ -1877,7 +1877,7 @@ static void mp3_codec_decode_stop_handler(void *data)
                 am_audio_dl_resume();
             }
             am_audio_ul_resume();
-        #ifdef MTK_MP3_TASK_DEDICATE
+        #ifdef MTK_MP3_TASK_DEDICATE_BRC
             if (g_app_internal_callback) {
                 g_app_internal_callback(PROMPT_CONTROL_MEDIA_END);
                 g_app_internal_callback = NULL;
@@ -2426,7 +2426,7 @@ static mp3_codec_function_return_state_t mp3_codec_play_internal(mp3_codec_media
 
     mp3_codec_internal_handle_t *internal_handle = mp3_handle_ptr_to_internal_ptr(handle);
 
-#ifndef MTK_MP3_TASK_DEDICATE
+#ifndef MTK_MP3_TASK_DEDICATE_BRC
     mp3_codec_event_register_callback(handle, MP3_CODEC_QUEUE_EVENT_DECODE, mp3_codec_deocde_hisr_handler);
 #endif
 
@@ -2584,7 +2584,7 @@ static mp3_codec_function_return_state_t mp3_codec_play_internal(mp3_codec_media
     hal_audio_start_stream_out(HAL_AUDIO_PLAYBACK_MUSIC);
 #endif
 #if !defined(MTK_AVM_DIRECT) && \
-    defined(MTK_MP3_TASK_DEDICATE)
+    defined(MTK_MP3_TASK_DEDICATE_BRC)
     handle->flush_data_flag = 0;
     handle->state = MP3_CODEC_STATE_PLAY;
 #endif
@@ -2745,7 +2745,7 @@ static void mp3_codec_stop_avm(mp3_codec_media_handle_t *handle)
     hal_audio_dsp_controller_send_message(stop_msg, AUDIO_DSP_CODEC_TYPE_PCM, 0, true);
 
     // Unregister callback
-    #ifndef MTK_MP3_TASK_DEDICATE
+    #ifndef MTK_MP3_TASK_DEDICATE_BRC
     hal_audio_service_unhook_callback(msg_type);
     #endif
 
@@ -2838,12 +2838,12 @@ static mp3_codec_function_return_state_t mp3_codec_play(mp3_codec_media_handle_t
     audio_codec_mutex_unlock(); /* temp sol. to protect play/resume flow  */
     // should placed outof audio codec mutex, or will dead lock with vp app layer
     if (!(handle->aws_sync_request)) {
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
         if (g_app_callback) {
             MP3_LOG_I("[VPC] non-aws VP start trigger\n", 0);
             g_app_callback(PROMPT_CONTROL_MEDIA_PLAY);
         }
-#endif /* MTK_MP3_TASK_DEDICATE */
+#endif /* MTK_MP3_TASK_DEDICATE_BRC */
     }
 #if defined(MTK_AUDIO_MP3_DEBUG)
     MP3_LOG_I("[MP3 Codec] mp3_codec_play --\r\n", 0);
@@ -2882,7 +2882,7 @@ static mp3_codec_function_return_state_t mp3_codec_stop(mp3_codec_media_handle_t
 #endif
     mp3_handle_ptr_to_internal_ptr(handle)->media_bitstream_end = 0;
 
-#ifndef MTK_MP3_TASK_DEDICATE
+#ifndef MTK_MP3_TASK_DEDICATE_BRC
     mp3_codec_event_deregister_callback(handle, MP3_CODEC_QUEUE_EVENT_DECODE);
 #endif
     //audio_service_clearflag(handle->audio_id);
@@ -2959,7 +2959,7 @@ mp3_codec_function_return_state_t mp3_codec_close(mp3_codec_media_handle_t *hand
 #endif
     mp3_handle_ptr_to_mp3_decode_buffer(handle) = NULL;
 
-#ifndef MTK_MP3_TASK_DEDICATE
+#ifndef MTK_MP3_TASK_DEDICATE_BRC
     // delete decode task
     mp3_codec_task_delete(handle);
 #endif
@@ -3094,7 +3094,7 @@ mp3_codec_media_handle_t *mp3_codec_open(mp3_codec_callback_t mp3_codec_callback
         }
     }
 
-#ifndef MTK_MP3_TASK_DEDICATE
+#ifndef MTK_MP3_TASK_DEDICATE_BRC
     //create decode task
     mp3_codec_task_create(handle);
 #endif
@@ -3113,7 +3113,7 @@ mp3_codec_media_handle_t *mp3_codec_open(mp3_codec_callback_t mp3_codec_callback
 #endif
 
 #if defined(MTK_AUDIO_MIXER_SUPPORT)
-#ifdef MTK_MP3_TASK_DEDICATE
+#ifdef MTK_MP3_TASK_DEDICATE_BRC
     g_mp3_codec_task_handle = handle;
 #endif
 #else

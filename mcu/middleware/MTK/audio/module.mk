@@ -396,4 +396,5 @@ else ifeq ($(MTK_MP3_DECODER_ENABLED), y)
 
   # temp for build pass
   AUDIO_FILES += $(AUDIO_SRC)/src/audio_codec.c
+  CFLAGS += -DMTK_MP3_TASK_DEDICATE_BRC
 endif
