@@ -67,10 +67,6 @@
 #endif
 
 //extern global various.
-extern uint32_t g_sink_srv_hf_delay_for_acqua;
-extern bt_hfp_audio_codec_type_t g_sink_srv_hf_audio_codec;
-extern bool g_sink_srv_hf_pts_on;
-extern bt_status_t bt_sink_srv_hf_switch(bool value);
 
 //extern functions.
 extern void bt_driver_trigger_controller_codedump(void);
@@ -386,20 +382,6 @@ static int16_t bt_sink_srv_cmd_entry(const char *string)
     } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("ECNR"))) {
         bool active = (bool)((*(string + 4)) - '0');
         bt_sink_srv_send_action(BT_SINK_SRV_ACTION_HF_ECNR_ACTIVATE, &active);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("CALLVUP"))) { //CALL VOLUME UP
-        bt_sink_srv_send_action(BT_SINK_SRV_ACTION_CALL_VOLUME_UP, NULL);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("CALLVDN"))) { // CALL VOLUME DOWN
-        bt_sink_srv_send_action(BT_SINK_SRV_ACTION_CALL_VOLUME_DOWN, NULL);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("CALLVMIN"))) { // CALL VOLUME MIN
-        bt_sink_srv_send_action(BT_SINK_SRV_ACTION_CALL_VOLUME_MIN, NULL);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("CALLVMAX"))) { //CALL VOLUME MAX
-        bt_sink_srv_send_action(BT_SINK_SRV_ACTION_CALL_VOLUME_MAX, NULL);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("EHFP"))) {
-        bt_hfp_enable_service_record(true);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("DHFP"))) {
-        bt_hfp_enable_service_record(false);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("ACQUA,"))) {
-        g_sink_srv_hf_delay_for_acqua = (uint32_t)strtoul(string + 6, NULL, 10);
     } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("APLBAT,"))) {
         uint8_t bat_lev = (uint8_t)((*(string + 7)) - '0');
         bt_sink_srv_send_action(BT_SINK_SRV_ACTION_REPORT_BATTERY, (void*)&bat_lev);
@@ -438,10 +420,6 @@ static int16_t bt_sink_srv_cmd_entry(const char *string)
         bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PLAY_PAUSE, NULL);
     } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("ASSERT"))) {
         bt_sink_srv_assert(0);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("CVSD"))) {
-        g_sink_srv_hf_audio_codec = (bt_hfp_audio_codec_type_t)BT_HFP_CODEC_TYPE_CVSD;
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("MSBC"))) {
-        g_sink_srv_hf_audio_codec = (bt_hfp_audio_codec_type_t)BT_HFP_CODEC_TYPE_MSBC;
     } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("FW-DUMP"))) {
         bt_driver_trigger_controller_codedump();
     } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("REWIND_PUSH"))) { // BT MUSIC REWIND PUSH
@@ -500,17 +478,6 @@ static int16_t bt_sink_srv_cmd_entry(const char *string)
         param.end_item = 5;
         bt_sink_srv_send_action(BT_SINK_SRV_ACTION_GET_FOLDER_ITEM, &param);
 #endif
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("MICVUP"))) {
-        bt_sink_srv_hf_mic_volume_change_handler(BT_SINK_SRV_CALL_AUDIO_VOL_ACT_UP, false);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("MICVDN"))) {
-        bt_sink_srv_hf_mic_volume_change_handler(BT_SINK_SRV_CALL_AUDIO_VOL_ACT_DOWN, false);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("MICVMAX"))) {
-        bt_sink_srv_hf_mic_volume_change_handler(BT_SINK_SRV_CALL_AUDIO_VOL_ACT_UP, true);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("MICVMIN"))) {
-        bt_sink_srv_hf_mic_volume_change_handler(BT_SINK_SRV_CALL_AUDIO_VOL_ACT_DOWN, true);
-    } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("PTS-ON"))) {
-        g_sink_srv_hf_pts_on = true;
-        bt_sink_srv_report_id("[SINK][ATCI]HF PTS on: 0x%x", 1, g_sink_srv_hf_pts_on);
 #ifdef MTK_AWS_MCE_ENABLE
     } else if (0 == bt_sink_srv_memcmp(string, CMD_PARAM("SEND_IF_APP"))) {
         bt_sink_srv_aws_mce_send_action_for_debug();

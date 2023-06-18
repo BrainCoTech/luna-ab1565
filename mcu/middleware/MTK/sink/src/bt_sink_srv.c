@@ -39,7 +39,6 @@
 #include "bt_sink_srv_common.h"
 
 #include "bt_connection_manager_internal.h"
-#include "bt_sink_srv_call.h"
 #include "bt_sink_srv_avrcp.h"
 #include "bt_sink_srv_a2dp.h"
 #include "bt_sink_srv_pbapc.h"
@@ -93,10 +92,6 @@ static bt_sink_srv_type_t bt_sink_srv_get_current_type();
 #endif
 
 const static bt_sink_srv_action_callback_table_t bt_sink_srv_action_callback_table[] = {
-    {
-        SINK_MODULE_MASK_COMMON | SINK_MODULE_MASK_HFP | SINK_MODULE_MASK_HSP,
-        bt_sink_srv_call_action_handler
-    },
     {
         SINK_MODULE_MASK_COMMON | SINK_MODULE_MASK_A2DP | SINK_MODULE_MASK_AVRCP,
         bt_sink_srv_music_a2dp_action_handler
@@ -212,7 +207,6 @@ void bt_sink_srv_init(bt_sink_feature_config_t *features)
     bt_sink_srv_config_features(features);
 #ifdef MTK_BT_CM_SUPPORT
     // initialize sink call (contains: hf && hsp)
-    bt_sink_srv_call_init();
     // initialize sink music (contains: a2dp_sink && /* avrcp managed by sink music */)
     bt_sink_srv_music_init();
 #endif
