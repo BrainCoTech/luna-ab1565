@@ -441,6 +441,7 @@ APP_FILES      += $(APP_PATH_SRC)/dcxo_capid.c
 APP_FILES      += $(APP_PATH_SRC)/nvdm_config.c
 APP_FILES      += $(APP_PATH_SRC)/nvdm_config_factory_reset.c
 APP_FILES      += $(APP_PATH_SRC)/bt_app_utility/bt_power_on_config.c
+APP_FILES      += $(APP_PATH_SRC)/main_controller.c
 
 APP_FILES      += $(APP_PATH_SRC)/bt_app_utility/gatt_service.c \
                   $(APP_PATH_SRC)/bt_app_utility/bt_gattc_discovery.c \
