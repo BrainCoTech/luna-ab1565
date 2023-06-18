@@ -94,8 +94,8 @@ extern "C"
 #define default_t_repeat                    200   //the repeat time, including the slong repeat and long repeat
 #define default_t_l_p1                      500   //the longpress 1 time, long1 = default_t_l_p1
 #define default_t_l_p2                      1000  //the longpress 1 -> longpress 2 time, long2 = default_t_l_p1 + default_t_l_p2
-#define default_t_l_p3                      1500  //the longpress 2 -> longpress 3 time, long3 = default_t_l_p1 + default_t_l_p2 + default_t_l_p3
-#define default_t_slong                     500   //the slong time
+#define default_t_l_p3                      3500  //the longpress 2 -> longpress 3 time, long3 = default_t_l_p1 + default_t_l_p2 + default_t_l_p3
+#define default_t_slong                     3000   //the slong time
 
 /*************** User defined *************************************************/
 
