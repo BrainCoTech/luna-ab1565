@@ -176,7 +176,7 @@ include $(SOURCE_DIR)/middleware/MTK/bt_connection_manager/module.mk
 include $(SOURCE_DIR)/middleware/MTK/bluetooth_service/module.mk
 
 # ble battery service module
-#include $(SOURCE_DIR)/middleware/MTK/ble_bas/module.mk
+include $(SOURCE_DIR)/middleware/MTK/ble_bas/module.mk
 
 # ble uart service module
 include $(SOURCE_DIR)/middleware/BrainCo/ble_us/module.mk
@@ -459,6 +459,7 @@ APP_FILES      += $(APP_PATH_SRC)/bt_app_utility/gatt_service.c \
                   $(APP_PATH_SRC)/bt_app_utility/bt_app_common_at_cmd.c \
                   $(APP_PATH_SRC)/bt_app_utility/bt_app_dis.c \
                   $(APP_PATH_SRC)/bt_app_utility/bt_customer_config.c\
+                  $(APP_PATH_SRC)/bt_app_utility/ble_bas_app.c \
                   $(APP_PATH_SRC)/bt_app_utility/ut_app_hid.c
 
 ifeq ($(MTK_RACE_CMD_ENABLE), y)
