@@ -36,7 +36,7 @@
 
 #ifdef AIRO_KEY_FEATRURE_POWERKEY
 
-
+#include "main_controller.h"
 
 #include "ept_keypad_drv.h"
 #include "hal_log.h"
@@ -72,6 +72,8 @@ static void airo_powerkey_send_state(airo_key_driven_t state)
     key_event.key_data   = POWERKEY_POSITION;
     key_event.time_stamp = time;
     LOG_MSGID_I(common, "[powerkey] send powerkey state:%d\r\n", 1, (uint32_t)state);
+
+    main_controller_powerkey_map(state);
 
     airo_key_process_key(&key_event, AIRO_KEY_POWERKEY);
 }
