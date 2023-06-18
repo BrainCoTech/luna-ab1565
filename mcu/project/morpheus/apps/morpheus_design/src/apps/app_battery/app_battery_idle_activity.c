@@ -97,6 +97,7 @@
 #include "app_bt_state_service.h"
 #include "app_tile.h"
 #endif
+#include "main_controller.h"
 
 #define LOG_TAG     "[app_battery]"
 
@@ -321,6 +322,7 @@ static bool _proc_ui_shell_group(
                             ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
                                             APPS_EVENTS_INTERACTION_REQUEST_ON_OFF_BT, (void *)true, 0,
                                             NULL, 0);
+                            main_controller_power_set(1, 0);
                             apps_config_set_vp(VP_INDEX_POWER_ON, false, 0, VOICE_PROMPT_PRIO_HIGH, false, NULL);
                             apps_config_set_foreground_led_pattern(LED_INDEX_POWER_ON, 30, false);
                             if (temp_state == APP_BATTERY_STATE_LOW_CAP) {
@@ -503,6 +505,7 @@ static bool _proc_battery_event_group(
             bool anc_ret = app_anc_service_resume();
             APPS_LOG_MSGID_I(LOG_TAG" audio_anc_resume after charger out ret = %d", 1, anc_ret);
 #endif
+            main_controller_power_set(1, 0);
             apps_config_set_vp(VP_INDEX_POWER_ON, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
             apps_config_set_foreground_led_pattern(LED_INDEX_POWER_ON, 30, false);
             ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
