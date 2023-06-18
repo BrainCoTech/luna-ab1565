@@ -633,10 +633,8 @@ endif
 ## Notice:      None
 ## Relative doc:None
 ##
-ifeq ($(MTK_MP3_CODEC_TASK_DEDICATE), n)
 ifeq ($(BRC_LOCAL_AUDIO_ENABLE), y)
 CFLAGS         += -DBRC_LOCAL_AUDIO_ENABLE
-endif
 endif
 
 ##

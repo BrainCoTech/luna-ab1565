@@ -351,3 +351,49 @@ ifeq ($(AIR_ADVANCED_PASSTHROUGH_ENABLE),y)
   CFLAGS += -I$(SOURCE_DIR)/middleware/MTK/audio/psap_common/inc
 endif
 
+
+ifeq ($(MTK_AUDIO_MP3_ENABLED), y)
+  ifeq ($(IC_CONFIG),mt7687)
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_7687.c
+    LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+  else
+    ifeq ($(IC_CONFIG),mt7682)
+      AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_7682.c
+      LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+    else ifeq ($(IC_CONFIG),mt7686)
+      AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_7682.c
+      LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+	else ifeq ($(IC_CONFIG),aw7698)
+      AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_7698.c
+      LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+    else
+      AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec.c
+      LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+    endif
+  endif
+
+
+  # temp for build pass
+  AUDIO_FILES += $(AUDIO_SRC)/src/audio_codec.c
+else ifeq ($(MTK_MP3_DECODER_ENABLED), y)
+  ifeq ($(IC_CONFIG),ab155x)
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec.c
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_155x.c
+    LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+  else ifeq ($(IC_CONFIG),ab156x)
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec.c
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_156x.c
+    LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+  else ifeq ($(IC_CONFIG),mt2822)
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec.c
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_155x.c
+    LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+  else ifeq ($(IC_CONFIG),am255x)
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec.c
+    AUDIO_FILES += $(AUDIO_SRC)/mp3_codec/src/mp3_codec_255x.c
+    LIBS += $(SOURCE_DIR)/prebuilt/middleware/MTK/audio/mp3_codec/lib/arm_cm4/libmp3dec.a
+  endif
+
+  # temp for build pass
+  AUDIO_FILES += $(AUDIO_SRC)/src/audio_codec.c
+endif

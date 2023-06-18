@@ -122,7 +122,7 @@ static uint8_t mp3_codec_decode_mono[15908];
 #ifdef MTK_MP3_TASK_DEDICATE
 #define VP_MASK_VP_HAPPENING       0x00000004
 #define VP_MASK_DL1_HAPPENING      0x00000008
-extern volatile uint32_t g_vp_task_mask;
+volatile uint32_t g_vp_task_mask;
 extern prompt_control_callback_t g_app_callback;
 extern prompt_control_callback_t g_app_internal_callback;
 #endif

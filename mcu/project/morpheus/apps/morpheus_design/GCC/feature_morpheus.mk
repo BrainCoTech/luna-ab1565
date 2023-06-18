@@ -45,7 +45,7 @@ MTK_DEBUG_LEVEL                       = info
 MTK_NVDM_ENABLE                       = y
 
 MTK_USB_DEMO_ENABLED                  = y
-MTK_USB_AUDIO_V1_ENABLE               = y
+MTK_USB_AUDIO_V1_ENABLE               = n
 MTK_USB_AUDIO_V2_ENABLE               = n
 MTK_USB_AUDIO_MICROPHONE              = n
 
@@ -143,7 +143,7 @@ MTK_PROMPT_SOUND_ENABLE	            = y
 MTK_AUDIO_AT_CMD_PROMPT_SOUND_ENABLE          = n
 
 # mp3
-MTK_AUDIO_MP3_ENABLED               = n
+MTK_AUDIO_MP3_ENABLED               = y
 MTK_MP3_DECODER_ENABLED             = y
 MTK_MP3_CODEC_TASK_DEDICATE         = y
 MTK_MP3_STEREO_SUPPORT              = y
@@ -363,10 +363,10 @@ APPS_LINE_IN_SUPPORT = y
 LINE_IN_ENABLE_WITH_LOW_LEVEL = y
 
 # Enable usb audio enable
-APPS_USB_AUDIO_SUPPORT             = y
+APPS_USB_AUDIO_SUPPORT             = n
 
 # usb audio play enable
-MTK_USB_AUDIO_PLAYBACK_ENABLE      = y
+MTK_USB_AUDIO_PLAYBACK_ENABLE      = n
 
 # UI shell max activity count in activity stack.
 MTK_UI_SHELL_MAX_ACTIVITY_COUNT	= 40
@@ -391,3 +391,7 @@ AIR_LINE_IN_WITH_LOW_LEVEL_ENABLE = y
 AIR_SWIFT_PAIR_ENABLE = n
 
 BSP_EXTERNAL_SERIAL_FLASH_ENABLED = y
+
+# local audio playback
+BRC_LOCAL_AUDIO_ENABLE              = y
+BRC_LOCAL_AUDIO_TEST_ENABLE         = y

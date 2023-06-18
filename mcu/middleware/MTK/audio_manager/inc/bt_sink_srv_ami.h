@@ -178,6 +178,8 @@ extern bt_sink_srv_am_id_t g_aud_id_num;
 #define AUD_ID_INVALID  -1
 
 #ifndef __AUDIO_MP3_ENABLE__
+#include "mp3_codec.h"
+#else
 /** @brief This enumeration defines the MP3 codec events. */
 typedef enum {
     MP3_CODEC_MEDIA_OK = 0,       /**< The codec operation was successful.   */
