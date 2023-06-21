@@ -36,9 +36,7 @@ void main_controller_gpio_init(void) {
 }
 
 void main_controller_power_set(int status, int reason) {
-    if (status) {
-        LOG_MSGID_I(MAIN_CONTR, "power on reason %d", 1, reason);
-    }
+    LOG_MSGID_I(MAIN_CONTR, "power on/off:%d, reason %d", 2, status, reason);
 
     hal_gpio_set_output(MAIN_POWEN_EN_PIN, status);
 
