@@ -284,7 +284,7 @@ static bool _proc_ui_shell_group(
             memset(&s_battery_context, 0, sizeof(battery_local_context_type_t));
             s_battery_context.battery_percent = battery_management_get_battery_property(BATTERY_PROPERTY_CAPACITY);
             s_battery_context.charging_state = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_STATE);
-            s_battery_context.charger_exist_state = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST);
+            s_battery_context.charger_exist_state = 0; //battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST);
             s_battery_context.shutdown_state = calculate_shutdown_state(battery_management_get_battery_property(BATTERY_PROPERTY_VOLTAGE));
             s_battery_context.aws_state = BT_AWS_MCE_AGENT_STATE_INACTIVE;
             s_battery_context.partner_battery_percent = PARTNER_BATTERY_INVALID;
@@ -418,6 +418,7 @@ static bool _proc_battery_event_group(
                 } else {
                     APPS_LOG_MSGID_I(LOG_TAG" Charger exist, And the charging_state = %d", 1, s_battery_context.charging_state);
                 }
+                main_controller_power_set(1, 5);
             } else if (!s_battery_context.charger_exist_state
                        && CHARGER_STATE_CHR_OFF != s_battery_context.charging_state) {
                 /* To remove the event sending in case APPS_EVENTS_BATTERY_CHARGER_STATE_CHANGE. */
@@ -425,6 +426,9 @@ static bool _proc_battery_event_group(
                                       APPS_EVENTS_BATTERY_CHARGER_FULL_CHANGE);
                 s_battery_context.charging_state = CHARGER_STATE_CHR_OFF;
                 APPS_LOG_MSGID_I(LOG_TAG" Set charging_state to CHARGER_STATE_CHR_OFF when charger out", 0);
+                ui_shell_send_event(true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
+                                    (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
+                main_controller_power_set(0, 5);
             }
             s_battery_context.battery_percent = battery_management_get_battery_property(BATTERY_PROPERTY_CAPACITY);
             s_battery_context.shutdown_state = calculate_shutdown_state(battery_management_get_battery_property(BATTERY_PROPERTY_VOLTAGE));
