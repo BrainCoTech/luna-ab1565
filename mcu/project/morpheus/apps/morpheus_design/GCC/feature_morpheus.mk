@@ -44,7 +44,7 @@ FLASH_SIZE_8M						  = y
 MTK_DEBUG_LEVEL                       = info
 MTK_NVDM_ENABLE                       = y
 
-MTK_USB_DEMO_ENABLED                  = y
+MTK_USB_DEMO_ENABLED                  = n
 MTK_USB_AUDIO_V1_ENABLE               = n
 MTK_USB_AUDIO_V2_ENABLE               = n
 MTK_USB_AUDIO_MICROPHONE              = n
@@ -55,7 +55,7 @@ MTK_NO_PSRAM_ENABLE = y
 MTK_SUPPORT_HEAP_DEBUG                = y
 MTK_SUPPORT_HEAP_DEBUG_ADVANCED       = n
 # heap peak profiling
-MTK_HEAP_SIZE_GUARD_ENABLE            = n
+MTK_HEAP_SIZE_GUARD_ENABLE            = y
 #SWLA
 MTK_SWLA_ENABLE                       = y
 #system service at cmd
@@ -221,7 +221,7 @@ endif
 
 # APPs features
 ifneq ($(CCASE_ENABLE),y)
-APPS_DISABLE_BT_WHEN_CHARGING 		= n
+APPS_DISABLE_BT_WHEN_CHARGING 		= y
 #Enable BT when charger out, Disable BT when Charger in
 endif
 
