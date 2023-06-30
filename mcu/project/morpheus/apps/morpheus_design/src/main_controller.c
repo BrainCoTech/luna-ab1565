@@ -11,7 +11,6 @@
 #include "hal.h"
 #include "morpheus.h"
 #include "morpheus_utils.h"
-
 #include "proto_msg/app_bt/app_bt_msg_helper.h"
 #include "proto_msg/main_bt/main_bt_msg_helper.h"
 #include "syslog.h"
@@ -95,7 +94,6 @@ void main_controller_set_time(uint64_t time) {
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     LOG_I(MUSIC_CONTR, "main2bt cmd: %d", cfg->cmd);
     uint8_t status = 0;
-    uint8_t peq_group_id = 0;
 
     switch (cfg->cmd) {
         case AUDIO_CONFIG__CMD__PLAY:
@@ -108,15 +106,30 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
             break;
 
         case AUDIO_CONFIG__CMD__LOCAL_PALY:
-
             break;
 
         case AUDIO_CONFIG__CMD__LOCAL_PAUSE:
+            break;
+
+        default:
+            break;
+    }
+
+    switch (cfg->mode) {
+        case AUDIO_CONFIG__MODE__A2DP_MODE:
+
+            break;
+
+        case AUDIO_CONFIG__MODE__LOCAL_MODE:
 
             break;
 
         default:
             break;
+    }
+
+    if (cfg->audio_id) {
+        app_local_play_idx(cfg->audio_id - 1);
     }
 
     BtMain msg = BT_MAIN__INIT;
@@ -132,16 +145,27 @@ void app_vp_play_callback(uint32_t idx, vp_err_code err) {}
 void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
     LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->id);
 
-    // apps_config_set_vp(cfg->id, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true,
-    // app_vp_play_callback);
+    apps_config_set_vp(cfg->id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
+                       cfg->preemption, app_vp_play_callback);
 
     BtMain msg = BT_MAIN__INIT;
+    PromptConfigResp prompt_resp = PROMPT_CONFIG_RESP__INIT;
+
     msg.msg_id = msg_id;
+    prompt_resp.vp_id = cfg->id;
     send_msg_to_main_controller(&msg);
 }
 
 void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
-    // prompt_control_set_level(cfg->volume);
+    if (cfg->type == VOLUME_CONFIG__TYPE__UPDATE) {
+    } else {
+    }
+
+    BtMain msg = BT_MAIN__INIT;
+    VolumeConfigResp volume_resp = VOLUME_CONFIG_RESP__INIT;
+
+    msg.msg_id = msg_id;
+    send_msg_to_main_controller(&msg);
 }
 
 void main_bt_config(MainBt *msg) {
