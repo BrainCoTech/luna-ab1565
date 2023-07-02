@@ -83,6 +83,7 @@
 #include "bt_power_on_config.h"
 #include "app_us.h"
 #include "app_uart.h"
+#include "app_usb.h"
 #ifdef BRC_LOCAL_MUSIC_ENABLE
 #include "music_file_receiver.h"
 #include "app_local_music.h"
@@ -161,6 +162,8 @@ static const tasks_list_t tasks_list[] = {
 #ifdef BRC_LOCAL_AUDIO_TEST_ENABLE
     {local_audio_test, "LOCAL_AUDIO_TEST", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},
 #endif
+    {app_usb_tx_task, "APP_USB_TX", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},
+    {app_usb_rx_task, "APP_USB_RX", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},
 };
 
 #define tasks_list_count  (sizeof(tasks_list) / sizeof(tasks_list_t))

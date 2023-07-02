@@ -246,11 +246,12 @@ void bt_board_config(uint32_t msg_id, BoardConfig *board_cfg) {
     snprintf((char *)addr_str, sizeof(addr_str), "%.2X%.2X%.2X%.2X%.2X%.2X",
              (*local_addr)[5], (*local_addr)[4], (*local_addr)[3],
              (*local_addr)[2], (*local_addr)[1], (*local_addr)[0]);
-    snprintf((char *)remote_addr_str, sizeof(remote_addr_str),
-             "%.2X%.2X%.2X%.2X%.2X%.2X", (*remote_addr)[5], (*remote_addr)[4],
-             (*remote_addr)[3], (*remote_addr)[2], (*remote_addr)[1],
-             (*remote_addr)[0]);
-
+    if (remote_addr != NULL) {
+        snprintf((char *)remote_addr_str, sizeof(remote_addr_str),
+                "%.2X%.2X%.2X%.2X%.2X%.2X", (*remote_addr)[5], (*remote_addr)[4],
+                (*remote_addr)[3], (*remote_addr)[2], (*remote_addr)[1],
+                (*remote_addr)[0]);
+    }
     if (board_cfg->get_info) {
         msg.board_cfg_resp = &board_resp;
         board_resp.fw_version = FW_VERSION;

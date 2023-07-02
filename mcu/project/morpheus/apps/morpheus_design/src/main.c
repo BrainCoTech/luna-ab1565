@@ -87,6 +87,7 @@
 
 #include "main_controller.h"
 #include "filesystem.h"
+#include "app_usb.h"
 #ifdef MTK_VA_MODEL_MANAGER_ENABLE
 #include "va_model_manager.h"
 #endif /* MTK_VA_MODEL_MANAGER_ENABLE */
@@ -233,6 +234,7 @@ int main(void)
 
     main_controller_gpio_init();
     fs_init();
+    app_usb_init();
 #ifdef HAL_TIME_CHECK_ENABLED
     extern exception_config_mode_t exception_config_mode;
     if (exception_config_mode.exception_mode_t.mask_irq_check_assert) {

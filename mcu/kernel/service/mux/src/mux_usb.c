@@ -82,6 +82,8 @@ static void port_mux_usb_set_tx_hw_rptr_internal_use(uint8_t port_index, uint32_
 #include "semphr.h"
 
 SemaphoreHandle_t x_mux_usb_Semaphore[2];
+static uint32_t g_mux_usb_phase2_send_status[2];
+static uint32_t g_usb_gpt_handler[2];
 
 #ifndef MTK_USB_AUDIO_HID_ENABLE
 
@@ -796,7 +798,8 @@ void port_mux_usb_set_tx_hw_wptr(uint8_t port_index, uint32_t move_bytes)
         p->tx_send_is_running = MUX_DEVICE_HW_IDLE;
         return;
     } else {
-        p->tx_send_is_running = MUX_DEVICE_HW_RUNNING;
+        // phase2_send 会校验该值，注释掉，可以正常发数据
+        // p->tx_send_is_running = MUX_DEVICE_HW_RUNNING;
     }
 }
 
@@ -816,11 +819,68 @@ void port_mux_usb_phase1_send(uint8_t port_index)
     return;
 }
 
+static void usb_gpt_callback(void *user_data)
+{
+    port_mux_usb_phase2_send(*(uint8_t*)user_data);
+}
+
 void port_mux_usb_phase2_send(uint8_t port_index)
 {
     /* HID request mode */
     PORT_MUX_UNUSED(port_index);
-    return ;
+    virtual_read_write_point_t *p = (virtual_read_write_point_t*)&g_mux_usb_r_w_point[port_index];
+    uint32_t send_addr, send_len;
+    uint32_t per_cpu_irq_mask;
+
+    if (USB_Get_Device_State() != DEVSTATE_CONFIG) {
+        return;
+    }
+
+    if((HAL_NVIC_QUERY_EXCEPTION_NUMBER == HAL_NVIC_NOT_EXCEPTION) && (!__get_BASEPRI()) && (xTaskGetSchedulerState() != taskSCHEDULER_SUSPENDED)){
+    //if(HAL_NVIC_QUERY_EXCEPTION_NUMBER == HAL_NVIC_NOT_EXCEPTION) {
+        /* Task context */
+        xSemaphoreTake(x_mux_usb_Semaphore[port_index], portMAX_DELAY);
+
+        port_mux_cross_local_enter_critical(&per_cpu_irq_mask);
+        send_len  = mux_common_device_get_buf_next_available_block_len(p->tx_buff_start, p->tx_buff_read_point, p->tx_buff_write_point, p->tx_buff_end, p->tx_buff_available_len);
+        send_addr = p->tx_buff_read_point;
+   
+
+        if((p->tx_send_is_running == MUX_DEVICE_HW_RUNNING) || (send_len == 0)) {
+            port_mux_cross_local_exit_critical(per_cpu_irq_mask);
+            xSemaphoreGive(x_mux_usb_Semaphore[port_index]);
+            return;
+        } else {
+            p->tx_send_is_running = MUX_DEVICE_HW_RUNNING;
+            g_mux_usb_phase2_send_status[port_index] = MUX_DEVICE_HW_RUNNING;
+        }
+        port_mux_cross_local_exit_critical(per_cpu_irq_mask);
+
+        usb_send_data(port_index, send_addr, send_len, &p->tx_sending_read_point);
+        xSemaphoreGive(x_mux_usb_Semaphore[port_index]);
+    } else {
+        /* IRQ context */
+        port_mux_cross_local_enter_critical(&per_cpu_irq_mask);
+        if(g_mux_usb_phase2_send_status[port_index] == MUX_DEVICE_HW_IDLE) {
+            g_mux_usb_phase2_send_status[port_index] = MUX_DEVICE_HW_RUNNING;
+            p->tx_send_is_running = MUX_DEVICE_HW_RUNNING;
+            send_len  = mux_common_device_get_buf_next_available_block_len(p->tx_buff_start, p->tx_buff_read_point, p->tx_buff_write_point, p->tx_buff_end, p->tx_buff_available_len);
+            send_addr = p->tx_buff_read_point;
+            port_mux_cross_local_exit_critical(per_cpu_irq_mask);
+            usb_send_data(port_index, send_addr, send_len, &p->tx_sending_read_point);
+        } else {
+            port_mux_cross_local_exit_critical(per_cpu_irq_mask);
+            if(p->tx_buff_available_len != 0) {
+                hal_gpt_status_t gpt_status = hal_gpt_sw_start_timer_ms ( g_usb_gpt_handler[port_index],
+                                                                            1,
+                                                                            usb_gpt_callback,
+                                                                            (uint8_t*)&port_index);
+                if (gpt_status != HAL_GPT_STATUS_OK) {
+                    //TODO: error handle
+                }
+            }
+        }
+    }    
 }
 
 mux_status_t port_mux_usb_control(uint8_t port_index, mux_ctrl_cmd_t command, mux_ctrl_para_t *para)
