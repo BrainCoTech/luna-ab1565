@@ -44,7 +44,7 @@ FLASH_SIZE_8M						  = y
 MTK_DEBUG_LEVEL                       = info
 MTK_NVDM_ENABLE                       = y
 
-MTK_USB_DEMO_ENABLED                  = n
+MTK_USB_DEMO_ENABLED                  = y
 MTK_USB_AUDIO_V1_ENABLE               = n
 MTK_USB_AUDIO_V2_ENABLE               = n
 MTK_USB_AUDIO_MICROPHONE              = n
