@@ -209,6 +209,50 @@ static int32_t spp_air_event_callback(spp_air_event_t event_id, void *param)
     return ret;
 }
 
+extern int32_t us_us_receive_data_cb(const uint8_t *data, uint16_t size);
+static bool spp_air_event_custom_data(uint32_t handle, uint8_t *data, uint16_t data_size)
+{
+	bool ret = false;
+	//					  0    1    2			  3	   4                        5    6         7......
+	//接收到的数据由head:0x42 0x43 0x49(BCI),cmd:0xF1 0x01--0xF1 0x03,data len:0x?? 0x??(n+2),data:0x??......组成
+	if ((data!=NULL) && (data_size>=(7+2)) && (data_size==(7+(data[5]<<8)+data[6]))//数据长度
+		&& (data[0]==0x42) && (data[1]==0x43) && (data[2]==0x49)//数据头
+		&& (data[3]==0xF1) && ((data[4]==0x01)||(data[4]==0x02)||(data[4]==0x03)))//命令
+	{
+		uint16_t crc = 0;
+		uint16_t i = 0;
+		uint16_t len = (data[5]<<8)+data[6];
+		uint8_t response[] = {0x42, 0x43, 0x4F, 0x00, 0x00, 0x00};
+		
+		for (i=0; i<(len-2); i++)	//最后的2个数据是接收到的CRC
+		{
+			crc += data[7+i];		//计算接收到的数据的CRC值
+		}
+
+		response[3] = data[3];
+		response[4] = data[4];
+		
+		//通过对比CRC值，判断接收到的数据是否正确
+		if (crc == (data[7+len-2]<<8)+data[7+len-1])
+		{
+			response[5] = 0x01;
+
+			//在此处添加数据处理
+			us_us_receive_data_cb(data, data_size);
+		}
+		else
+		{
+			response[5] = 0x00;
+		}
+
+		spp_air_write_data(handle, response, sizeof(response));
+
+		ret = true;
+	}
+
+	return ret;
+}
+
 static bt_status_t spp_air_event_callback_int(bt_msg_type_t msg, bt_status_t status, void *buff)
 {
     LOG_MSGID_I(SPPAIR, "spp_air_event_callback_int, msg: 0x%4x, status: 0x%4x\r\n", 2, msg, status); 
@@ -296,10 +340,18 @@ static bt_status_t spp_air_event_callback_int(bt_msg_type_t msg, bt_status_t sta
         case BT_SPP_DATA_RECEIVED_IND: {
             bt_spp_data_received_ind_t *data_ind_p = (bt_spp_data_received_ind_t *)buff;
             if ((true == air_spp_cntx.connected) && (air_spp_cntx.spp_handle == data_ind_p->handle)) {
+				printf("...spp first come here %d...", data_ind_p->packet_length);
+				
                 if (BT_STATUS_SUCCESS == spp_air_check_user()) {
                     spp_air_data_received_ind_t recieve_param;
                     memset(&recieve_param, 0x0, sizeof(spp_air_data_received_ind_t));
                     recieve_param.handle = air_spp_cntx.spp_handle;
+
+					if (spp_air_event_custom_data(air_spp_cntx.spp_handle, data_ind_p->packet, data_ind_p->packet_length))
+					{
+						break;
+					}
+					
                     bt_spp_hold_data(data_ind_p->packet);
                     spp_air_add_node(spp_air_get_head(), data_ind_p->packet, data_ind_p->packet_length);
                     spp_air_event_callback(SPP_AIR_RECIEVED_DATA_IND, (void *)&recieve_param);
