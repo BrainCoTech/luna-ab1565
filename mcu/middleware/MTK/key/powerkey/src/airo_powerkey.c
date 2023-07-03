@@ -198,12 +198,12 @@ void airo_powerkey_poweron_press_event_simulation(void)
 {
     if (airo_powerkey_is_pressed()) {
         LOG_MSGID_I(common, "[powerkey] press simulation\r\n", 0);
-#if !defined(AB1565)
+/*#if !defined(AB1565)
         airo_powerkey_check_and_send_state(AIRO_KEY_DRIVEN_PRESS);
 #else
         is_send_simulation_press_event = true;
         airo_powerkey_send_state(AIRO_KEY_DRIVEN_PRESS);
-#endif
+#endif*/
     }
 }
 #endif /*AIRO_KEY_FEATRURE_POWERKEY*/

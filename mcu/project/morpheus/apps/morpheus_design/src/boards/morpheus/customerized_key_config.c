@@ -36,108 +36,29 @@
 #include "hal_keypad_table.h"
 
 const apps_config_key_event_map_t temp_key_release_configs[] = {
-    {
-        EINT_KEY_0,
-        KEY_AVRCP_FAST_FORWARD_RELEASE,
-        (1 << APP_A2DP_PLAYING)
-    },
-    {
-        EINT_KEY_1,
-        KEY_AVRCP_FAST_REWIND_RELEASE,
-        (1 << APP_A2DP_PLAYING)
-    },
 };
 
 const apps_config_key_event_map_t temp_key_short_click_configs[] = {
-    {
-        DEVICE_KEY_POWER,
-        KEY_LOCAL_PLAY,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
 };
 
 const apps_config_key_event_map_t temp_key_double_click_configs[] = {
-    {
-        DEVICE_KEY_POWER,
-        KEY_LOCAL_FORWARD,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
 };
 
 const apps_config_key_event_map_t temp_key_triple_click_configs[] = {
-    {
-        DEVICE_KEY_POWER,
-        KEY_AVRCP_BACKWARD,
-        (1 << APP_CONNECTABLE) | (1 << APP_DISCONNECTED) | (1 << APP_CONNECTED) | (1 << APP_A2DP_PLAYING)
-    },
 
 };
 
 const apps_config_key_event_map_t temp_key_long_press1_configs[] = {
-    {
-        EINT_KEY_0,
-        KEY_AVRCP_FAST_FORWARD_PRESS,
-        (1 << APP_A2DP_PLAYING)
-    },
-    {
-        EINT_KEY_1,
-        KEY_AVRCP_FAST_REWIND_PRESS,
-        (1 << APP_A2DP_PLAYING)
-    },
 };
 
 const apps_config_key_event_map_t temp_key_long_press2_configs[] = {
-    {
-        DEVICE_KEY_POWER,
-        KEY_POWER_ON,
-        (1 << APP_BT_OFF)
-    },
-    {
-        DEVICE_KEY_POWER,
-        KEY_BEFORE_POWER_OFF,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
 };
 
 const apps_config_key_event_map_t temp_key_long_press3_configs[] = {
-    {
-        DEVICE_KEY_POWER,
-        KEY_DISCOVERABLE,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
+
 };
 
 const apps_config_key_event_map_t temp_key_slong_configs[] = {
-#if defined(AIR_BT_ULTRA_LOW_LATENCY_ENABLE)
-    {
-        DEVICE_KEY_POWER,
-        KEY_ULL_AIR_PAIRING,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE)
-    },
-    {
-        EINT_KEY_2,
-        KEY_ULL_SWITCH_LINK_MODE,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_A2DP_PLAYING)
-        | (1 << APP_ULTRA_LOW_LATENCY_PLAYING),
-    },
-#else
-#endif
 };
 
 const apps_config_key_event_map_t temp_key_dlong_configs[] = {
@@ -157,14 +78,7 @@ const apps_config_key_event_map_t temp_key_long_press_release1_configs[] = {
 };
 
 const apps_config_key_event_map_t temp_key_long_press_release2_configs[] = {
-    {
-        DEVICE_KEY_POWER,
-        KEY_POWER_OFF,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING)
-    },
+  
 };
 
 const apps_config_key_event_map_t temp_key_long_press_release3_configs[] = {
@@ -199,19 +113,15 @@ const apps_config_key_event_map_t temp_key_dlong_release_configs[] = {
 // For right side or default configurable mapping table
 const static apps_config_configurable_table_t default_configurable_table[] = {
    {
-        APPS_CONFIG_KEY_SHORT_CLICK,
+        APPS_CONFIG_KEY_LONG_PRESS_1,
         DEVICE_KEY_POWER,
-        KEY_LOCAL_PLAY,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
+        KEY_POWER_ON,
+        (1 << APP_BT_OFF)
     },
     {
-        APPS_CONFIG_KEY_DOUBLE_CLICK,
+        APPS_CONFIG_KEY_LONG_PRESS_1,
         DEVICE_KEY_POWER,
-        KEY_LOCAL_FORWARD,
+        KEY_POWER_OFF,
         (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
         | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
         | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
@@ -220,16 +130,6 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
     },
     {
         APPS_CONFIG_KEY_LONG_PRESS_2,
-        DEVICE_KEY_POWER,
-        KEY_BEFORE_POWER_OFF,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
-    {
-        APPS_CONFIG_KEY_LONG_PRESS_3,
         DEVICE_KEY_POWER,
         KEY_DISCOVERABLE,
         (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
@@ -238,40 +138,9 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
         | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
         | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
     },
-
 };
 
 const static apps_config_configurable_table_t left_configurable_table[] = {
-   {
-        APPS_CONFIG_KEY_SHORT_CLICK,
-        DEVICE_KEY_POWER,
-        KEY_LOCAL_PLAY,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
-    {
-        APPS_CONFIG_KEY_DOUBLE_CLICK,
-        DEVICE_KEY_POWER,
-        KEY_LOCAL_FORWARD,
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },    
-    {
-        APPS_CONFIG_KEY_LONG_PRESS_2,
-        DEVICE_KEY_POWER,
-        KEY_BEFORE_POWER_OFF, /* To support play a "press" VP to notify user long press time, but confirm the action after user release the key */
-        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
-        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
-        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
-        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
-        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
-    },
 };
 
 #ifdef MTK_VA_XIAOAI_ENABLE
