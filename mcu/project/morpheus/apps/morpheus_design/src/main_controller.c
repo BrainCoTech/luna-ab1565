@@ -151,8 +151,10 @@ void app_vp_play_callback(uint32_t idx, vp_err_code err) {}
 void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
     LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->id);
 
-    apps_config_set_vp(cfg->id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
-                       cfg->preemption, app_vp_play_callback);
+    if (cfg->id > 0) {
+        apps_config_set_vp(cfg->id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
+                        cfg->preemption, app_vp_play_callback);
+    }
 
     BtMain msg = BT_MAIN__INIT;
     PromptConfigResp prompt_resp = PROMPT_CONFIG_RESP__INIT;
