@@ -134,13 +134,13 @@
 #define UI_SHELL_IDLE_BT_CONN_ACTIVITY  "[TK_Home]app_home_screen_idle_activity"
 
 #define POWER_OFF_TIMER_NAME       "POWER_OFF"              /* Use a timeout before power off, to show LED and play VP. */
-#define WAIT_TIME_BEFORE_POWER_OFF  (2 * 1000)              /* The delay time to do system power off for playing VP and LED. */
+#define WAIT_TIME_BEFORE_POWER_OFF  (4 * 1000)              /* The delay time to do system power off for playing VP and LED. */
 #define RECONNECT_DEVICE_NUMS       (1)                     /* The max device nums of try to reconnected after power on.  */
 #define TIME_TO_RECONNECT_DEVICE    (10 * 1000)             /* The time of reconnect the connected device. */
 #define TIME_TO_START_VISIBLE_AFTER_POWER_ON   (RECONNECT_DEVICE_NUMS * TIME_TO_RECONNECT_DEVICE)
                                                             /* The delay time to start BT visible after BT power on. */
 #define TIME_TO_STOP_RECONNECTION   (2 * 60 * 1000)         /* The delay time to stop reconnection. */
-#define VISIBLE_TIMEOUT             (2 * 60 * 1000)         /* The timeout of BT visibility. */
+#define VISIBLE_TIMEOUT             (3 * 60 * 1000)         /* The timeout of BT visibility. */
 
 /* Global context for Homescreen APP. */
 static home_screen_local_context_type_t s_app_homescreen_context;
@@ -601,6 +601,8 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
     airo_key_event_t key_event;
     app_event_key_event_decode(&key_id, &key_event, event_id);
 
+	printf("...home key id %x, key event %x, extra data %x", key_id, key_event, (uint16_t *)extra_data);
+	
     /* Do not power off before key released. */
     if (local_context->power_off_waiting_release_key == key_id && key_event == AIRO_KEY_RELEASE) {
         local_context->power_off_waiting_release_key = DEVICE_KEY_NONE;
@@ -618,6 +620,8 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
     } else {
         action = apps_config_key_event_remapper_map_action(key_id, key_event);
     }
+
+	printf("...home action %x", action);
 
     if (event_id == 0x5218) action = KEY_POWER_OFF;
     if (event_id == 0x5217) action = KEY_POWER_ON;
@@ -709,6 +713,20 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
 #ifdef AIR_SWIFT_PAIR_ENABLE
                 app_swift_pair_start_adv();
 #endif
+                /* disconnect device in pairing state */
+                bt_bd_addr_t *p_bd_addr = bt_device_manager_remote_get_dev_by_seq_num(1);
+                if (p_bd_addr) {
+                    bt_cm_connect_t connect_param = {
+                        {0},
+                        ~(BT_CM_PROFILE_SERVICE_MASK(
+                            BT_CM_PROFILE_SERVICE_AWS))};
+                        memcpy(connect_param.address, *p_bd_addr,
+                            sizeof(bt_bd_addr_t));
+                        bt_cm_disconnect(&connect_param);
+                }
+                bt_device_manager_unpair_all();
+                bt_device_manager_db_flush_all(BT_DEVICE_MANAGER_DB_FLUSH_BLOCK);
+                main_controller_set_state(SYS_CONFIG__STATE__PAIR);
                 app_bt_state_service_set_bt_visible(true, false, VISIBLE_TIMEOUT);
                 apps_config_set_vp(VP_INDEX_PAIRING, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
             }
