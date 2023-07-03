@@ -157,13 +157,13 @@ static const tasks_list_t tasks_list[] = {
     {app_us_rx_task, APP_US_RX_TASK_NAME, APP_US_RX_TASK_STACKSIZE,  NULL,  APP_US_RX_TASK_PRIORITY },
 #ifdef BRC_LOCAL_MUSIC_ENABLE
     {file_receiver_task, FILE_RECV_NAME, FILE_RECV_STACKSIZE, NULL, FILE_RECV_PRIORITY},
-    {app_local_music_task, "local_music", 1024, NULL, TASK_PRIORITY_HIGH},
+    {app_local_music_task, "local_music", 704, NULL, TASK_PRIORITY_HIGH},
 #endif
 #ifdef BRC_LOCAL_AUDIO_TEST_ENABLE
-    {local_audio_test, "LOCAL_AUDIO_TEST", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},
+    {local_audio_test, "LOCAL_AUDIO_TEST", 704, NULL, TASK_PRIORITY_SOFT_REALTIME},
 #endif
-    {app_usb_tx_task, "APP_USB_TX", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},
-    {app_usb_rx_task, "APP_USB_RX", 1024, NULL, TASK_PRIORITY_SOFT_REALTIME},
+    {app_usb_tx_task, "APP_USB_TX", 704, NULL, TASK_PRIORITY_SOFT_REALTIME},
+    {app_usb_rx_task, "APP_USB_RX", 704, NULL, TASK_PRIORITY_SOFT_REALTIME},
 };
 
 #define tasks_list_count  (sizeof(tasks_list) / sizeof(tasks_list_t))
