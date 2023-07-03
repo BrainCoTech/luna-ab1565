@@ -161,11 +161,13 @@ void receive_file_append_data(uint32_t fd, void *data, uint32_t size,
 
 #if (USE_QUEUE)
         uint32_t  heap_size = xPortGetFreeHeapSize();
-        // LOG_MSGID_I(MUSIC_RECV, "try to alloc, heap size %d", 1, heap_size);
+        LOG_MSGID_I(MUSIC_RECV, "try to alloc, heap size %d", 1, heap_size);
         if (heap_size < 20480)
-            vTaskDelay(50);
+            vTaskDelay(5);
         if (heap_size < 10240)
-            vTaskDelay(200);    
+            vTaskDelay(20);
+        if (heap_size < 5120)
+            vTaskDelay(50);
         recv_data.size = size;
         recv_data.fd = fd;
         recv_data.append = (offset > 0) ? true : false;
