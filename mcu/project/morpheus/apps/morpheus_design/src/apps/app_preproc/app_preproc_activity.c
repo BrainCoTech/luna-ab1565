@@ -220,7 +220,7 @@ static bool pre_proc_key_event_proc(ui_shell_activity_t *self, uint32_t event_id
             } else
 #endif
             {
-                apps_config_set_vp_preempt(VP_INDEX_PRESS, false, 0, VOICE_PROMPT_PRIO_HIGH, NULL);
+                // apps_config_set_vp_preempt(VP_INDEX_PRESS, false, 0, VOICE_PROMPT_PRIO_HIGH, NULL);
             }
         }
 
