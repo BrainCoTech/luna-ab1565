@@ -1322,7 +1322,8 @@ static void app_voice_prompt_stop_and_play_next()
 {
     /* Stop vp and wait callback to play next one. */
     prompt_control_stop_tone();
-    vp_ctx.isToneStopping = true;
+    // vp_ctx.isToneStopping = true;
+    app_voice_prompt_play_next();
 }
 
 static void app_voice_prompt_play_next()
@@ -1586,7 +1587,7 @@ uint16_t app_voice_prompt_play(uint32_t tone_idx, bool need_sync, uint32_t delay
             vp_ctx.count++;
         }
 
-        if (cleanup) {
+        if (cleanup && (level == VOICE_PROMPT_PRIO_EXTREME)) {
             /* Empty all queue. caution: after this, all nodes from queue will be freed. */
             if (level != VOICE_PROMPT_PRIO_EXTREME) {
                 app_voice_prompt_msgid_report(" clean up fail due to not extreme level, cur level: 0x%x", 1, level);
@@ -1676,6 +1677,23 @@ uint16_t app_voice_prompt_play(uint32_t tone_idx, bool need_sync, uint32_t delay
 #endif
                     }
                 }
+            }  else if ((level == cur_item.level) && cleanup &&
+                   (level == VOICE_PROMPT_PRIO_MEDIUM)) {
+
+                /* Clear the medium queue without cur_item. */
+                app_voice_prompt_delete_all_item_excp_curr(app_voice_prompt_get_queue_by_prio(VOICE_PROMPT_PRIO_MEDIUM));
+
+                ret = app_voice_prompt_insert_item(app_voice_prompt_get_queue_by_prio(VOICE_PROMPT_PRIO_MEDIUM), &item);
+                if (VOICE_PROMPT_LIST_SUCCESS != ret) {
+                    app_voice_prompt_msgid_report("queuing vp fail, id: 0x%x", 1, tone_idx);
+                    break;
+                }
+
+                /* Stop the playing vp. */
+                stop_success = app_voice_prompt_stop_internal(cur_item.id, cur_item.need_sync, cur_item.delay_time, true);
+                if (stop_success == false) {
+                    app_voice_prompt_msgid_report("Stop(cleanup) current medium vp fail", 0);
+                }                
             } else {
                 /* Priority is lower than current VP, just enqueue and wait. */
                 app_voice_prompt_msgid_report("just queue idx: 0x%x", 1, tone_idx);
