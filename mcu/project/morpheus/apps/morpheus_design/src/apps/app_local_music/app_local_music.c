@@ -405,6 +405,10 @@ void app_local_music_task(void) {
 
 void app_local_play_idx(uint32_t idx) {
     app_local_music_lock();
+    if (m_player.music_ids_nums <= idx) {
+        LOG_MSGID_I(LOCAL_MUSIC, "no music resource", 0);
+        idx = 0;
+    }
     m_player.index = idx;
     if (m_player.state == PLAY_IDLE) {
         m_player.action = ACTION_PLAY;
