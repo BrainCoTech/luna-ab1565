@@ -99,6 +99,8 @@ void main_controller_set_time(uint64_t time) {
 
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     LOG_I(MUSIC_CONTR, "main2bt cmd: %d", cfg->cmd);
+    LOG_MSGID_I(MAIN_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd, cfg->mode, cfg->audio_id);
+
     uint8_t status = 0;
 
     switch (cfg->cmd) {
