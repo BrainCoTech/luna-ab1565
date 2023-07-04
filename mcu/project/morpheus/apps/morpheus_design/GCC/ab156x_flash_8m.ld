@@ -22,10 +22,10 @@ MEMORY
     ROM_SECURITY_HEAD1(rx)         : ORIGIN = 0x08001000, LENGTH = 4K
     ROM_SECURITY_HEAD2(rx)         : ORIGIN = 0x08002000, LENGTH = 4K
     ROM_BL(rx)                     : ORIGIN = 0x08003000, LENGTH = 64K       /* DOWNLOAD, name: bootloader.bin, display: BootLoader */
-    ROM_DSP0(rx)                   : ORIGIN = 0x08013000, LENGTH = 1152K     /* DOWNLOAD, name: dsp0_freertos_create_thread.bin, display: DSP_FW */
-    ROM_RTOS(rx)                   : ORIGIN = 0x08133000, LENGTH = 2100K     /* DOWNLOAD, name: freertos_create_thread.bin, display: MCU_FW */
-    ROM_LM(rx)                     : ORIGIN = 0x08340000, LENGTH = 1148K     /* DOWNLOAD, name: lm.bin, display: LM */
-    ROM_ROFS(rx)                   : ORIGIN = 0x0845F000, LENGTH = 960K      /* DOWNLOAD, name: filesystem.bin, display: ROFS */
+    ROM_DSP0(rx)                   : ORIGIN = 0x08013000, LENGTH = 800K     /* DOWNLOAD, name: dsp0_freertos_create_thread.bin, display: DSP_FW */
+    ROM_RTOS(rx)                   : ORIGIN = 0x080DB000, LENGTH = 2100K     /* DOWNLOAD, name: freertos_create_thread.bin, display: MCU_FW */
+    ROM_LM(rx)                     : ORIGIN = 0x082E8000, LENGTH = 1148K     /* DOWNLOAD, name: lm.bin, display: LM */
+    ROM_ROFS(rx)                   : ORIGIN = 0x08407000, LENGTH = 1312K      /* DOWNLOAD, name: filesystem.bin, display: ROFS */
     ROM_FOTA_RESERVED(rx)          : ORIGIN = 0x0854F000, LENGTH = 2660K
     ROM_NVDM_RESERVED(rx)          : ORIGIN = 0x087E8000, LENGTH = 96K       /* DOWNLOAD, name: nvdm.bin, display: NVDM */
     TCM (rwx)                      : ORIGIN = 0x04000000, LENGTH = 176K
