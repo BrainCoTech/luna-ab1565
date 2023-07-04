@@ -165,7 +165,13 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
 }
 
 void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
+    LOG_MSGID_I(MAIN_CONTR, "volume type %d, value %d", 2, cfg->type, cfg->volume);
+
     if (cfg->type == VOLUME_CONFIG__TYPE__UPDATE) {
+        if (cfg->volume > 0)
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL); 
+        else
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);     
     } else {
     }
 
