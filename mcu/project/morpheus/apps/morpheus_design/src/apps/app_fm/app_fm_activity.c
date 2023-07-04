@@ -272,7 +272,7 @@ static void apps_set_find_me(ui_shell_activity_t *self)
     APPS_LOG_MSGID_I(UI_SHELL_FM_ACTIVITY", blink: %d, tone : %d", 2, local_context->tone, local_context->tone);
     if (local_context->tone) {
         /* Set a no repeat VP. */
-        s_fm_vp_id = apps_config_set_vp(VP_INDEX_DOORBELL, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        // s_fm_vp_id = apps_config_set_vp(VP_INDEX_DOORBELL, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
     }
     /* Send a delay event as a timer to loop ringtone playback. */
     ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
