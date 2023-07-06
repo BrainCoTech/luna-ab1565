@@ -47,7 +47,7 @@ void main_controller_power_set(int status, int reason) {
 
     hal_gpio_set_output(MAIN_POWEN_EN_PIN, status);
 
-    // battery_set_enable_charger(0);
+    battery_set_enable_charger(1);
     if (status) {
         app_uart_init();
     }
@@ -98,7 +98,8 @@ void main_controller_set_time(uint64_t time) {
 
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     LOG_I(MUSIC_CONTR, "main2bt cmd: %d", cfg->cmd);
-    LOG_MSGID_I(MAIN_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd, cfg->mode, cfg->audio_id);
+    LOG_MSGID_I(MAIN_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd,
+                cfg->mode, cfg->audio_id);
 
     uint8_t status = 0;
 
@@ -136,7 +137,11 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     }
 
     if (cfg->audio_id) {
-        app_local_play_idx(cfg->audio_id - 1);
+        if (cfg->audio_id > 4) {
+            app_local_music_pause();
+        } else {
+            app_local_play_idx(cfg->audio_id - 1);
+        }
     }
 
     BtMain msg = BT_MAIN__INIT;
@@ -154,7 +159,7 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
 
     if (cfg->vp_id > 0) {
         apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
-                        cfg->preemption, app_vp_play_callback);
+                           cfg->preemption, app_vp_play_callback);
     }
 
     BtMain msg = BT_MAIN__INIT;
@@ -166,13 +171,19 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
 }
 
 void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
-    LOG_MSGID_I(MAIN_CONTR, "volume type %d, value %d", 2, cfg->type, cfg->volume);
+    LOG_MSGID_I(MAIN_CONTR, "volume type %d, value %d", 2, cfg->type,
+                cfg->volume);
 
     if (cfg->type == VOLUME_CONFIG__TYPE__UPDATE) {
-        if (cfg->volume > 0)
-            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL); 
-        else
-            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);     
+        if (cfg->volume > 0) {
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL);
+            app_local_music_volume_up();
+        } else {
+            while(cfg->volume++ != 0) {
+                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);
+                app_local_music_volume_down();
+            }
+        }
     } else {
     }
 

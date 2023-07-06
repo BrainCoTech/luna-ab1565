@@ -197,16 +197,16 @@ int audio_local_audio_control_resume(void)
 void audio_local_audio_control_set_volume(uint32_t volume)
 {
     local_audio_context_t *ctx = local_audio_get_ctx();
-    uint32_t volume_ratio = 100 / (AUD_A2DP_VOL_OUT_MAX + 1);
 
-    volume /= volume_ratio;
 
     if (ctx->volume == volume) {
         return;
     }
 
     ctx->volume = volume;
-        
+
+    audio_src_srv_report("[LOCAL_AUDIO_CONTROL] volume %d\r\n", 1, volume);
+
     if (ctx->state == LOCAL_AUDIO_STATE_PLAYING) {
         bt_sink_srv_ami_audio_set_volume(ctx->aid, volume, STREAM_OUT);
     }
