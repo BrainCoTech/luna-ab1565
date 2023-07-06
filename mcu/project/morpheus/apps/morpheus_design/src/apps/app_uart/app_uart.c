@@ -7,6 +7,7 @@
 #include "apps_debug.h"
 #include "bt_type.h"
 #include "hal_uart.h"
+#include "hal_pinmux_define.h"
 #include "main_bt/bt_to_main.pb-c.h"
 #include "main_bt/main_bt_msg_helper.h"
 #include "main_bt/main_to_bt.pb-c.h"
@@ -20,6 +21,8 @@
 
 log_create_module(APP_UART, PRINT_LEVEL_INFO);
 #define LOG_TAG "app_uart"
+
+static bool m_uart_is_initialized;
 
 hal_uart_port_t m_app_uart_port = HAL_UART_1;
 #define APP_UART_RX_FIFO_ALERT_SIZE (50)
@@ -87,7 +90,22 @@ static void user_uart_callback(hal_uart_callback_event_t status,
     }
 }
 
+
+void uart_pinmux_init(void)
+{
+    hal_gpio_init(HAL_GPIO_4);
+    hal_pinmux_set_function(HAL_GPIO_4, HAL_GPIO_4_UART1_TXD);
+    hal_gpio_init(HAL_GPIO_5);
+    hal_pinmux_set_function(HAL_GPIO_5, HAL_GPIO_5_UART1_RXD);
+}
+
 void app_uart_init(void) {
+    if (m_uart_is_initialized) {
+        return;
+    }
+
+    uart_pinmux_init();
+
     uart_rx_sem = xSemaphoreCreateBinary();
     uart_tx_sem = xSemaphoreCreateBinary();
     uart_tx_queue = xQueueCreate(UART_TX_QUEUE_SIZE, sizeof(uint8_array_t));
@@ -99,6 +117,7 @@ void app_uart_init(void) {
     uart_config.parity = HAL_UART_PARITY_NONE;
     uart_config.stop_bit = HAL_UART_STOP_BIT_1;
     uart_config.word_length = HAL_UART_WORD_LENGTH_8;
+
 
     if (HAL_UART_STATUS_OK != hal_uart_init(m_app_uart_port, &uart_config)) {
         APPS_LOG_MSGID_I(LOG_TAG ", open port fail", 0);
@@ -117,15 +136,22 @@ void app_uart_init(void) {
     hal_uart_set_dma(m_app_uart_port, &dma_config);
 
     hal_uart_register_callback(m_app_uart_port, user_uart_callback, NULL);
+
+    m_uart_is_initialized = true;
 }
 
 void app_uart_tx_task() {
     uint8_array_t tx_data;
 
-    app_uart_init();
+    // app_uart_init();
 
     APPS_LOG_MSGID_I(LOG_TAG ", app_uart_tx_task ok", 0);
     while (1) {
+        if (!m_uart_is_initialized) {
+            vTaskDelay(100);
+            continue;
+        }
+
         if (uart_tx_queue) {
             if (xQueueReceive(uart_tx_queue, &tx_data, pdMS_TO_TICKS(200)) ==
                 pdTRUE) {
@@ -161,6 +187,11 @@ void app_uart_rx_task() {
     }
     APPS_LOG_MSGID_I(LOG_TAG ", app_uart_rx_task ok", 0);
     while (1) {
+        if (!m_uart_is_initialized) {
+            vTaskDelay(100);
+            continue;
+        }
+        
         if (uart_rx_sem) {
             if (pdTRUE == xSemaphoreTake(uart_rx_sem, pdMS_TO_TICKS(20))) {
                 bytes = hal_uart_receive_dma(m_app_uart_port, rx_buf, rx_size);
