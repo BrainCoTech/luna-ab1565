@@ -152,7 +152,18 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     send_msg_to_main_controller(&msg);
 }
 
-void app_vp_play_callback(uint32_t idx, vp_err_code err) {}
+void app_vp_play_callback(uint32_t idx, vp_err_code err) {
+    if (err == VP_ERR_CODE_SUCCESS) {
+        LOG_MSGID_I(MAIN_CONTR, "prompt id %d, success", 1, idx);
+        BtMain msg = BT_MAIN__INIT;
+        PromptConfigResp prompt_resp = PROMPT_CONFIG_RESP__INIT;
+
+        msg.msg_id = 777;
+        prompt_resp.vp_id = idx;
+        prompt_resp.resp = PROMPT_CONFIG_RESP__RESP__FINISHED;
+        send_msg_to_main_controller(&msg);
+    }
+}
 
 void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
     LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->vp_id);
