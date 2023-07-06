@@ -48,6 +48,8 @@ typedef struct {
     bool ready;
     player_action_t last_action;
     player_action_t action;
+
+    uint32_t volume;
 } local_music_player_t;
 
 void app_local_music_init();
@@ -67,6 +69,10 @@ void app_local_music_task(void);
 bool app_local_music_is_playing();
 
 void app_local_play_idx(uint32_t idx);
+
+void app_local_music_volume_up();
+
+void app_local_music_volume_down();
 
 #ifdef __cplusplus
 }
