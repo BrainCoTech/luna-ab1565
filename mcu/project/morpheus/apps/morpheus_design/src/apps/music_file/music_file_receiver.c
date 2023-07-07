@@ -63,7 +63,7 @@ QueueHandle_t recv_data_queue;
 #define XFER_TIMER_ID          0
 #define XFER_TIMER_INTERVAL    (10 * 1000)
 #define XFER_RETRY_TIMEOUT     6 // XFER_RETRY_TIMEOUT * XFER_TIMER_INTERVAL = 60s
-#define USE_QUEUE 1
+#define USE_QUEUE 0
 
 TimerHandle_t m_timer = NULL; /* The pointer of the m_timer instance. */
 
