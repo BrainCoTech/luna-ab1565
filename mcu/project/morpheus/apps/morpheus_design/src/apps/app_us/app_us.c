@@ -89,7 +89,7 @@ void app_us_tx_task() {
                 pos = 0;
                 retry_count = 0;
                 m_mtu = ble_us_get_mtu() - 3;
-                                LOG_MSGID_I(APP_US, "mtu %d", 1, m_mtu);
+                LOG_MSGID_I(APP_US, "mtu %d", 1, m_mtu);
 
                 if ((tx.data != NULL) && (tx.size != 0)) {
                     do {
@@ -113,7 +113,8 @@ void app_us_tx_task() {
                 LOG_MSGID_I(APP_US, "recieve from app_us failed", 0);
             }
         } else {
-            vTaskDelete(NULL);
+            us_tx_queue = xQueueCreate(US_TX_QUEUE_SIZE, sizeof(uint8_array_t));
+            vTaskDelay(100);
         }
     }
 
@@ -172,21 +173,32 @@ void app_us_rx_task() {
 bool app_us_notification_enable(void) { return ble_us_notification_enable(); }
 
 void app_us_enqueue(uint8_array_t *msg) {
-    if (us_tx_queue) {
+    if (us_tx_queue && app_us_notification_enable()) {
         xQueueSend(us_tx_queue, msg, pdMS_TO_TICKS(20));
+    } else {
+        if (msg->data) vPortFree(msg->data);
     }
 }
 
 void send_msg_to_app(BtApp *msg) {
     packet_packer_t packer;
     uint8_array_t send_to_queue;
+    uint8_array_t send_to_usb_queue;
 
     if (bt_app_msg_encode(&packer, msg) == 0) {
         send_to_queue.size = packer.packet_size;
         send_to_queue.data = pvPortMalloc(send_to_queue.size);
         if (send_to_queue.data) {
             memcpy(send_to_queue.data, packer.packet, send_to_queue.size);
-            xQueueSend(us_tx_queue, &send_to_queue, 20 / portTICK_PERIOD_MS);
+            app_us_enqueue(&send_to_queue);
+        }
+
+        send_to_usb_queue.size = packer.packet_size;
+        send_to_usb_queue.data = pvPortMalloc(send_to_usb_queue.size);
+        if (send_to_usb_queue.data) {
+            memcpy(send_to_usb_queue.data, packer.packet,
+                   send_to_usb_queue.size);
+            app_usb_enqueue(&send_to_usb_queue);
         }
         packet_packer_free(&packer);
     }
@@ -208,8 +220,8 @@ int app_bt_config(uint32_t msg_id, AppBt *msg) {
     if (msg->clear_pair_info) {
         /* entry pairing mode, unpair all device */
         ui_shell_send_event(true, EVENT_PRIORITY_HIGH, EVENT_GROUP_UI_SHELL_KEY,
-                            (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8),
-                            NULL, 0, NULL, 0);
+                            (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL,
+                            0, NULL, 0);
     }
 
     if (msg->music_sync_progress) {
@@ -248,9 +260,9 @@ void bt_board_config(uint32_t msg_id, BoardConfig *board_cfg) {
              (*local_addr)[2], (*local_addr)[1], (*local_addr)[0]);
     if (remote_addr != NULL) {
         snprintf((char *)remote_addr_str, sizeof(remote_addr_str),
-                "%.2X%.2X%.2X%.2X%.2X%.2X", (*remote_addr)[5], (*remote_addr)[4],
-                (*remote_addr)[3], (*remote_addr)[2], (*remote_addr)[1],
-                (*remote_addr)[0]);
+                 "%.2X%.2X%.2X%.2X%.2X%.2X", (*remote_addr)[5],
+                 (*remote_addr)[4], (*remote_addr)[3], (*remote_addr)[2],
+                 (*remote_addr)[1], (*remote_addr)[0]);
     }
     if (board_cfg->get_info) {
         msg.board_cfg_resp = &board_resp;
