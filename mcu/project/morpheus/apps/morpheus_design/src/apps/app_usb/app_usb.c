@@ -20,7 +20,7 @@ log_create_module(app_usb, PRINT_LEVEL_INFO);
 
 #define USB_MUX_PORT_RX_BUF_SIZE 512
 #define USB_MUX_PORT_TX_BUF_SIZE 512
-#define USB_RX_BUF_SIZE 512
+#define USB_RX_BUF_SIZE 2048
 
 static mux_port_t m_usb_port = MUX_USB_COM_1;
 static mux_handle_t m_usb_handle;
@@ -144,6 +144,7 @@ void app_usb_rx_task(void) {
     while (true) {
         if (m_rx_stream == NULL) {
             vTaskDelay(100);
+            m_rx_stream = xStreamBufferCreate(USB_RX_BUF_SIZE, sizeof(char));
             continue;
         }
         bytes_read = xStreamBufferReceive(m_rx_stream, rx_buf,
@@ -162,6 +163,7 @@ void app_usb_tx_task(void) {
     while (true) {
         if (m_tx_queue == NULL) {
             vTaskDelay(100);
+            m_tx_queue = xQueueCreate(128, sizeof(uint8_array_t));
             continue;
         }
         if (xQueueReceive(m_tx_queue, &tx_data, 100 / portTICK_PERIOD_MS) ==
@@ -192,6 +194,7 @@ void app_usb_enqueue(uint8_array_t *msg)
     if (m_tx_queue) {
         xQueueSend(m_tx_queue, msg, pdMS_TO_TICKS(20));
     } else {
+        if (msg->data) vPortFree(msg->data);
         LOG_MSGID_I(app_usb, "usb_tx_queue is null", 0);
     }    
 }
