@@ -726,6 +726,8 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                         memcpy(connect_param.address, *p_bd_addr,
                             sizeof(bt_bd_addr_t));
                         bt_cm_disconnect(&connect_param);
+                } else {
+					bt_cm_cancel_connect(NULL);
                 }
                 bt_device_manager_unpair_all();
                 bt_device_manager_db_flush_all(BT_DEVICE_MANAGER_DB_FLUSH_BLOCK);
