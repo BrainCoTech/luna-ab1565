@@ -167,8 +167,14 @@ static bool unpacker_timeout(packet_unpacker_t *unpacker)
 	}
 }
 
+uint32_t g_tick = 0;
+uint32_t g_old_tick = 0;                      
+  
+
 void packet_unpacker_process(packet_unpacker_t *unpacker)
 {
+
+
 	while (unpacker->write_pos > unpacker->search_pos) {
 		unpacker->search_pos++;
 		const packet_header_t *header = unpacker->p_header;
@@ -183,6 +189,7 @@ void packet_unpacker_process(packet_unpacker_t *unpacker)
 					if (is_packet_header(header) && unpacker->search_pos == 1) {
 						unpacker->state = FIND_PAYLOAD;
 						unpacker->found_header_ts = xTaskGetTickCount();
+						g_tick = xTaskGetTickCount();
 					} else {
 						/* remove found magic numbers */
 						unpacker_remove_ahead_bytes(
@@ -202,6 +209,8 @@ void packet_unpacker_process(packet_unpacker_t *unpacker)
 			size_t packet_size = sizeof(packet_header_t) +
 					     header->payload_length + 2;
 			if (unpacker->write_pos >= packet_size) {
+			uint32_t ts = xTaskGetTickCount();
+			LOG_MSGID_I(MUSIC_RECV, "crc cal. 123two handler %d", 2,  ts - g_tick);
 				uint16_t calc_crc = calc_crc16_long_table(
 					unpacker->buf, packet_size - 2);
 
@@ -234,16 +243,23 @@ void packet_unpacker_process(packet_unpacker_t *unpacker)
 			src_id = header->src_id;
 			dst_id = header->dst_id;
 #endif
+			uint32_t ts = xTaskGetTickCount();
+			LOG_MSGID_I(MUSIC_RECV, "crc cal. two handler %d", 2,  ts - g_tick);
 			uint16_t packet_len = header->payload_length +
 					      sizeof(packet_header_t) + 2;
 			if (unpacker->handler != NULL) {
 				unpacker->handler(src_id, dst_id, unpacker->buf,
 						  packet_len);
 			}
+			uint32_t ts1 = xTaskGetTickCount();
+			LOG_MSGID_I(MUSIC_RECV, "crc cal. pb two handler %d", 2,  ts1 - ts);
 			/* remove found packet */
 			unpacker_remove_ahead_bytes(unpacker, packet_len);
 			// LOG_DBG("found a packet. buf len %d, pos %d\n",
 			// 	unpacker->write_pos, unpacker->search_pos);
+			uint32_t ts2 = xTaskGetTickCount();
+			LOG_MSGID_I(MUSIC_RECV, "crc cal. move memory two handler %d", 2,  ts2 - ts1);
+
 		} break;
 
 		default:

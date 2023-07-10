@@ -20,7 +20,7 @@ log_create_module(app_usb, PRINT_LEVEL_INFO);
 
 #define USB_MUX_PORT_RX_BUF_SIZE 512
 #define USB_MUX_PORT_TX_BUF_SIZE 512
-#define USB_RX_BUF_SIZE 2048
+#define USB_RX_BUF_SIZE (2048+1024)
 
 static mux_port_t m_usb_port = MUX_USB_COM_1;
 static mux_handle_t m_usb_handle;
@@ -129,7 +129,7 @@ static void packet_unpacker_handler(int32_t src_id, int32_t dst_id,
     }
 }
 
-static uint8_t rx_buf[USB_RX_BUF_SIZE];
+static uint8_t rx_buf[USB_RX_BUF_SIZE / 2];
 static uint8_t unpacker_buf[USB_RX_BUF_SIZE];
 void app_usb_rx_task(void) {
     uint8_array_t tx_data;

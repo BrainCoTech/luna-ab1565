@@ -17,6 +17,8 @@
 #include "syslog.h"
 #include "main_controller.h"
 #include "filesystem.h"
+#include "bsp_flash.h"
+#include "hal_dvfs.h"
 
 log_create_module(MUSIC_RECV, PRINT_LEVEL_INFO);
 
@@ -190,7 +192,9 @@ void receive_file_append_data(uint32_t fd, void *data, uint32_t size,
         
         file_write(&file, data, size);
 #endif
-        music_file_write(fd, data, size, append);
+        // music_file_write(fd, data, size, append);
+        // (uint32_t address, uint8_t *data, int32_t length);
+        bsp_flash_write(m_receiving_file->offset + SPI_SERIAL_FLASH_ADDRESS, data, size);
         m_receiving_file->offset += size;
 #endif
         
@@ -250,6 +254,7 @@ void send_sync_progress_to_app(uint32_t msgid) {
 
 void update_solution_offset_from_files(music_sulotion_t *sulotion, music_files_t *files)
 {
+    return ;
     bool should_delete = true;
     read_dir_busy = true;
     music_file_files_get(files);
@@ -340,6 +345,8 @@ void file_receiver_task(void) {
             case FILE_RECV_STATE_START:
                 LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_START", 0);
                 read_dir_busy = true;
+                hal_dvfs_lock_control(HAL_DVFS_FULL_SPEED_104M, HAL_DVFS_LOCK);
+                bsp_flash_erase(0 + SPI_SERIAL_FLASH_ADDRESS, BSP_FLASH_CHIP_ERASE);
                 /* update solution from new configuration */
                 memcpy(&old_solution, p_solution, sizeof(music_sulotion_t));
                 p_solution->nums = m_reciever.new_nums;
@@ -378,13 +385,13 @@ void file_receiver_task(void) {
                     LOG_MSGID_I(MUSIC_RECV, "index %d, fd %u", 3,
                                 m_reciever.cur_index, cur_file->fd);
                     
-                    int file_size = music_file_file_size(cur_file->fd);
+                    int file_size = 0;//music_file_file_size(cur_file->fd);
 
                     cur_file->offset = (file_size < 0) ? 0 : file_size;
                     LOG_MSGID_I(MUSIC_RECV, "cur fd %u, size %u, offset %u ", 3,
                                 cur_file->fd, cur_file->size, cur_file->offset);
                     if (cur_file->offset > cur_file->size) {
-                        music_file_delete(cur_file->fd);
+                        // music_file_delete(cur_file->fd);
                         cur_file->offset = 0;
                         receive_file_start(cur_file);
                         receive_file_wait_finished();
@@ -418,6 +425,7 @@ void file_receiver_task(void) {
             case FILE_RECV_STATE_FINISHED:
                 LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_IDLE", 0);
                 m_reciever.cur_state = FILE_RECV_STATE_IDLE;
+                hal_dvfs_lock_control(HAL_DVFS_FULL_SPEED_104M, HAL_DVFS_UNLOCK);
                 break;
             default:
                 break;
@@ -479,7 +487,6 @@ void music_data_handler(uint32_t msg_id, MusicData *music_data) {
                              music_data->data.len, music_data->offset,
                              music_data->done);
     
-    ble_us_update_connection_interval();                            
     uint32_t ts = xTaskGetTickCount();
     LOG_MSGID_I(MUSIC_RECV, "musig data handler speed time %d, two handler %d", 2, ts - tick, ts - old_tick);   
 
