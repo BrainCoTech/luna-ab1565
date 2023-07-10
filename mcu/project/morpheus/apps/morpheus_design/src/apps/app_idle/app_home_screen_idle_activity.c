@@ -589,6 +589,7 @@ static bool _proc_ui_shell_group(struct _ui_shell_activity *self,
     return ret;
 }
 
+bool g_manual_pairing = false;
 static bool _proc_key_event_group(ui_shell_activity_t *self,
                                   uint32_t event_id,
                                   void *extra_data,

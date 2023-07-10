@@ -182,6 +182,7 @@ bool bt_conn_component_bt_sink_event_proc(ui_shell_activity_t *self,
     return ret;
 }
 
+extern bool g_manual_pairing;
 bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t event_id, void *extra_data, size_t data_len)
 {
     bool ret = false;
@@ -198,9 +199,9 @@ bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t even
                 break;
             }
 
-            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", REMOTE_INFO_UPDATE, remote_addr %x:%x:%x:%x:%x:%x",
-                    6, remote_update->address[5], remote_update->address[4], remote_update->address[3],
-                    remote_update->address[2], remote_update->address[1], remote_update->address[0]);
+            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", REMOTE_INFO_UPDATE, remote_addr %x:%x:%x:%x:%x:%x, reason %x",
+                    7, remote_update->address[5], remote_update->address[4], remote_update->address[3],
+                    remote_update->address[2], remote_update->address[1], remote_update->address[0], remote_update->reason);
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", REMOTE_INFO_UPDATE, acl_state(%x)->(%x), connected_service(%x)->(%x)",
                              4, remote_update->pre_acl_state, remote_update->acl_state,
                              remote_update->pre_connected_service, remote_update->connected_service);
@@ -250,11 +251,19 @@ bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t even
                                 local_ctx->connection_state = false;
                                 memset(&(local_ctx->conn_device), 0, sizeof(app_conn_device_info_t) * APP_CONN_MAX_DEVICE_NUM);
                                 bt_conn_component_update_mmi();
-                                apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
                                 main_controller_set_state(SYS_CONFIG__STATE__BT_DISCONNECTED);
-                            } else {
-                                apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
                             }
+
+							if (g_manual_pairing && remote_update->reason==0x16)
+							{
+								printf("...manual enter pairing,not need play dis vp");
+							}
+							else
+							{
+								apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+							}
+
+							g_manual_pairing = false;
                         }
                     }
                 }
