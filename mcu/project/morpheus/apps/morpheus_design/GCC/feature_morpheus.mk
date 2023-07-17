@@ -55,7 +55,7 @@ MTK_NO_PSRAM_ENABLE = y
 MTK_SUPPORT_HEAP_DEBUG                = y
 MTK_SUPPORT_HEAP_DEBUG_ADVANCED       = n
 # heap peak profiling
-MTK_HEAP_SIZE_GUARD_ENABLE            = y
+MTK_HEAP_SIZE_GUARD_ENABLE            = n
 #SWLA
 MTK_SWLA_ENABLE                       = y
 #system service at cmd
