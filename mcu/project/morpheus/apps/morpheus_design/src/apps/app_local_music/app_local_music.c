@@ -25,8 +25,6 @@ log_create_module(LOCAL_MUSIC, PRINT_LEVEL_INFO);
 #include "task.h"
 
 static local_music_player_t m_player;
-static music_sulotion_t *p_solution;
-static music_files_t m_music_files;
 xSemaphoreHandle local_music_finished_sem;
 xSemaphoreHandle local_music_start_sem;
 xSemaphoreHandle m_mutex;
@@ -116,8 +114,6 @@ void app_local_music_init() {
     stream->seek = local_stream_seek;
 
     m_player.lfs = fs_get_lfs();
-
-    nvdm_status_t status = solution_read_from_nvdm(&p_solution);
 
     local_music_finished_sem = xSemaphoreCreateBinary();
     local_music_start_sem = xSemaphoreCreateBinary();
@@ -228,7 +224,12 @@ void app_local_music_play_next() {
 }
 
 static void app_local_music_update_id_from_flash(void) {
+    music_sulotion_t *p_solution;
+    music_files_t m_music_files;
+
     music_file_files_get(&m_music_files);
+    solution_read_from_nvdm(&p_solution);
+
     m_player.music_ids_nums = 0;
     for (int i = 0; i < p_solution->nums; i++) {
         for (int n = 0; n < m_music_files.nums; n++)
