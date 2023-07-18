@@ -645,7 +645,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 /* Apply "power off" VP and foreground LED pattern. */
                 apps_config_set_foreground_led_pattern(LED_INDEX_POWER_OFF, 30, false);
             if (battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST)) {
-                    apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_HIGH, false, NULL);
+                    // apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_HIGH, false, NULL);
                         APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", Send REQUEST_ON_OFF_BT when Aux/USB in", 0);
                         ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST,
                                             EVENT_GROUP_UI_SHELL_APP_INTERACTION,
@@ -656,7 +656,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", KEY_POWER_OFF", 0);
                         ui_shell_send_event(false, EVENT_PRIORITY_HIGH, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
                                 APPS_EVENTS_INTERACTION_POWER_OFF, NULL, 0, NULL, 0);
-                apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_EXTREME, true, NULL);
+                // apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_EXTREME, true, NULL);
                         _trigger_power_off_flow(self, true, true);
             }
             ret = true;
