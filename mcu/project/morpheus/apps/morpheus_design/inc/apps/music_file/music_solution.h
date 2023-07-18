@@ -5,28 +5,30 @@ extern "C" {
 #endif
 
 #include "stdint.h"
-#include "main_bt/main_bt_msg_helper.h"
-#include "nvdm.h"
-#include "nvdm_id_list.h"
 
-#define MAX_MUSIC_FILE_NUMS 6
+#define MUSIC_SOLUTION_NUMS 4
 
 typedef struct {
-    uint32_t fd;
-    uint32_t offset;
-    uint32_t size;
+    uint32_t solution_id;
+    uint32_t music_id;
+    uint32_t music_file_addr;
+    uint32_t music_size;
+    uint32_t music_offset;
 } recv_file_t;
 
 typedef struct {
-    recv_file_t files[MAX_MUSIC_FILE_NUMS];
+    // 如果值是0，表示没有传输文件
+    recv_file_t files[MUSIC_SOLUTION_NUMS];
     uint32_t nums;
-    MusicPlayMode mode;
-    uint32_t single_id;
 } music_sulotion_t;
 
-nvdm_status_t solution_read_from_nvdm(music_sulotion_t **sulotion);
+int music_solution_read(music_sulotion_t **sulotion);
 
-nvdm_status_t solution_write_to_nvdm(const music_sulotion_t *sulotion);
+int music_solution_write(const music_sulotion_t *sulotion);
+
+int music_file_sync_status_get(recv_file_t **file);
+
+int music_file_sync_status_set(const recv_file_t *file);
 
 #ifdef __cplusplus
 }

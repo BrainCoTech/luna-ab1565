@@ -16,6 +16,10 @@ int fs_get_size(void);
 
 int fs_format(void);
 
+int fs_write(char *path, const void *data, uint32_t size, bool append);
+
+int fs_read(char *path,  void *data, uint32_t size);
+
 #ifdef __cplusplus
 }
 #endif

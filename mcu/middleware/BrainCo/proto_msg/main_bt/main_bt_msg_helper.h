@@ -16,6 +16,7 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg);
 void volume_config(uint32_t msg_id, VolumeConfig *cfg);
 void main_bt_config(MainBt *msg);
 void main_bt_board_config(uint32_t msg_id, BoardConfig *cfg);
+void main_bt_music_file_info(uint32_t msg_id, MusicFileInfo *cfg);
 
 void sys_config(uint32_t msg_id, SysConfig *cfg);
 

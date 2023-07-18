@@ -78,7 +78,7 @@ int app_bt_msg_encode(packet_packer_t *packer, AppBt *msg) {
 
 int bt_app_msg_encode(packet_packer_t *packer, BtApp *msg) {
     uint16_t payload_len = bt_app__get_packed_size(msg);
-    LOG_DBG("payload size %d, header size %ld ", payload_len,
+    LOG_DBG("bt app encode, payload size %d, header size %ld ", payload_len,
             sizeof(packet_header_t));
     if (payload_len == 0) {
         LOG_DBG("message size is zero");
