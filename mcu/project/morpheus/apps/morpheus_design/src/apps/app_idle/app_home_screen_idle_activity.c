@@ -624,10 +624,10 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
 
 	printf("...home action %x", action);
 
-    if (event_id == 0x5218) action = KEY_POWER_OFF;
-    if (event_id == 0x5217) action = KEY_POWER_ON;
-    if (event_id == 0x5202) action = KEY_DISCOVERABLE;
-
+    if (event_id == (0x5200 | (KEY_POWER_OFF & 0xFF))) action = KEY_POWER_OFF;
+    if (event_id == (0x5200 | (KEY_POWER_ON & 0xFF))) action = KEY_POWER_ON;
+    if (event_id == (0x5200 | (KEY_DISCOVERABLE & 0xFF))) action = KEY_DISCOVERABLE;
+    if (event_id == (0x5200 | (KEY_ANC & 0xFF))) action = KEY_ANC;
 
     switch (action) {
         case KEY_BEFORE_POWER_OFF:  

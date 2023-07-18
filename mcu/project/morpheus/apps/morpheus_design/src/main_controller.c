@@ -227,6 +227,14 @@ void main_bt_config(MainBt *msg) {
         return;
     }
 
+    /* anc toggle */
+    if (msg->anc) {
+        ui_shell_send_event(
+            true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
+            (KEY_ANC & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
+        return;
+    }
+
     if (msg->get_timestamp) {
         uint64_t ts = get_time_unix_timestamp();
         main_controller_set_time(ts);
