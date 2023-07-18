@@ -195,7 +195,7 @@ void receive_file_append_data(uint32_t fd, void *data, uint32_t size,
 #endif
         
 
-        if (done) {
+        if (m_receiving_file->offset == m_receiving_file->size) {
 #if (NOT_CLOSE)            
             file_close(fd, &file);
 #endif            
@@ -264,7 +264,6 @@ void update_solution_offset_from_files(music_sulotion_t *sulotion, music_files_t
             if (files->files[i].fd == p_solution->files[n].fd) {
                 should_delete = false;
                 p_solution->files[n].offset = files->files[i].size;
-                LOG_MSGID_I(MUSIC_RECV, "solution file %u, file size %u, index %d", 3, p_solution->files[n].size, n);
             }
         }
         if (should_delete) {
@@ -299,12 +298,11 @@ void file_receiver_task(void) {
     nvdm_status_t status = solution_read_from_nvdm(&p_solution);
     if (status == NVDM_STATUS_ITEM_NOT_FOUND) {
         music_file_files_get(&m_files);
-        LOG_MSGID_I(MUSIC_RECV, "solution file not found, file nums %d", 1, m_files.nums);
         for (int i = 0; i < m_files.nums; i++) {
             p_solution->files[i].fd = m_files.files[i].fd;
             p_solution->files[i].offset = m_files.files[i].size;
             p_solution->files[i].size = m_files.files[i].size;              
-                LOG_MSGID_I(MUSIC_RECV, "solution file not found, file size %u, index %d", 3, p_solution->files[i].size, i);
+            LOG_MSGID_I(MUSIC_RECV, "solution file not found, file size %u, index %d", 2, p_solution->files[i].size, i);
         }
         p_solution->nums = m_files.nums;
         solution_write_to_nvdm(p_solution);
@@ -441,7 +439,6 @@ void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
                                 m_reciever.new_files[i].fd, m_reciever.new_files[i].size, m_reciever.new_files[i].offset);
         }
 
-        ble_us_update_connection_interval();
         if (m_reciever.cur_state == FILE_RECV_STATE_RUNNING) {
             xQueueReset(recv_data_queue);
             xSemaphoreGive(recv_file_finished_sem);
@@ -477,9 +474,8 @@ void music_data_handler(uint32_t msg_id, MusicData *music_data) {
 
     receive_file_append_data(music_data->id, music_data->data.data,
                              music_data->data.len, music_data->offset,
-                             music_data->done);
+                             false);
     
-    ble_us_update_connection_interval();                            
     uint32_t ts = xTaskGetTickCount();
     LOG_MSGID_I(MUSIC_RECV, "musig data handler speed time %d, two handler %d", 2, ts - tick, ts - old_tick);   
 
