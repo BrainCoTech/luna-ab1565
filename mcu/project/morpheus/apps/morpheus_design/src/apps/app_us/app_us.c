@@ -224,6 +224,13 @@ int app_bt_config(uint32_t msg_id, AppBt *msg) {
                             0, NULL, 0);
     }
 
+    if (msg->unpair) {
+        ui_shell_send_event(true, EVENT_PRIORITY_HIGH, EVENT_GROUP_UI_SHELL_KEY,
+                            (KEY_DISCOVERABLE & 0xFF) | ((0x52 & 0xFF) << 8),
+                            NULL, 0, NULL, 0);
+    }    
+
+
     if (msg->music_sync_progress) {
         LOG_MSGID_I(APP_US, "music_sync_progress", 0);
 #ifdef BRC_LOCAL_MUSIC_ENABLE
