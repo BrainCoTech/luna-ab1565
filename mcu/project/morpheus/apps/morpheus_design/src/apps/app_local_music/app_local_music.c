@@ -58,14 +58,6 @@ static uint32_t local_stream_read(void *private_data, uint8_t *buffer,
     local_music_player_t *player = (local_music_player_t *)private_data;
     local_stream_if_t *stream = &player->stream_if;
 
-
-
-    uint32_t file_size = 0;
-
-    if (stream->state != LOCAL_STREAM_STATE_GOOD) {
-        return 0U;
-    }
-
     recv_file_t *cur_file = &player->p_solution->files[m_player.index];
 
     bsp_flash_status_t status =  bsp_flash_read(
@@ -87,7 +79,7 @@ static uint32_t local_stream_read(void *private_data, uint8_t *buffer,
 static uint32_t local_stream_seek(void *private_data, uint32_t offset) {
     local_music_player_t *player = (local_music_player_t *)private_data;
     local_stream_if_t *stream = &player->stream_if;
-    recv_file_t *cur_file = &player->p_solution->files[m_player.index];
+    recv_file_t *cur_file = &player->p_solution->files[player->index];
 
     if (stream->state == LOCAL_STREAM_STATE_BAD) {
         return stream->offset;
