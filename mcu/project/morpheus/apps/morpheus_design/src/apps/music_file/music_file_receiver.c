@@ -307,13 +307,14 @@ void file_receiver_task(void) {
                         cur_file->music_offset += new_data.size;
                         /* 保存断点 */
                         music_file_sync_status_set(cur_file);
-
-                        
-
                     }
 
                     vPortFree(new_data.data);
                 } else {
+                }
+
+                if (m_reciever.stop) {
+                    m_reciever.cur_state = FILE_RECV_STATE_FINISHED;
                 }
 
                 if (cur_file->music_offset == cur_file->music_size) {
