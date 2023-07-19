@@ -1078,9 +1078,9 @@
   <Value>0x07000000050701000100010007</Value>
 </NVKey>
 
-<!-- spp air uuid index. use common uuid -->
+<!-- spp air uuid index -->
 <NVKey KeyID="0x1813">
-  <Value>0x00</Value>
+  <Value>0x01</Value>
 </NVKey>
 
 <!-- Key ID for VAD/WWE -->
