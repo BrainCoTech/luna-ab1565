@@ -12,7 +12,7 @@ BT_EXTERN_C_BEGIN
 
 #define BLE_US_SERVICE_UUID \
         {                                                                     \
-            0x02, 0x00, 0x13, 0xac, 0x42, 0x02, 0x63, 0xbf, 0x02, 0xae, 0x01, \
+            0x02, 0x00, 0x13, 0xac, 0x42, 0x02, 0x63, 0xbf, 0x07, 0xae, 0x01, \
                 0x00, 0x0c, 0xa2, 0xe5, 0x4d                                  \
         }
 
@@ -24,7 +24,7 @@ BT_EXTERN_C_BEGIN
 #define US_RX_CHAR_UUID                                                     \
     {                                                                         \
         {                                                                     \
-            0x02, 0x00, 0x13, 0xac, 0x42, 0x02, 0x63, 0xbf, 0x02, 0xae, 0x02, \
+            0x02, 0x00, 0x13, 0xac, 0x42, 0x02, 0x63, 0xbf, 0x07, 0xae, 0x02, \
                 0x00, 0x0c, 0xa2, 0xe5, 0x4d                                  \
         }                                                                     \
     }
@@ -32,7 +32,7 @@ BT_EXTERN_C_BEGIN
 #define US_TX_CHAR_UUID                                                     \
     {                                                                         \
         {                                                                     \
-            0x02, 0x00, 0x13, 0xac, 0x42, 0x02, 0x63, 0xbf, 0x02, 0xae, 0x03, \
+            0x02, 0x00, 0x13, 0xac, 0x42, 0x02, 0x63, 0xbf, 0x07, 0xae, 0x03, \
                 0x00, 0x0c, 0xa2, 0xe5, 0x4d                                  \
         }                                                                     \
     }

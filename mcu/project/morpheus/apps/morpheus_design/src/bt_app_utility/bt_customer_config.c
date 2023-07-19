@@ -265,7 +265,7 @@ const bt_cm_config_t *bt_customer_config_app_get_cm_config(void)
 
 
 /******************** Config the parameter of sink GAP *******************************************/
-#define BT_SINK_SRV_CM_DB_NAME  "Easleep"                       /* Default BT name */
+#define BT_SINK_SRV_CM_DB_NAME  "Luna"                       /* Default BT name */
 #define BT_SINK_SRV_CM_DB_COD 0x240404                                  /* Default BT COD(Class Of Device) refer to BT spec. */
 #define BT_SINK_SRV_CM_DB_IO    BT_GAP_IO_CAPABILITY_NO_INPUT_NO_OUTPUT /* Default GAP IO capability */
 
