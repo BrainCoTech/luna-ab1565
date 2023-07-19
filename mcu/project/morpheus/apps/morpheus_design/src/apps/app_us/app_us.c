@@ -214,13 +214,13 @@ int app_bt_config(uint32_t msg_id, AppBt *msg) {
     if (msg->power_off) {
         ui_shell_send_event(
             true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
-            (0x18 & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
+            (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
     }
 
     if (msg->clear_pair_info) {
         /* entry pairing mode, unpair all device */
         ui_shell_send_event(true, EVENT_PRIORITY_HIGH, EVENT_GROUP_UI_SHELL_KEY,
-                            (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL,
+                            (KEY_DISCOVERABLE & 0xFF) | ((0x52 & 0xFF) << 8), NULL,
                             0, NULL, 0);
     }
 
