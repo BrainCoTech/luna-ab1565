@@ -39,7 +39,6 @@ music_sulotion_t *music_solution_get() { return &m_music_solution; }
 int music_solution_write(const music_sulotion_t *sulotion) {
     int ret = 0;
 
-    memcpy(&m_music_solution, sulotion, sizeof(recv_file_t));
 
     for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
         LOG_MSGID_I(SOLUTION,
@@ -64,7 +63,7 @@ int music_file_sync_status_get(recv_file_t **file) {
 
 
     LOG_MSGID_I(SOLUTION,
-                "sync status %u, file [%u], size %u, addr %x, offset %u", 5,
+                "get sync status %u, file [%u], size %u, addr %x, offset %u", 5,
                 m_sync_status.solution_id, m_sync_status.music_id,
                 m_sync_status.music_size, m_sync_status.music_file_addr,
                 m_sync_status.music_offset);
@@ -78,13 +77,8 @@ int music_file_sync_status_set(const recv_file_t *file) {
 
     memcpy(&m_sync_status, file, sizeof(recv_file_t));
 
-    LOG_MSGID_I(SOLUTION,
-                "sync status %u, file [%u], size %u, addr %x, offset %u", 5,
-                m_sync_status.solution_id, m_sync_status.music_id,
-                m_sync_status.music_size, m_sync_status.music_file_addr,
-                m_sync_status.music_offset);
 
-    ret = fs_write(SOLUTION_PATH, &m_sync_status, sizeof(recv_file_t), false);
+    ret = fs_write(SYNC_STATUS_PATH, &m_sync_status, sizeof(recv_file_t), false);
 
     return ret;
 }
