@@ -88,6 +88,8 @@ void music_data_handler(uint32_t msg_id, MusicData *music_data);
 
 void music_solution_handler(uint32_t msg_id, MusicSolution *music_solution);
 
+void music_file_sync_handler(uint32_t msg_id, MusicFileInfo *music_file_info);
+
 int main_app_msg_encode(packet_packer_t *packer, MainApp *msg);
 
 #ifdef __cplusplus
