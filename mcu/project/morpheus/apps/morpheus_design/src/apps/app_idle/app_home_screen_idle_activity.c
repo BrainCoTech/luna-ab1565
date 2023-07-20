@@ -633,6 +633,8 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
         case KEY_BEFORE_POWER_OFF:  
             apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
+            app_local_music_pause();
+            audio_local_audio_control_set_volume(0);
             vTaskDelay(500);
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY ", go to power off", 0);
             break;
