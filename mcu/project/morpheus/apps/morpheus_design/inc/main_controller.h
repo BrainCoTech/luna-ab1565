@@ -28,6 +28,10 @@ void a2dp_playing_flag_set(bool flag);
 
 bool a2dp_playing_flag_get(void);
 
+void send_main_msg_to_app(MainApp *msg);
+
+void send_music_file_recv_finished(uint32_t solution_id, uint32_t music_id);
+
 #ifdef __cplusplus
 }
 #endif

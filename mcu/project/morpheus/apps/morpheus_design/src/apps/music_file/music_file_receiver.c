@@ -332,6 +332,7 @@ void file_receiver_task(void) {
             case FILE_RECV_STATE_FINISHED:
                 LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_FINISHED", 0);
 
+                send_music_file_recv_finished(cur_file->solution_id, cur_file->music_id);
                 memcpy(&m_reciever.p_solution->files[cur_file->solution_id - 1],
                        cur_file, sizeof(recv_file_t));
                 music_solution_write(m_reciever.p_solution);
