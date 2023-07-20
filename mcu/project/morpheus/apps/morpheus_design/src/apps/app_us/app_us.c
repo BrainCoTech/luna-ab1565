@@ -250,7 +250,17 @@ int app_bt_config(uint32_t msg_id, AppBt *msg) {
     }
 
     if (msg->music_info) {
-        // set_music_type(msg->music_info->focus || msg->music_info->playing);
+        LOG_MSGID_I(APP_US, "music_info %u, status %d, focus %d", 3, msg->music_info->id, msg->music_info->playing,
+                    msg->music_info->focus);
+
+        set_music_type(msg->music_info->focus || msg->music_info->playing);
+        
+        if (msg->music_info->id > 0) {
+            send_track_id_to_main(msg->music_info->id, msg->music_info->playing);
+        }
+        if ((msg->music_info->id == 0) && (msg->music_info->focus == false) && a2dp_playing_flag_get()) {
+            send_track_id_to_main(0, true);
+        }
     }
 
     send_msg_to_app(&send_msg);

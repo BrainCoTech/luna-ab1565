@@ -271,3 +271,33 @@ void main_bt_config(MainBt *msg) {
 bool main_controller_ble_status(void) { return ble_connected; }
 
 bool main_controller_bt_status(void) { return bt_connected; }
+
+static bool m_is_app_music;
+bool get_music_type(void) { return m_is_app_music; }
+
+void set_music_type(bool app_music) { m_is_app_music = app_music; }
+
+static bool a2dp_is_playing;
+void a2dp_playing_flag_set(bool flag) { a2dp_is_playing = flag; }
+
+bool a2dp_playing_flag_get(void) { return a2dp_is_playing; }
+
+void send_track_id_to_main(uint32_t id, bool playing) {
+    BtMain msg = BT_MAIN__INIT;
+    MusicRecord record = MUSIC_RECORD__INIT;
+    static uint32_t last_music_id;
+
+    msg.msg_id = 333;
+    msg.music_record = &record;
+
+    if (last_music_id != 0)
+        if (!playing && id == 0) return;
+    record.id = id;
+    record.timestamp = get_time_unix_timestamp();
+    record.playing = playing;
+
+    send_msg_to_main_controller(&msg);
+    last_music_id = id;
+    LOG_MSGID_I(MUSIC_CONTR, "app2bt: music id: %u, playing state: %d", 2, id,
+                playing);
+}
