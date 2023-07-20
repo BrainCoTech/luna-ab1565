@@ -23,7 +23,7 @@
 #define CES_ID             3
 #endif
 
-#define PROJECT_ID 2 /* morpheus */
+#define PROJECT_ID 7 /* morpheus */
 #define HEADER_VERSION 2
 
 #define PACKET_LONG_HEADER 1
