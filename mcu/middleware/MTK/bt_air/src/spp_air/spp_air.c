@@ -209,46 +209,56 @@ static int32_t spp_air_event_callback(spp_air_event_t event_id, void *param)
     return ret;
 }
 
-extern int32_t us_us_receive_data_cb(const uint8_t *data, uint16_t size);
+#include "morpheus_utils.h"
+#include "app_spp.h"
+extern void app_spp_enqueue(uint8_array_t *msg);;
 static bool spp_air_event_custom_data(uint32_t handle, uint8_t *data, uint16_t data_size)
 {
+
+    uint8_array_t msg;
+    msg.data = pvPortMalloc(data_size);
+    msg.size = data_size;
+    memcpy(msg.data, data, data_size);
+    app_spp_enqueue(&msg);
+    return false;
+    
 	bool ret = false;
-	//					  0    1    2			  3	   4                        5    6         7......
-	//½ÓÊÕµ½µÄÊý¾ÝÓÉhead:0x42 0x43 0x49(BCI),cmd:0xF1 0x01--0xF1 0x03,data len:0x?? 0x??(n+2),data:0x??......×é³É
-	if ((data!=NULL) && (data_size>=(7+2)) && (data_size==(7+(data[5]<<8)+data[6]))//Êý¾Ý³¤¶È
-		&& (data[0]==0x42) && (data[1]==0x43) && (data[2]==0x49)//Êý¾ÝÍ·
-		&& (data[3]==0xF1) && ((data[4]==0x01)||(data[4]==0x02)||(data[4]==0x03)))//ÃüÁî
-	{
-		uint16_t crc = 0;
-		uint16_t i = 0;
-		uint16_t len = (data[5]<<8)+data[6];
-		uint8_t response[] = {0x42, 0x43, 0x4F, 0x00, 0x00, 0x00};
+	// //					  0    1    2			  3	   4                        5    6         7......
+	// //æŽ¥æ”¶åˆ°çš„æ•°æ®ç”±head:0x42 0x43 0x49(BCI),cmd:0xF1 0x01--0xF1 0x03,data len:0x?? 0x??(n+2),data:0x??......ç»„æˆ
+	// if ((data!=NULL) && (data_size>=(7+2)) && (data_size==(7+(data[5]<<8)+data[6]))//æ•°æ®é•¿åº¦
+	// 	&& (data[0]==0x42) && (data[1]==0x43) && (data[2]==0x49)//æ•°æ®å¤´
+	// 	&& (data[3]==0xF1) && ((data[4]==0x01)||(data[4]==0x02)||(data[4]==0x03)))//å‘½ä»¤
+	// {
+	// 	uint16_t crc = 0;
+	// 	uint16_t i = 0;
+	// 	uint16_t len = (data[5]<<8)+data[6];
+	// 	uint8_t response[] = {0x42, 0x43, 0x4F, 0x00, 0x00, 0x00};
 		
-		for (i=0; i<(len-2); i++)	//×îºóµÄ2¸öÊý¾ÝÊÇ½ÓÊÕµ½µÄCRC
-		{
-			crc += data[7+i];		//¼ÆËã½ÓÊÕµ½µÄÊý¾ÝµÄCRCÖµ
-		}
+	// 	for (i=0; i<(len-2); i++)	//æœ€åŽçš„2ä¸ªæ•°æ®æ˜¯æŽ¥æ”¶åˆ°çš„CRC
+	// 	{
+	// 		crc += data[7+i];		//è®¡ç®—æŽ¥æ”¶åˆ°çš„æ•°æ®çš„CRCå€¼
+	// 	}
 
-		response[3] = data[3];
-		response[4] = data[4];
+	// 	response[3] = data[3];
+	// 	response[4] = data[4];
 		
-		//Í¨¹ý¶Ô±ÈCRCÖµ£¬ÅÐ¶Ï½ÓÊÕµ½µÄÊý¾ÝÊÇ·ñÕýÈ·
-		if (crc == (data[7+len-2]<<8)+data[7+len-1])
-		{
-			response[5] = 0x01;
+	// 	//é€šè¿‡å¯¹æ¯”CRCå€¼ï¼Œåˆ¤æ–­æŽ¥æ”¶åˆ°çš„æ•°æ®æ˜¯å¦æ­£ç¡®
+	// 	if (crc == (data[7+len-2]<<8)+data[7+len-1])
+	// 	{
+	// 		response[5] = 0x01;
 
-			//ÔÚ´Ë´¦Ìí¼ÓÊý¾Ý´¦Àí
-			us_us_receive_data_cb(data, data_size);
-		}
-		else
-		{
-			response[5] = 0x00;
-		}
+	// 		//åœ¨æ­¤å¤„æ·»åŠ æ•°æ®å¤„ç†
+	// 		us_us_receive_data_cb(data, data_size);
+	// 	}
+	// 	else
+	// 	{
+	// 		response[5] = 0x00;
+	// 	}
 
-		spp_air_write_data(handle, response, sizeof(response));
+	// 	spp_air_write_data(handle, response, sizeof(response));
 
-		ret = true;
-	}
+	// 	ret = true;
+	// }
 
 	return ret;
 }
@@ -290,7 +300,8 @@ static bt_status_t spp_air_event_callback_int(bt_msg_type_t msg, bt_status_t sta
                 air_spp_cntx.connected = true;
                 air_spp_cntx.server_channel_id = conn_cnf_p->server_id;
                 air_spp_cntx.max_packet_size = conn_cnf_p->max_packet_length;
-				
+                LOG_MSGID_I(SPPAIR, "max_packet_size: %d\r\n", 1, air_spp_cntx.max_packet_size);
+
                 /* notify CM*/
 #ifdef MTK_BT_CM_SUPPORT
                 bt_cm_profile_service_status_notify(BT_CM_PROFILE_SERVICE_AIR, air_spp_cntx.bt_addr, BT_CM_PROFILE_SERVICE_STATE_CONNECTED, status);

@@ -25,6 +25,7 @@ log_create_module(LOCAL_MUSIC, PRINT_LEVEL_INFO);
 #include "task.h"
 #include "bsp_external_flash_config.h"
 #include "bsp_flash.h"
+#include "music_file_receiver.h"
 
 static local_music_player_t m_player;
 xSemaphoreHandle local_music_finished_sem;
@@ -244,6 +245,7 @@ void app_local_music_task(void) {
                 LOG_MSGID_I(LOCAL_MUSIC, "wait music play", 0);
                 xSemaphoreTake(local_music_start_sem, portMAX_DELAY);
 
+                music_sync_event_set(MUSIC_SYNC_PAUSE);
                 app_local_music_lock();
                 app_local_music_update_id_from_flash();
                 app_local_music_unlock();

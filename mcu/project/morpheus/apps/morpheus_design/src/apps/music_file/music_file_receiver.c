@@ -140,8 +140,6 @@ void receive_file_append_data(uint32_t id, void *data, uint32_t size,
     }
 
     uint32_t heap_size = xPortGetFreeHeapSize();
-    if (heap_size < 20480) vTaskDelay(5);
-    if (heap_size < 10240) vTaskDelay(20);
     if (heap_size < 5120) vTaskDelay(50);
     recv_data.size = size;
     recv_data.id = id;
@@ -236,6 +234,7 @@ void file_receiver_task(void) {
                 if (xQueueReceive(m_reciever.new_file_queue, &new_recv_file,
                                   1000 / portTICK_PERIOD_MS) == pdTRUE) {
                     m_reciever.cur_state = FILE_RECV_STATE_STARTED;
+                    m_reciever.event = 0;
                 }
                 break;
 
@@ -344,8 +343,9 @@ void file_receiver_task(void) {
 
             case FILE_RECV_STATE_FINISHED:
                 LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_FINISHED", 0);
-
-                send_music_file_recv_finished(cur_file->solution_id, cur_file->music_id);
+                if (cur_file->music_size == cur_file->music_offset) {
+                    send_music_file_recv_finished(cur_file->solution_id, cur_file->music_id);
+                }
                 memcpy(&m_reciever.p_solution->files[cur_file->solution_id - 1],
                        cur_file, sizeof(recv_file_t));
                 music_solution_write(m_reciever.p_solution);
@@ -384,6 +384,7 @@ void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
                 music_sync->n_music_ids);
     /* 先停止接收，再开始新接收 */
     m_reciever.event = MUSIC_SYNC_STOP;
+    xQueueReset(m_reciever.new_file_queue);
 
     for (int i = 0; i < music_sync->n_music_ids; i++) {
         new_recv_file.solution_id = i + 1;
@@ -404,6 +405,7 @@ void music_file_sync_handler(uint32_t msg_id, MusicFileInfo *file_info) {
     LOG_MSGID_I(MUSIC_RECV, "main_bt_music_file_info", 0);
     /* 先停止接收，再开始新接收 */
     m_reciever.event = MUSIC_SYNC_STOP;
+    xQueueReset(m_reciever.new_file_queue);
 
     new_recv_file.solution_id = file_info->solution_id;
     new_recv_file.music_id = file_info->music_id;
@@ -453,4 +455,9 @@ void music_pause_sync(void) {}
 void music_sync_event_set(music_file_sync_event_t event)
 {
     m_reciever.event = event;
+    if (event == MUSIC_SYNC_PAUSE) {
+        while(m_reciever.cur_state != FILE_RECV_STATE_IDLE) {
+            vTaskDelay(100);
+        }
+    }
 }

@@ -84,6 +84,7 @@
 #include "app_us.h"
 #include "app_uart.h"
 #include "app_usb.h"
+#include "app_spp.h"
 #ifdef BRC_LOCAL_MUSIC_ENABLE
 #include "music_file_receiver.h"
 #include "app_local_music.h"
@@ -155,6 +156,7 @@ static const tasks_list_t tasks_list[] = {
     {app_uart_rx_task, APP_UART_RX_TASK_NAME, APP_UART_RX_TASK_STACKSIZE,  NULL,  APP_UART_RX_TASK_PRIORITY },
     {app_us_tx_task, APP_US_TX_TASK_NAME, APP_US_TX_TASK_STACKSIZE,  NULL,  APP_US_TX_TASK_PRIORITY },
     {app_us_rx_task, APP_US_RX_TASK_NAME, APP_US_RX_TASK_STACKSIZE,  NULL,  APP_US_RX_TASK_PRIORITY },
+    {app_spp_rx_task, APP_SPP_RX_TASK_NAME, APP_SPP_RX_TASK_STACKSIZE,  NULL,  APP_SPP_RX_TASK_PRIORITY },
 #ifdef BRC_LOCAL_MUSIC_ENABLE
     {file_receiver_task, FILE_RECV_NAME, FILE_RECV_STACKSIZE, NULL, FILE_RECV_PRIORITY},
     {app_local_music_task, "local_music", 704, NULL, TASK_PRIORITY_HIGH},
