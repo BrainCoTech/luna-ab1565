@@ -26,7 +26,8 @@ typedef enum {
 } player_state_t;
 
 typedef enum {
-    ACTION_STOP = 0,
+    ACTION_IDLE = 0,
+    ACTION_STOP,
     ACTION_PAUSE,
     ACTION_PLAY,
     ACTION_FORWARD,

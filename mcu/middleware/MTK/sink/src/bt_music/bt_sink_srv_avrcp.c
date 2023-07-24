@@ -42,6 +42,7 @@
 #include "audio_src_srv_internal.h"
 #include "bt_sink_srv_a2dp.h"
 #include "bt_device_manager_internal.h"
+#include "app_online_music.h"
 
 #define AUD_VOL_IN_LEVEL_VALUE_INTERVAL (9)
 #define AUD_VOL_IN_LEVEL_VALUE_MAX (127)
@@ -375,12 +376,26 @@ static int32_t bt_sink_srv_avrcp_handle_event_notification_ind(bt_avrcp_event_no
             bt_sink_srv_report_id("[sink][avrcp]event_notification_ind(interim)--evt_id: %d, status: %d", 2, noti_ind->event_id, noti_ind->status);
             if (noti_ind && noti_ind->event_id == BT_AVRCP_EVENT_PLAYBACK_STATUS_CHANGED) {
                 bt_sink_srv_avrcp_handle_play_status_notification(noti_ind->handle, noti_ind->status, status);
+
+                if (noti_ind->status == BT_AVRCP_STATUS_PLAY_PLAYING) {
+                    /* iOS平台，APP切换列表，固件收到了状态切换响应：暂停和临时响应：播放 */
+                    if (!a2dp_playing_flag_get())
+                        a2dp_play_handler();
+                }
             }
         } else {
             if (noti_ind && noti_ind->event_id == BT_AVRCP_EVENT_PLAYBACK_STATUS_CHANGED) {
                 bt_sink_srv_report_id("[sink][avrcp]event_notification_ind(changed)--evt_id: %d, status: %d", 2, noti_ind->event_id, noti_ind->status);
                 ret = bt_avrcp_register_notification(noti_ind->handle, BT_AVRCP_EVENT_PLAYBACK_STATUS_CHANGED, 0);
                 bt_sink_srv_avrcp_handle_play_status_notification(noti_ind->handle, noti_ind->status, status);
+
+                if (noti_ind->status == BT_AVRCP_STATUS_PLAY_PLAYING) {
+                    a2dp_play_handler();
+                }
+
+                if (noti_ind->status == BT_AVRCP_STATUS_PLAY_PAUSED || noti_ind->status == BT_AVRCP_STATUS_PLAY_STOPPED) {
+                    a2dp_pause_handler();
+                }
             }
         }
     }

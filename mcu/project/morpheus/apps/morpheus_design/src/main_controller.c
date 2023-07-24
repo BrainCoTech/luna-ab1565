@@ -1,5 +1,6 @@
 #include "main_controller.h"
-
+#include "app_local_music.h"
+#include "app_online_music.h"
 #include "apps_config_event_list.h"
 #include "apps_config_state_list.h"
 #include "apps_config_vp_index_list.h"
@@ -11,11 +12,11 @@
 #include "hal.h"
 #include "morpheus.h"
 #include "morpheus_utils.h"
+#include "music_solution.h"
 #include "proto_msg/app_bt/app_bt_msg_helper.h"
 #include "proto_msg/main_bt/main_bt_msg_helper.h"
 #include "syslog.h"
 #include "ui_shell_manager.h"
-#include "music_solution.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -107,21 +108,64 @@ void main_controller_set_time(uint64_t time) {
     send_msg_to_main_controller(&msg);
 }
 
+static AudioConfig__Mode m_music_mode;
+void main_controller_set_music_mode(AudioConfig__Mode mode) {
+    LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
+
+    if (m_music_mode != mode) {
+        if (mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+            LOG_I(MUSIC_CONTR, "set music mode: %d, pause local music", mode);
+            app_local_music_pause();
+            wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 3000);
+            m_music_mode = mode;
+        }
+        if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
+            LOG_I(MUSIC_CONTR, "set music mode: %d, pause a2dp music", mode);
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
+            
+            while(a2dp_playing_flag_get()) {
+                vTaskDelay(100);
+            }
+            m_music_mode = mode;
+        }        
+    }
+}
+
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
-    LOG_I(MUSIC_CONTR, "main2bt cmd: %d", cfg->cmd);
-    LOG_MSGID_I(MAIN_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd,
+    LOG_MSGID_I(MUSIC_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd,
                 cfg->mode, cfg->audio_id);
 
     uint8_t status = 0;
 
     switch (cfg->cmd) {
         case AUDIO_CONFIG__CMD__PLAY:
+            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
+                app_local_music_play();
+            } 
+            
+            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+                main_controller_audio_config(AUDIO_ACTION_SW_RESUME);
+            }
             break;
 
         case AUDIO_CONFIG__CMD__PAUSE:
+            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
+                app_local_music_pause();
+            } 
+            
+            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+                main_controller_audio_config(AUDIO_ACTION_SW_PAUSE);
+            }
             break;
 
         case AUDIO_CONFIG__CMD__STOP:
+            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
+                app_local_music_pause();
+            } 
+            
+            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+                main_controller_audio_config(AUDIO_ACTION_SW_STOP);
+            }
             break;
 
         case AUDIO_CONFIG__CMD__LOCAL_PALY:
@@ -136,11 +180,11 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
 
     switch (cfg->mode) {
         case AUDIO_CONFIG__MODE__A2DP_MODE:
-
+            main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
             break;
 
         case AUDIO_CONFIG__MODE__LOCAL_MODE:
-
+            main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
             break;
 
         default:
@@ -273,36 +317,6 @@ bool main_controller_ble_status(void) { return ble_connected; }
 
 bool main_controller_bt_status(void) { return bt_connected; }
 
-static bool m_is_app_music;
-bool get_music_type(void) { return m_is_app_music; }
-
-void set_music_type(bool app_music) { m_is_app_music = app_music; }
-
-static bool a2dp_is_playing;
-void a2dp_playing_flag_set(bool flag) { a2dp_is_playing = flag; }
-
-bool a2dp_playing_flag_get(void) { return a2dp_is_playing; }
-
-void send_track_id_to_main(uint32_t id, bool playing) {
-    BtMain msg = BT_MAIN__INIT;
-    MusicRecord record = MUSIC_RECORD__INIT;
-    static uint32_t last_music_id;
-
-    msg.msg_id = 333;
-    msg.music_record = &record;
-
-    if (last_music_id != 0)
-        if (!playing && id == 0) return;
-    record.id = id;
-    record.timestamp = get_time_unix_timestamp();
-    record.playing = playing;
-
-    send_msg_to_main_controller(&msg);
-    last_music_id = id;
-    LOG_MSGID_I(MUSIC_CONTR, "app2bt: music id: %u, playing state: %d", 2, id,
-                playing);
-}
-
 void send_solution_music_ids(uint32_t *ids, uint32_t size) {
     BtMain msg = BT_MAIN__INIT;
 
@@ -323,7 +337,7 @@ void send_solution_music_ids(uint32_t *ids, uint32_t size) {
     }
 
     send_msg_to_main_controller(&msg);
-    LOG_MSGID_I(MAIN_CONTR, "send music_ids to main",0);
+    LOG_MSGID_I(MAIN_CONTR, "send music_ids to main", 0);
 
     vPortFree(msg.music_id);
 }
