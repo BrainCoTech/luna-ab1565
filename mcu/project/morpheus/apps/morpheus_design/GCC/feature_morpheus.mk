@@ -221,7 +221,7 @@ endif
 
 # APPs features
 ifneq ($(CCASE_ENABLE),y)
-APPS_DISABLE_BT_WHEN_CHARGING 		= y
+APPS_DISABLE_BT_WHEN_CHARGING 		= n
 #Enable BT when charger out, Disable BT when Charger in
 endif
 

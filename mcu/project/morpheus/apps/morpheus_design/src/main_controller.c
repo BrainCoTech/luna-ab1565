@@ -18,6 +18,7 @@
 #include "syslog.h"
 #include "ui_shell_manager.h"
 #include "app_online_music.h"
+#include "hal_audio.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -229,6 +230,7 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
     LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->vp_id);
 
     if (cfg->vp_id > 0) {
+        hal_audio_mute_stream_out(false, HAL_AUDIO_STREAM_OUT2);
         apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
                            cfg->preemption, app_vp_play_callback);
     }
