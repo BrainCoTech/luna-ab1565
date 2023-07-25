@@ -19,6 +19,7 @@
 #include "ui_shell_manager.h"
 #include "app_online_music.h"
 #include "hal_audio.h"
+#include "music_file_receiver.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -122,6 +123,7 @@ void main_controller_set_music_mode(AudioConfig__Mode mode) {
             app_local_music_pause();
             wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 3000);
             m_music_mode = mode;
+            music_sync_event_set(MUSIC_SYNC_RESUME);
         }
         if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause a2dp music", mode);
