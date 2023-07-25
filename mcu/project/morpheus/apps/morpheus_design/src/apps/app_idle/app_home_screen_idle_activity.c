@@ -226,6 +226,7 @@ static void app_home_screen_check_and_do_power_off(home_screen_local_context_typ
             ) {
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", ready to system off", 0);
             s_ready_to_off = true;
+            main_controller_power_set(0, 0);
         } else if (APP_HOME_SCREEN_STATE_REBOOT == local_context->state
                    && !local_context->power_off_waiting_time_out
 #ifdef AIR_DUAL_CHIP_MIXING_MODE_ROLE_MASTER_ENABLE
@@ -638,7 +639,6 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             app_local_music_pause();
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
             audio_local_audio_control_set_volume(0);
-            vTaskDelay(500);
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY ", go to power off", 0);
             break;
 
@@ -647,6 +647,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 break;
             }
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
+            vTaskDelay(500);
             audio_local_audio_control_set_volume(0);
                 /* Apply "power off" VP and foreground LED pattern. */
                 apps_config_set_foreground_led_pattern(LED_INDEX_POWER_OFF, 30, false);
