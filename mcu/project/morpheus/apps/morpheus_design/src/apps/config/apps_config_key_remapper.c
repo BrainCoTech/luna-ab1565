@@ -518,6 +518,9 @@ void apps_config_key_remaper_init_configurable_table(void)
     bool push_to_work = false;
     uint32_t i;
     nvkey_status_t ret = nvkey_data_item_length(NVKEYID_CONFIGURABLE_KEY_ACTION_TABLE, &size);
+    const apps_config_configurable_table_t *va_table = NULL;
+    uint32_t va_table_size = 0;
+    apps_config_key_get_va_key_table(MULTI_VA_TYPE_UNKNOWN, &va_table, &va_table_size);
 
     APPS_LOG_MSGID_I(LOG_TAG"apps_config_key_remaper_init_configurable_table", 0);
     if (NVKEY_STATUS_ITEM_NOT_FOUND == ret || size < sizeof(apps_config_configurable_table_t)) {
@@ -538,6 +541,12 @@ void apps_config_key_remaper_init_configurable_table(void)
                                   (uint8_t *)s_configurable_table, &size);
             if (NVKEY_STATUS_OK == ret) {
                 s_configurable_table_len = size / (sizeof(apps_config_configurable_table_t));
+                if (memcmp((uint8_t *)s_configurable_table, (uint8_t *)va_table, size) != 0) {
+                    APPS_LOG_MSGID_E(LOG_TAG"apps_config_key_remaper_init_configurable_table, compare failed, use hardcode", 1);
+                    vPortFree(s_configurable_table);
+                    s_configurable_table = NULL;
+                    _init_default_configurable_table();
+                }
                 APPS_LOG_MSGID_I(LOG_TAG"apps_config_key_remaper_init_configurable_table success, s_configurable_table_len = %d",
                                  1, s_configurable_table_len);
             } else {
