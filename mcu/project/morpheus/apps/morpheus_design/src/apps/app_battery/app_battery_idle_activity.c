@@ -323,7 +323,8 @@ static bool _proc_ui_shell_group(
                                             APPS_EVENTS_INTERACTION_REQUEST_ON_OFF_BT, (void *)true, 0,
                                             NULL, 0);
                             main_controller_power_set(1, 0);
-                            apps_config_set_vp(VP_INDEX_POWER_ON, false, 0, VOICE_PROMPT_PRIO_HIGH, false, NULL);
+                            if (!battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST))
+                                apps_config_set_vp(VP_INDEX_POWER_ON, false, 0, VOICE_PROMPT_PRIO_HIGH, false, NULL);
                             apps_config_set_foreground_led_pattern(LED_INDEX_POWER_ON, 30, false);
                             if (temp_state == APP_BATTERY_STATE_LOW_CAP) {
                                 /* Play low battery VP if BT is not in classic off mode */
@@ -428,7 +429,7 @@ static bool _proc_battery_event_group(
                 APPS_LOG_MSGID_I(LOG_TAG" Set charging_state to CHARGER_STATE_CHR_OFF when charger out", 0);
                 ui_shell_send_event(true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
                                     (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
-                main_controller_power_set(0, 5);
+
             }
             s_battery_context.battery_percent = battery_management_get_battery_property(BATTERY_PROPERTY_CAPACITY);
             s_battery_context.shutdown_state = calculate_shutdown_state(battery_management_get_battery_property(BATTERY_PROPERTY_VOLTAGE));
@@ -509,12 +510,13 @@ static bool _proc_battery_event_group(
             bool anc_ret = app_anc_service_resume();
             APPS_LOG_MSGID_I(LOG_TAG" audio_anc_resume after charger out ret = %d", 1, anc_ret);
 #endif
-            main_controller_power_set(1, 0);
-            apps_config_set_vp(VP_INDEX_POWER_ON, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
-            apps_config_set_foreground_led_pattern(LED_INDEX_POWER_ON, 30, false);
-            ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
-                                APPS_EVENTS_INTERACTION_REQUEST_ON_OFF_BT, (void *)true, 0,
-                                NULL, 0);
+            // ui_shell_send_event(true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
+            //                     (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
+            // apps_config_set_vp(VP_INDEX_POWER_ON, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+            // apps_config_set_foreground_led_pattern(LED_INDEX_POWER_ON, 30, false);
+            // ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
+            //                     APPS_EVENTS_INTERACTION_REQUEST_ON_OFF_BT, (void *)true, 0,
+            //                     NULL, 0);
         }
     }
 #endif
