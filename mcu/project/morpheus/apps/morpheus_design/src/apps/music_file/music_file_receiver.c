@@ -160,7 +160,7 @@ void send_sync_progress_to_app(uint32_t msgid) {
     BtApp msg = BT_APP__INIT;
     msg.msg_id = msgid;
 
-    if (m_reciever.cur_recv_file->music_size >
+    if (m_reciever.cur_recv_file->music_size >=
         m_reciever.cur_recv_file->music_offset) {
         msg.n_music_sync_progress = 1;
     } else {
@@ -179,7 +179,7 @@ void send_sync_progress_to_app(uint32_t msgid) {
             music_sync_progress__init(sync_process[i]);
             sync_process[i]->id = m_reciever.cur_recv_file->music_id;
             sync_process[i]->offset = m_reciever.cur_recv_file->music_offset;
-            sync_process[i]->finished = false;
+            sync_process[i]->finished = (m_reciever.cur_recv_file->music_size == m_reciever.cur_recv_file->music_offset);
 
             LOG_MSGID_I(MUSIC_RECV, "sycn progress. size %u, offset %u", 2,
                         m_reciever.cur_recv_file->music_size,
@@ -330,6 +330,7 @@ void file_receiver_task(void) {
                 if (cur_file->music_offset == cur_file->music_size) {
                     LOG_MSGID_I(MUSIC_RECV, "music transfer done", 0);
                     music_file_sync_status_set(cur_file);
+                    send_sync_progress_to_app(111);
                     m_reciever.cur_state = FILE_RECV_STATE_FINISHED;
                 }
                 break;
@@ -393,7 +394,7 @@ void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
 
     for (int i = 0; i < music_sync->n_music_ids; i++) {
         new_recv_file.solution_id = i + 1;
-        new_recv_file.solution_id = music_sync->music_ids[i];
+        // new_recv_file.solution_id = music_sync->music_ids[i];
 
         new_recv_file.music_id = music_sync->music_ids[i];
         new_recv_file.music_size = music_sync->music_file_size[i];

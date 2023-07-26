@@ -247,6 +247,7 @@ void app_local_music_task(void) {
 
     app_local_music_init();
     m_player.volume = LOCAL_DEFAULT_VOLUME;
+    app_local_music_update_id_from_flash();
 
     while (1) {
         switch (m_player.state) {
@@ -348,6 +349,7 @@ void app_local_music_task(void) {
                                 1, m_player.audio_state);
                 }
                 vTaskDelay(100);
+                music_sync_event_set(MUSIC_SYNC_RESUME);
                 app_local_music_lock();
                 if (m_player.last_action != m_player.action) {
                     if (m_player.action == ACTION_PLAY) {
