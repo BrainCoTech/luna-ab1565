@@ -636,6 +636,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             discover_entry_ticks = 0;
             apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
+            send_power_off_flag_to_app();
             app_local_music_pause();
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
             audio_local_audio_control_set_volume(0);
