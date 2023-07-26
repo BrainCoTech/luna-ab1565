@@ -8,6 +8,8 @@ extern "C" {
 
 void ble_bas_app_init(void);
 
+void ble_bas_app_level_set(uint8_t bat_level);
+
 #ifdef __cplusplus
 }
 #endif
