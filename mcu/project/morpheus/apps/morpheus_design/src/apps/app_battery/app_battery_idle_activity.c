@@ -474,6 +474,8 @@ static bool _proc_battery_event_group(
         APPS_LOG_MSGID_I(LOG_TAG" Start Power Off", 0);
     } else if (bat_state == APP_BATTERY_STATE_CHARGING_FULL || old_state == APP_BATTERY_STATE_CHARGING)  {
         apps_config_set_foreground_led_pattern(LED_INDEX_CHARGING_FULL, 50, false);
+        APPS_LOG_MSGID_I(LOG_TAG" Full charged", 0);
+        main_controller_set_state(41);
     }
 
 #ifdef APPS_DISABLE_BT_WHEN_CHARGING

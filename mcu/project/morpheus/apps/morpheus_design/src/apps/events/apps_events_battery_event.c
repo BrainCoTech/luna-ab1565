@@ -91,7 +91,7 @@ static void _timer_callback_function(TimerHandle_t xTimer)
     int32_t battery_percent = battery_management_get_battery_property(BATTERY_PROPERTY_CAPACITY);
     int32_t battery_voltage = battery_management_get_battery_property(BATTERY_PROPERTY_VOLTAGE);
     /* Send event when value changed. */
-    if (s_battary_percent > battery_percent) {
+    if (s_battary_percent != battery_percent) {
         ui_shell_send_event(false, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_BATTERY,
                             APPS_EVENTS_BATTERY_PERCENT_CHANGE, (void *)battery_percent, 0, NULL, 0);
         s_battary_percent = battery_percent;
