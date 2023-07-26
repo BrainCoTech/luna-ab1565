@@ -1322,8 +1322,8 @@ static void app_voice_prompt_stop_and_play_next()
 {
     /* Stop vp and wait callback to play next one. */
     prompt_control_stop_tone();
-    // vp_ctx.isToneStopping = true;
-    app_voice_prompt_play_next();
+    vp_ctx.isToneStopping = true;
+    // app_voice_prompt_play_next();
 }
 
 static void app_voice_prompt_play_next()
@@ -1690,7 +1690,7 @@ uint16_t app_voice_prompt_play(uint32_t tone_idx, bool need_sync, uint32_t delay
                 }
 
                 /* Stop the playing vp. */
-                stop_success = app_voice_prompt_stop_internal(cur_item.id, cur_item.need_sync, cur_item.delay_time, true);
+                stop_success = app_voice_prompt_stop_internal(cur_item.id, cur_item.need_sync, cur_item.delay_time, false);
                 if (stop_success == false) {
                     app_voice_prompt_msgid_report("Stop(cleanup) current medium vp fail", 0);
                 }                
