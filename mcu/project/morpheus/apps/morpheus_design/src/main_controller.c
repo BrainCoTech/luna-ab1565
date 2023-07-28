@@ -226,6 +226,7 @@ void app_vp_play_callback(uint32_t idx, vp_err_code err) {
         PromptConfigResp prompt_resp = PROMPT_CONFIG_RESP__INIT;
 
         msg.msg_id = 777;
+        msg.prompt_cfg_resp = &prompt_resp;
         prompt_resp.vp_id = idx;
         prompt_resp.resp = PROMPT_CONFIG_RESP__RESP__FINISHED;
         send_msg_to_main_controller(&msg);
@@ -240,12 +241,6 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
                            cfg->preemption, app_vp_play_callback);
     }
 
-    BtMain msg = BT_MAIN__INIT;
-    PromptConfigResp prompt_resp = PROMPT_CONFIG_RESP__INIT;
-
-    msg.msg_id = msg_id;
-    prompt_resp.vp_id = cfg->vp_id;
-    send_msg_to_main_controller(&msg);
 }
 
 void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
