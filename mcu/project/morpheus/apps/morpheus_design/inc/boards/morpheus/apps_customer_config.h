@@ -39,7 +39,7 @@
 /***********************************************************************************************
 ********************** Defines the feature switch and parameters in APPs ***********************
 ***********************************************************************************************/
-#define APPS_BATTERY_LOW_THRESHOLD                      (10) /* Low battery status if battery percentage < the value */
+#define APPS_BATTERY_LOW_THRESHOLD                      (20) /* Low battery status if battery percentage < the value */
 #define APPS_BATTERY_FULL_THRESHOLD                     (100) /* Battery full status if battery percentage >= the value */
 #define APPS_DIFFERENCE_BATTERY_VALUE_FOR_RHO           (30) /* When the battery percentage of agent add the value < the battery value of partner, will trigger RHO */
 
