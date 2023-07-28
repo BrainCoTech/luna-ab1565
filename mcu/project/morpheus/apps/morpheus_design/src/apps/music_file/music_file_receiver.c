@@ -19,6 +19,7 @@
 #include "string.h"
 #include "syslog.h"
 #include "timers.h"
+#include "ble_us.h"
 
 log_create_module(MUSIC_RECV, PRINT_LEVEL_INFO);
 
@@ -244,12 +245,9 @@ void file_receiver_task(void) {
                 // 获取当前断点，比对信息，更新接收文件信息
                 music_solution_read(&m_reciever.p_solution);
                 music_file_sync_status_get(&cur_file);
-                if (m_reciever.cur_recv_file->music_id ==
-                        new_recv_file.music_id &&
-                    m_reciever.cur_recv_file->music_size ==
-                        new_recv_file.music_size) {
+                if (m_reciever.cur_recv_file->music_id == new_recv_file.music_id &&
+                    m_reciever.cur_recv_file->music_size == new_recv_file.music_size) {
                     cur_file->solution_id = new_recv_file.solution_id;
-
                 } else {
                     cur_file->solution_id = new_recv_file.solution_id;
                     cur_file->music_id = new_recv_file.music_id;
@@ -297,6 +295,10 @@ void file_receiver_task(void) {
                 break;
 
             case FILE_RECV_STATE_DOWNLOADING:
+                if (!app_battery_is_on_charger() && (!main_controller_ble_status() || !ble_us_notification_enable())) {
+                    vTaskDelay(5000);
+                    break;
+                }
                 request_file_data(cur_file->music_id, cur_file->music_offset);
                 if (xQueueReceive(m_reciever.new_data_queue, &new_data,
                                   5000 / portTICK_PERIOD_MS) == pdTRUE) {
@@ -460,10 +462,28 @@ void music_pause_sync(void) {}
 
 void music_sync_event_set(music_file_sync_event_t event)
 {
+    recv_file_t *cur_file = m_reciever.cur_recv_file;
+
     m_reciever.event = event;
     if (event == MUSIC_SYNC_PAUSE) {
         while(m_reciever.cur_state == FILE_RECV_STATE_DOWNLOADING) {
             vTaskDelay(100);
+        }
+    }
+
+    if (event == MUSIC_SYNC_RESUME && m_reciever.cur_state == FILE_RECV_STATE_IDLE) {
+        if (cur_file->music_size > cur_file->music_offset) {
+            
+            recv_file_t new_recv_file;
+            xQueueReset(m_reciever.new_file_queue);
+
+            new_recv_file.solution_id = cur_file->solution_id;
+            new_recv_file.music_id = cur_file->music_id;
+            new_recv_file.music_size = cur_file->music_size;
+            new_recv_file.music_offset = cur_file->music_offset;
+
+            xQueueSend(m_reciever.new_file_queue, &new_recv_file,
+                    100 / portTICK_PERIOD_MS);    
         }
     }
 }
