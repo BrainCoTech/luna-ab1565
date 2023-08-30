@@ -133,7 +133,7 @@
 #define BATTERY_AVOID_SHAKING
 
 /*Without NTC */
-//#define BATTERY_NTC_LESS
+#define BATTERY_NTC_LESS
 
 /*When Use external charger IC ,Disable internal chager ,need to enable*/
 #define BATTERY_DISABLE_CHARGER

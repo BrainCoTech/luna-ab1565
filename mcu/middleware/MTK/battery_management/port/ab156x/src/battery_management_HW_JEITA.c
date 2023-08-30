@@ -100,7 +100,7 @@ void battery_jetia_timer_callback(TimerHandle_t pxTimer) {
     }
     bm_ctrl_info.jeita_state = executing_status;
 #else
-    jeita_status = sw_ntc_charger_normal;
+    uint16_t jeita_status = sw_ntc_charger_normal;
     LOG_MSGID_I(battery_management, "jeita_status error\r\n", 0);
 #endif /* BATTERY_NTC_LESS */
 }
