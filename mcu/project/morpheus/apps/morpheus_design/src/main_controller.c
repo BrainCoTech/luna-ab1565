@@ -116,7 +116,7 @@ void main_controller_set_time(uint64_t time) {
     send_msg_to_main_controller(&msg);
 }
 
-static AudioConfig__Mode m_music_mode;
+static AudioConfig__Mode m_music_mode = AUDIO_CONFIG__MODE__LOCAL_MODE;
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
 
@@ -148,41 +148,24 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
 
     switch (cfg->cmd) {
         case AUDIO_CONFIG__CMD__PLAY:
-            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-                app_local_music_play();
-            } 
-            
-            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-                main_controller_audio_config(AUDIO_ACTION_SW_RESUME);
-            }
+            app_local_music_play();
             break;
 
         case AUDIO_CONFIG__CMD__PAUSE:
-            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-                app_local_music_pause();
-            } 
-            
-            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-                main_controller_audio_config(AUDIO_ACTION_SW_PAUSE);
-            }
+            app_local_music_pause();
             break;
 
         case AUDIO_CONFIG__CMD__STOP:
-            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-                app_local_music_pause();
-                LOG_MSGID_I(MUSIC_CONTR, "main2bt stop local", 0);
-            } 
-            
-            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-                main_controller_audio_config(AUDIO_ACTION_SW_STOP);
-                LOG_MSGID_I(MUSIC_CONTR, "main2bt stop online", 0);
-            }
+            app_local_music_pause();
+            LOG_MSGID_I(MUSIC_CONTR, "main2bt stop local", 0);   
             break;
 
         case AUDIO_CONFIG__CMD__LOCAL_PALY:
+            app_local_music_play();
             break;
 
         case AUDIO_CONFIG__CMD__LOCAL_PAUSE:
+            app_local_music_pause();
             break;
 
         default:
