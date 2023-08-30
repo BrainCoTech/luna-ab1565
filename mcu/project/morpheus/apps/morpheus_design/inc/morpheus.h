@@ -8,6 +8,6 @@
 #define MODEL "Easleep"
 
 #define FIXED_LOCAL_VOLUME 1
-#define LOCAL_DEFAULT_VOLUME 7
+#define LOCAL_DEFAULT_VOLUME 11
 
 #endif
