@@ -136,7 +136,7 @@
 //#define BATTERY_NTC_LESS
 
 /*When Use external charger IC ,Disable internal chager ,need to enable*/
-//#define BATTERY_DISABLE_CHARGER
+#define BATTERY_DISABLE_CHARGER
 
 /*When NVDM feature enable,but don't want to use the value from NVDM.
  *And, use battery management customer file to set value.

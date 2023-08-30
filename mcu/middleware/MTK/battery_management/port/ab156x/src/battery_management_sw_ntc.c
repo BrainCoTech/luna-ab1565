@@ -179,7 +179,7 @@ void battery_management_sw_ntc_caculate_slope(uint32_t ratio, uint32_t *data)
 }
 
 void battery_management_sw_ntc_enable_adc(void) {
-    hal_pinmux_set_function(HAL_GPIO_12, 8);
+    // hal_pinmux_set_function(HAL_GPIO_12, 8);
     hal_ntc_write32_data16(0xA2070400, 0x0800);
     hal_adc_init();
 }

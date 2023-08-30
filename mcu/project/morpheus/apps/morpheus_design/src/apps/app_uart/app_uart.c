@@ -24,7 +24,19 @@ log_create_module(APP_UART, PRINT_LEVEL_INFO);
 
 static bool m_uart_is_initialized;
 
+#define UART_PIN_FUNC(PIN, FUNC)  PIN##_##FUNC
+#define UART1_TXD(PIN)  UART_PIN_FUNC(PIN, UART1_TXD)
+#define UART1_RXD(PIN)  UART_PIN_FUNC(PIN, UART1_RXD)
+#define UART2_TXD(PIN)  UART_PIN_FUNC(PIN, UART2_TXD)
+#define UART2_RXD(PIN)  UART_PIN_FUNC(PIN, UART2_RXD)
+
+
 hal_uart_port_t m_app_uart_port = HAL_UART_1;
+#define UART_TXD(PIN) UART1_TXD(PIN)
+#define UART_RXD(PIN) UART1_RXD(PIN)
+#define UART_TX_PIN HAL_GPIO_11
+#define UART_RX_PIN HAL_GPIO_12
+
 #define APP_UART_RX_FIFO_ALERT_SIZE (50)
 #define APP_UART_RX_FIFO_THRESHOLD_SIZE (256)
 #define APP_UART_TX_FIFO_THRESHOLD_SIZE (51)
@@ -101,10 +113,10 @@ static void user_uart_callback(hal_uart_callback_event_t status,
 
 void uart_pinmux_init(void)
 {
-    hal_gpio_init(HAL_GPIO_4);
-    hal_pinmux_set_function(HAL_GPIO_4, HAL_GPIO_4_UART1_TXD);
-    hal_gpio_init(HAL_GPIO_5);
-    hal_pinmux_set_function(HAL_GPIO_5, HAL_GPIO_5_UART1_RXD);
+    hal_gpio_init(UART_TX_PIN);
+    hal_pinmux_set_function(UART_TX_PIN, UART_TXD(UART_TX_PIN));
+    hal_gpio_init(UART_RX_PIN);
+    hal_pinmux_set_function(UART_RX_PIN, UART_RXD(UART_RX_PIN));
 }
 
 void app_uart_init(void) {
