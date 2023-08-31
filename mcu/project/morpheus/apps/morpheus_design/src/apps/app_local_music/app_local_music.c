@@ -359,7 +359,7 @@ void app_local_music_task(void) {
                         m_player.state = PLAY_PLAYING;
                     } else if (m_player.action == ACTION_STOP) {
                         /* 先恢复音乐，让停止音乐生效 */
-                        audio_local_audio_control_set_volume(0);
+                        audio_local_audio_control_set_volume(1);
                         audio_local_audio_control_resume();
                         wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
                         audio_local_audio_control_stop();                        
@@ -367,7 +367,7 @@ void app_local_music_task(void) {
                         m_player.state = PLAY_STOP;
                     } else if (m_player.action == ACTION_FORWARD) {
                         /* 先恢复音乐，让停止音乐生效 */
-                        audio_local_audio_control_set_volume(0);
+                        audio_local_audio_control_set_volume(1);
                         audio_local_audio_control_resume();
                         wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
                         audio_local_audio_control_stop();
@@ -376,7 +376,7 @@ void app_local_music_task(void) {
                         m_player.state = PLAY_NEXT;
                     } else if (m_player.action == ACTION_NEW_ID) {
                         /* 先恢复音乐，让停止音乐生效 */
-                        audio_local_audio_control_set_volume(0);
+                        audio_local_audio_control_set_volume(1);
                         audio_local_audio_control_resume();
                         wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
                         if (m_player.audio_state == LOCAL_AUDIO_STATE_PLAYING)
