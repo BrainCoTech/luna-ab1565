@@ -61,7 +61,7 @@ void main_controller_powerkey_map(int status) {
 
 /******************************************************
  * 长按2s关机，长按6秒进入配对
- * 开始关机，不处理MCU发过来的关机。进入配对模式结束关机流程 
+ * 开始关机，不处理MCU发过来的关机。进入配对模式结束关机流程
  ******************************************************/
 static bool before_goto_power_off;
 static bool bt_connected;
@@ -86,7 +86,7 @@ void main_controller_set_state(uint32_t state) {
         before_goto_power_off = true;
     }
     if (state == SYS_CONFIG__STATE__PAIR) {
-    }    
+    }
 
     BtMain msg = BT_MAIN__INIT;
     msg.msg_id = 100;
@@ -200,7 +200,7 @@ void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL);
             app_local_music_volume_up();
         } else {
-            while(cfg->volume++ != 0) {
+            while (cfg->volume++ != 0) {
                 bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);
                 app_local_music_volume_down();
             }
@@ -300,4 +300,41 @@ void send_track_id_to_main(uint32_t id, bool playing) {
     last_music_id = id;
     LOG_MSGID_I(MUSIC_CONTR, "app2bt: music id: %u, playing state: %d", 2, id,
                 playing);
+}
+
+void send_main_msg_to_app(MainApp *msg) {
+    packet_packer_t packer;
+    uint8_array_t send_to_queue;
+    uint8_array_t send_to_usb_queue;
+
+    if (main_app_msg_encode(&packer, msg) == 0) {
+        send_to_queue.size = packer.packet_size;
+        send_to_queue.data = pvPortMalloc(send_to_queue.size);
+        if (send_to_queue.data) {
+            memcpy(send_to_queue.data, packer.packet, send_to_queue.size);
+            app_us_enqueue(&send_to_queue);
+        }
+
+        send_to_usb_queue.size = packer.packet_size;
+        send_to_usb_queue.data = pvPortMalloc(send_to_usb_queue.size);
+        if (send_to_usb_queue.data) {
+            memcpy(send_to_usb_queue.data, packer.packet,
+                   send_to_usb_queue.size);
+            app_usb_enqueue(&send_to_usb_queue);
+        }
+        packet_packer_free(&packer);
+    }
+}
+
+void send_music_file_recv_finished(uint32_t solution_id, uint32_t music_id) {
+    MainApp msg = MAIN_APP__INIT;
+    DeviceSolutionResp solution_resp = DEVICE_SOLUTION_RESP__INIT;
+
+    msg.msg_id = 150;
+    msg.device_solution_resp = &solution_resp;
+
+    solution_resp.solution_id = solution_id;
+    solution_resp.music_id = music_id;
+
+    send_main_msg_to_app(&msg);
 }
