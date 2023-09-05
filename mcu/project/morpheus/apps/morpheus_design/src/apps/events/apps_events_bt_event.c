@@ -83,6 +83,8 @@
 #include "race_cmd_script.h"
 #endif
 
+#include "main_controller.h"
+
 #define LOG_TAG         "[bt_evt]"
 
 bt_event_suffix_data_t *get_bt_event_suffix_data(void *event_params, size_t param_len)
@@ -252,6 +254,7 @@ static void registered_bt_event_callback(bt_msg_type_t msg, bt_status_t status, 
             /* This is an example. If the user wants to use the buffer in app, the user must copy the buffer to a heap memory; */
             case BT_GAP_LE_DISCONNECT_IND:
                 buffer_size = sizeof(bt_gap_le_disconnect_ind_t);
+                main_controller_set_state(SYS_CONFIG__STATE__BLE_DISCONNECTED);
                 break;
 #ifdef AIR_TILE_ENABLE
             case BT_GAP_LE_READ_RSSI_CNF:
@@ -263,6 +266,7 @@ static void registered_bt_event_callback(bt_msg_type_t msg, bt_status_t status, 
 #endif
             case BT_GAP_LE_CONNECT_IND:
                 buffer_size = sizeof(bt_gap_le_connection_ind_t);
+                main_controller_set_state(SYS_CONFIG__STATE__BLE_CONNECTED);
                 break;
             case BT_GAP_LE_RPA_ROTAION_IND:
                 buffer_size = sizeof(bt_gap_le_rpa_rotation_ind_t);
