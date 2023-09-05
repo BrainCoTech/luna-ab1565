@@ -85,6 +85,7 @@ void main_controller_set_state(uint32_t state) {
     }
 
     if (state == SYS_CONFIG__STATE__BT_CONNECTED) {
+        main_controller_audio_sm_reset();
         bt_connected = true;
     }
     if (state == SYS_CONFIG__STATE__BT_DISCONNECTED) {
