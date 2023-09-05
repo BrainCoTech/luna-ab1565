@@ -575,7 +575,7 @@ void apps_config_key_remaper_init_configurable_table(void)
         pmu_pwrkey_enable(PMU_OFF);
     } else {
         /* Enable long press power key to do HW power off. */
-        pmu_pwrkey_enable(PMU_ON);
+        pmu_pwrkey_enable(PMU_OFF);
     }
 }
 
