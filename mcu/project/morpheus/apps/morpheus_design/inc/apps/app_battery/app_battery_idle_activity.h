@@ -62,4 +62,6 @@ bool app_battery_idle_activity_proc(
     void *extra_data,
     size_t data_len);
 
+bool app_battery_is_on_charger(void);
+
 #endif /* __APP_BATTERY_IDLE_ACTIVITY_H__ */

@@ -617,6 +617,10 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
         return true;
     }
 
+    if (app_battery_is_on_charger()) {
+        return true;
+    }
+
     apps_config_key_action_t action;
     if (extra_data) {
         action = *(uint16_t *)extra_data;

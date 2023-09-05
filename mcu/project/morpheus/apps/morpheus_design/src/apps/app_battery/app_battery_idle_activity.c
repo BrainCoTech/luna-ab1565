@@ -103,6 +103,11 @@
 
 static battery_local_context_type_t s_battery_context;  /* The variable records context */
 
+bool app_battery_is_on_charger(void)
+{
+    return s_battery_context.charger_exist_state;
+}
+
 /**
 * @brief      Shutdown flow when device low battery.
 * @param[in]  self, Battery APP idle ui_shell_activity.
