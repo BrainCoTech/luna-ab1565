@@ -105,7 +105,7 @@ typedef struct {
     recv_file_t *cur_recv_file;
     recv_file_t *sync_status;
     music_sulotion_t *p_solution;
-    bool stop;
+    uint8_t event;
 } file_reciever_t;
 
 typedef struct {
@@ -318,8 +318,14 @@ void file_receiver_task(void) {
                 } else {
                 }
 
-                if (m_reciever.stop) {
+                if (m_reciever.event == MUSIC_SYNC_STOP) {
                     m_reciever.cur_state = FILE_RECV_STATE_FINISHED;
+                    break;
+                }
+
+                if (m_reciever.event == MUSIC_SYNC_PAUSE) {
+                    m_reciever.cur_state = FILE_RECV_STATE_PAUSED;
+                    break;
                 }
 
                 if (cur_file->music_offset == cur_file->music_size) {
@@ -327,6 +333,13 @@ void file_receiver_task(void) {
                     music_file_sync_status_set(cur_file);
                     m_reciever.cur_state = FILE_RECV_STATE_FINISHED;
                 }
+                break;
+
+            case FILE_RECV_STATE_PAUSED:
+                if (m_reciever.event == MUSIC_SYNC_RESUME) {
+                    m_reciever.cur_state = FILE_RECV_STATE_DOWNLOADING;
+                }
+                vTaskDelay(1000);
                 break;
 
             case FILE_RECV_STATE_FINISHED:
@@ -346,11 +359,13 @@ void file_receiver_task(void) {
 }
 
 void main_bt_music_file_info(uint32_t msg_id, MusicFileInfo *file_info) {
+    /* APP会给BT发消息，会调用music_file_sync_handler */
+#if (0)
     recv_file_t new_recv_file;
 
     LOG_MSGID_I(MUSIC_RECV, "main_bt_music_file_info", 0);
     /* 先停止接收，再开始新接收 */
-    m_reciever.stop = true;
+    m_reciever.event = MUSIC_SYNC_STOP;
 
     new_recv_file.solution_id = file_info->solution_id;
     new_recv_file.music_id = file_info->music_id;
@@ -359,6 +374,7 @@ void main_bt_music_file_info(uint32_t msg_id, MusicFileInfo *file_info) {
 
     xQueueSend(m_reciever.new_file_queue, &new_recv_file,
                100 / portTICK_PERIOD_MS);
+#endif
 }
 
 void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
@@ -367,7 +383,7 @@ void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
     LOG_MSGID_I(MUSIC_RECV, "music_config_handler, nums %d", 1,
                 music_sync->n_music_ids);
     /* 先停止接收，再开始新接收 */
-    m_reciever.stop = true;
+    m_reciever.event = MUSIC_SYNC_STOP;
 
     for (int i = 0; i < music_sync->n_music_ids; i++) {
         new_recv_file.solution_id = i + 1;
@@ -433,3 +449,8 @@ void music_data_handler(uint32_t msg_id, MusicData *music_data) {
 }
 
 void music_pause_sync(void) {}
+
+void music_sync_event_set(music_file_sync_event_t event)
+{
+    m_reciever.event = event;
+}
