@@ -160,22 +160,21 @@ void app_uart_tx_task() {
             continue;
         }
 
-        if (uart_tx_queue) {
-            if (xQueueReceive(uart_tx_queue, &tx_data, pdMS_TO_TICKS(200)) ==
-                pdTRUE) {
-                if (tx_data.data != NULL && tx_data.size != 0) {
-                    hal_uart_send_dma(m_app_uart_port, tx_data.data,
-                                      tx_data.size);
-                    if (uart_tx_sem)
-                        xSemaphoreTake(uart_tx_sem, pdMS_TO_TICKS(50));
-                    else
-                        ;
-                    vPortFree(tx_data.data);
-                }
-            }
-        } else {
-            break;
+        if (uart_tx_queue == NULL) {
+            vTaskDelay(100);
+            uart_tx_queue = xQueueCreate(UART_TX_QUEUE_SIZE, sizeof(uint8_array_t));
+            continue;
         }
+
+        if (xQueueReceive(uart_tx_queue, &tx_data, pdMS_TO_TICKS(200)) == pdTRUE) {
+            if (tx_data.data != NULL && tx_data.size != 0) {
+                hal_uart_send_dma(m_app_uart_port, tx_data.data, tx_data.size);
+                if (uart_tx_sem)
+                    xSemaphoreTake(uart_tx_sem, pdMS_TO_TICKS(50));
+                vPortFree(tx_data.data);
+            }
+        }
+
     }
     APPS_LOG_MSGID_I(LOG_TAG ", tx task deleted", 0);
     vTaskDelete(NULL);
@@ -199,18 +198,20 @@ void app_uart_rx_task() {
             vTaskDelay(100);
             continue;
         }
-        
-        if (uart_rx_sem) {
-            if (pdTRUE == xSemaphoreTake(uart_rx_sem, pdMS_TO_TICKS(20))) {
-                bytes = hal_uart_receive_dma(m_app_uart_port, rx_buf, rx_size);
-                if (bytes > 0) {
-                    APPS_LOG_MSGID_I(LOG_TAG ",recieve %d bytes", 1, bytes);
-                    packet_unpacker_enqueue(&unpacker, rx_buf, bytes);
-                    packet_unpacker_process(&unpacker);
-                }
+
+        if (uart_rx_sem == NULL) {
+            uart_rx_sem = xSemaphoreCreateBinary();
+            vTaskDelay(100);
+            continue;
+        }
+
+        if (pdTRUE == xSemaphoreTake(uart_rx_sem, pdMS_TO_TICKS(20))) {
+            bytes = hal_uart_receive_dma(m_app_uart_port, rx_buf, rx_size);
+            if (bytes > 0) {
+                APPS_LOG_MSGID_I(LOG_TAG ",recieve %d bytes", 1, bytes);
+                packet_unpacker_enqueue(&unpacker, rx_buf, bytes);
+                packet_unpacker_process(&unpacker);
             }
-        } else {
-            vTaskDelete(NULL);
         }
     }
     APPS_LOG_MSGID_I(LOG_TAG ", rx task deleted", 0);
