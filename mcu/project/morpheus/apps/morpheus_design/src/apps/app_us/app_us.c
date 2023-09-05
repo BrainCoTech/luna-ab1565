@@ -203,12 +203,23 @@ void send_msg_to_app(BtApp *msg) {
         packet_packer_free(&packer);
     }
 }
+
+void set_time_to_main(uint64_t time) {
+    BtMain msg = BT_MAIN__INIT;
+    msg.msg_id = 101;
+    SysConfig sys_cfg = SYS_CONFIG__INIT;
+    msg.sys_cfg = &sys_cfg;
+    msg.sys_cfg->sync_time = time;
+    send_msg_to_main_controller(&msg);
+}
+
 int app_bt_config(uint32_t msg_id, AppBt *msg) {
     BtApp send_msg = BT_APP__INIT;
 
     send_msg.msg_id = msg_id;
 
     if (msg->sync_time > 0) {
+        set_time_to_main(msg->sync_time);
     }
 
     if (msg->power_off) {
