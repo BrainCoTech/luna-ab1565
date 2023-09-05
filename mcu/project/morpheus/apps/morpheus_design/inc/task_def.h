@@ -248,6 +248,10 @@ typedef enum {
 #define APP_US_RX_TASK_STACKSIZE         (704*1) /* Unit byte. */
 #define APP_US_RX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
 
+#define APP_SPP_RX_TASK_NAME              "spp_rx"
+#define APP_SPP_RX_TASK_STACKSIZE         (704*1) /* Unit byte. */
+#define APP_SPP_RX_TASK_PRIORITY          TASK_PRIORITY_NORMAL
+
 #ifdef BRC_LOCAL_MUSIC_ENABLE
 #define FILE_RECV_NAME               "file_recv"
 #define FILE_RECV_STACKSIZE          (2048)
