@@ -15,6 +15,7 @@
 #include "proto_msg/main_bt/main_bt_msg_helper.h"
 #include "syslog.h"
 #include "ui_shell_manager.h"
+#include "music_solution.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -300,6 +301,31 @@ void send_track_id_to_main(uint32_t id, bool playing) {
     last_music_id = id;
     LOG_MSGID_I(MUSIC_CONTR, "app2bt: music id: %u, playing state: %d", 2, id,
                 playing);
+}
+
+void send_solution_music_ids(uint32_t *ids, uint32_t size) {
+    BtMain msg = BT_MAIN__INIT;
+
+    msg.msg_id = 444;
+
+    if (size == 0 || size > MUSIC_SOLUTION_NUMS) {
+        return;
+    }
+
+    msg.n_music_id = size;
+    msg.music_id = pvPortMalloc(size * sizeof(uint32_t));
+    if (msg.music_id == NULL) {
+        return;
+    }
+
+    for (int i = 0; i < size; i++) {
+        msg.music_id[i] = ids[i];
+    }
+
+    send_msg_to_main_controller(&msg);
+    LOG_MSGID_I(MAIN_CONTR, "send music_ids to main",0);
+
+    vPortFree(msg.music_id);
 }
 
 void send_main_msg_to_app(MainApp *msg) {

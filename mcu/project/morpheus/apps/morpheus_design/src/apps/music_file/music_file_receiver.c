@@ -343,12 +343,17 @@ void file_receiver_task(void) {
 
             case FILE_RECV_STATE_FINISHED:
                 LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_FINISHED", 0);
-                if (cur_file->music_size == cur_file->music_offset) {
-                    send_music_file_recv_finished(cur_file->solution_id, cur_file->music_id);
-                }
                 memcpy(&m_reciever.p_solution->files[cur_file->solution_id - 1],
                        cur_file, sizeof(recv_file_t));
                 music_solution_write(m_reciever.p_solution);
+                if (cur_file->music_size == cur_file->music_offset) {
+                    uint32_t music_ids[MUSIC_SOLUTION_NUMS];
+                    for (int i = 0; i < MUSIC_SOLUTION_NUMS; i ++) {
+                        music_ids[i] = m_reciever.p_solution->files[i].music_id;
+                    }
+                    send_solution_music_ids(music_ids, MUSIC_SOLUTION_NUMS);
+                    send_music_file_recv_finished(cur_file->solution_id, cur_file->music_id);
+                }
                 m_reciever.cur_state = FILE_RECV_STATE_IDLE;
                 break;
 

@@ -32,6 +32,8 @@ void send_main_msg_to_app(MainApp *msg);
 
 void send_music_file_recv_finished(uint32_t solution_id, uint32_t music_id);
 
+void send_solution_music_ids(uint32_t *ids, uint32_t size);
+
 #ifdef __cplusplus
 }
 #endif
