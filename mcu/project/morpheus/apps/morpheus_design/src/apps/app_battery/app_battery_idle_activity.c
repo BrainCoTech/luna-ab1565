@@ -115,13 +115,18 @@ bool app_battery_is_on_charger(void)
 static void _shutdown_when_low_battery(struct _ui_shell_activity *self)
 {
     APPS_LOG_MSGID_I(LOG_TAG" _shutdown_when_low_battery", 0);
+    s_battery_context.charger_exist_state = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST);
+    if (s_battery_context.charger_exist_state) {
+        return;
+    }
+    send_power_off_flag_to_app();
 #ifdef AIR_TILE_ENABLE
     const app_bt_state_service_status_t* bt_state_srv_status = app_bt_connection_service_get_current_status();
     if (bt_state_srv_status != NULL && bt_state_srv_status->current_power_state != APP_HOME_SCREEN_BT_POWER_CLASSIC_DISABLED)
 #endif
     {
         /* Play low battery VP if BT is not in classic off mode */
-        apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_EXTREME, true, NULL);
+        // apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_EXTREME, true, NULL);
         apps_config_set_foreground_led_pattern(LED_INDEX_POWER_OFF, 30, false);
     }
     ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,

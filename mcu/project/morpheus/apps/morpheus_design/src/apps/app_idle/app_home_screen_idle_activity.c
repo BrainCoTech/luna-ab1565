@@ -652,6 +652,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 break;
             }
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
+            send_power_off_flag_to_app();
             vTaskDelay(500);
             audio_local_audio_control_set_volume(0);
                 /* Apply "power off" VP and foreground LED pattern. */
