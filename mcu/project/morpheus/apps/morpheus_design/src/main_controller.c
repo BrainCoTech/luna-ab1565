@@ -29,10 +29,16 @@ void main_controller_gpio_init(void) {
     hal_gpio_set_direction(CLK_32K_EN_PIN, HAL_GPIO_DIRECTION_OUTPUT);
     hal_gpio_set_output(CLK_32K_EN_PIN, HAL_GPIO_DATA_HIGH);
 
+    vTaskDelay(100);
     hal_gpio_init(MAIN_POWEN_EN_PIN);
     hal_pinmux_set_function(MAIN_POWEN_EN_PIN, 0);
     hal_gpio_set_direction(MAIN_POWEN_EN_PIN, HAL_GPIO_DIRECTION_OUTPUT);
     hal_gpio_set_output(MAIN_POWEN_EN_PIN, HAL_GPIO_DATA_LOW);
+    vTaskDelay(10);
+    hal_gpio_set_output(MAIN_POWEN_EN_PIN, HAL_GPIO_DATA_HIGH);
+    vTaskDelay(20);
+    hal_gpio_set_output(MAIN_POWEN_EN_PIN, HAL_GPIO_DATA_LOW);
+    vTaskDelay(20);
 
     hal_gpio_init(POWERKEY_PIN);
     hal_pinmux_set_function(POWERKEY_PIN, 0);
