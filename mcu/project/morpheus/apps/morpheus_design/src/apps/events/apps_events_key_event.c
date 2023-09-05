@@ -277,12 +277,12 @@ void apps_event_key_event_init(void)
     }
 #if !defined(AIR_SLIDE_POWER_KEY_ENABLE)
     uint8_t reason = pmu_get_power_on_reason();
-    if (reason & 0x01) {
+    if (reason & 0x11) {
         /* Power on reason is pressed power key, set the flag. */
         s_press_from_power_on = pmu_get_pwrkey_state() == 1 ? true : false;
         s_press_event_counter = s_press_from_power_on ? 2 : 0;
     }
-    APPS_LOG_MSGID_I("inti key power on by reason : %x", 1, reason);
+    APPS_LOG_MSGID_I("...inti key power on by reason : %x", 1, reason);
 #endif
     /* Register key callback. */
     status = airo_key_register_callback(_apps_key_airo_key_callback, NULL);

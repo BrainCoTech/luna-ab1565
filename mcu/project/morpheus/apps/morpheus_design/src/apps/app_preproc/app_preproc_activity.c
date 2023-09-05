@@ -148,20 +148,42 @@ static bool pre_proc_key_event_proc(ui_shell_activity_t *self, uint32_t event_id
             APPS_LOG_MSGID_I("Receive CMD key event, action: %04x", 1, *p_key_action);
             return false;
         }
-        /* The key is from power on, ignore it. */
-        if (*p_key_action) {
-            APPS_LOG_MSGID_I("The key pressed from power on, do special %04x", 1, event_id);
-            return true;
-        }
         /* The extra_data in the key event is valid key_action. */
         app_event_key_event_decode(&key_id, &key_event, event_id);
+
+		printf("...preproc key id %x, key event %x, extra data %x", key_id, key_event, (uint16_t *)extra_data);
+		
         if ((DEVICE_KEY_A == key_id)
             || (DEVICE_KEY_B == key_id)
             || (DEVICE_KEY_C == key_id)
             || (DEVICE_KEY_D == key_id)) {
             key_id = DEVICE_KEY_POWER;
         }
-        *p_key_action = apps_config_key_event_remapper_map_action(key_id, key_event);
+			
+        /* The key is from power on, ignore it. */
+        if (*p_key_action) 
+		{
+            APPS_LOG_MSGID_I("...The key pressed from power on, do special %04x", 1, event_id);
+			*p_key_action = apps_config_key_event_remapper_map_action(key_id, key_event);
+
+			printf("...preproc special action %x", *p_key_action);
+			
+			if ((*p_key_action) == KEY_DISCOVERABLE)
+			{
+				printf("...preproc special action continue");
+			}
+			else
+			{
+				return true;
+			}
+        }
+        else
+        {
+			*p_key_action = apps_config_key_event_remapper_map_action(key_id, key_event);
+
+			printf("...preproc action %x", *p_key_action);
+		}
+		
 #if defined(AIR_USB_AUDIO_OUT_ENABLE)
         if (app_usb_out_is_open()) {
             wired_audio_out_streaming = true;
