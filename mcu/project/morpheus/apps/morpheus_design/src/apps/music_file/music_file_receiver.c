@@ -382,6 +382,22 @@ void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
     }
 }
 
+void music_file_sync_handler(uint32_t msg_id, MusicFileInfo *file_info) {
+    recv_file_t new_recv_file;
+
+    LOG_MSGID_I(MUSIC_RECV, "main_bt_music_file_info", 0);
+    /* 先停止接收，再开始新接收 */
+    m_reciever.event = MUSIC_SYNC_STOP;
+
+    new_recv_file.solution_id = file_info->solution_id;
+    new_recv_file.music_id = file_info->music_id;
+    new_recv_file.music_size = file_info->music_size;
+    new_recv_file.music_offset = 0;
+
+    xQueueSend(m_reciever.new_file_queue, &new_recv_file,
+               100 / portTICK_PERIOD_MS);
+}
+
 #define DATA_RATE_CAL_DURATION 20
 
 static void calculate_data_rate(uint32_t len) {

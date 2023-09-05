@@ -160,7 +160,10 @@ int app_bt_msg_decode(const uint8_t *buf, uint16_t size) {
         if (msg->music_solution) {
             music_solution_handler(msg->msg_id, msg->music_solution);
         }
-        
+        if (msg->music_file_info) {
+            music_file_sync_handler(msg->msg_id, msg->music_file_info);
+        }
+
         app_bt_config(msg->msg_id, msg);
     
         app_bt__free_unpacked(msg, NULL);
@@ -205,6 +208,12 @@ __attribute__((weak)) void music_data_handler(uint32_t msg_id,
 
 __attribute__((weak)) void music_solution_handler(uint32_t msg_id,
                                               MusicSolution *music_solution) {
+    LOG_ERR("music_data_handler  is a weak function");
+    return;
+}
+
+__attribute__((weak)) void music_file_sync_handler(uint32_t msg_id,
+                                              MusicFileInfo *music_file_info) {
     LOG_ERR("music_data_handler  is a weak function");
     return;
 }
