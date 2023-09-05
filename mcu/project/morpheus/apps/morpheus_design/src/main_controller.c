@@ -73,6 +73,7 @@ void main_controller_powerkey_map(int status) {
 static bool before_goto_power_off;
 static bool bt_connected;
 static bool ble_connected;
+static bool charging_full;
 
 void main_controller_set_state(uint32_t state) {
     if (state == SYS_CONFIG__STATE__BLE_DISCONNECTED) {
@@ -93,6 +94,9 @@ void main_controller_set_state(uint32_t state) {
         before_goto_power_off = true;
     }
     if (state == SYS_CONFIG__STATE__PAIR) {
+    }
+    if (state == 41) {
+        charging_full = true;
     }
 
     BtMain msg = BT_MAIN__INIT;
@@ -319,6 +323,12 @@ void main_bt_config(MainBt *msg) {
     if (msg->msg_id == 99) {
         LOG_MSGID_I(MAIN_CONTR, "battery_level %d", 1, msg->battery_level);
     }
+
+    if (charging_full)
+        main_controller_set_state(41);
+
+    if (ble_connected)
+        main_controller_set_state(SYS_CONFIG__STATE__BLE_CONNECTED);
 }
 
 bool main_controller_ble_status(void) { return ble_connected; }
