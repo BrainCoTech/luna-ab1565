@@ -1,4 +1,5 @@
 #include "main_controller.h"
+
 #include "app_local_music.h"
 #include "app_online_music.h"
 #include "apps_config_event_list.h"
@@ -9,18 +10,17 @@
 #include "apps_events_interaction_event.h"
 #include "bt_customer_config.h"
 #include "bt_sink_srv_a2dp.h"
+#include "bt_sink_srv_ami.h"
 #include "hal.h"
+#include "hal_audio.h"
 #include "morpheus.h"
 #include "morpheus_utils.h"
+#include "music_file_receiver.h"
 #include "music_solution.h"
 #include "proto_msg/app_bt/app_bt_msg_helper.h"
 #include "proto_msg/main_bt/main_bt_msg_helper.h"
 #include "syslog.h"
 #include "ui_shell_manager.h"
-#include "app_online_music.h"
-#include "hal_audio.h"
-#include "music_file_receiver.h"
-#include "bt_sink_srv_ami.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -118,9 +118,9 @@ void main_controller_set_time(uint64_t time) {
     send_msg_to_main_controller(&msg);
 }
 
-
-
+static xSemaphoreHandle m_music_mode_mutex;
 static AudioConfig__Mode m_music_mode;
+static uint32_t switch_ticks = 0;
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
 
@@ -128,39 +128,31 @@ void main_controller_set_music_mode(AudioConfig__Mode mode) {
         if (mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause local music", mode);
             app_local_music_pause();
-            wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 3000);
             vTaskDelay(1000);
+            bt_sink_srv_music_set_mute(false);
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PLAY, NULL);
             m_music_mode = mode;
             music_sync_event_set(MUSIC_SYNC_RESUME);
         }
         if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause a2dp music", mode);
-            if (a2dp_playing_flag_get())
-                disconnect_a2dp();
-            int count = 0;
-            while(a2dp_playing_flag_get()) {
-                vTaskDelay(100);
-                if (count++ > 20)
-                    break;
-            }
+            disconnect_a2dp();
             m_music_mode = mode;
-        }        
+        }
     }
 }
 
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     LOG_MSGID_I(MUSIC_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd,
                 cfg->mode, cfg->audio_id);
-
     uint8_t status = 0;
 
     switch (cfg->cmd) {
         case AUDIO_CONFIG__CMD__PLAY:
             if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
                 app_local_music_play();
-            } 
-            
+            }
+
             if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
                 main_controller_audio_config(AUDIO_ACTION_SW_RESUME);
             }
@@ -169,8 +161,8 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
         case AUDIO_CONFIG__CMD__PAUSE:
             if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
                 app_local_music_pause();
-            } 
-            
+            }
+
             if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
                 main_controller_audio_config(AUDIO_ACTION_SW_PAUSE);
             }
@@ -180,8 +172,8 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
             if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
                 app_local_music_pause();
                 LOG_MSGID_I(MUSIC_CONTR, "main2bt stop local", 0);
-            } 
-            
+            }
+
             if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
                 main_controller_audio_config(AUDIO_ACTION_SW_STOP);
                 LOG_MSGID_I(MUSIC_CONTR, "main2bt stop online", 0);
@@ -248,7 +240,6 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
         apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
                            cfg->preemption, app_vp_play_callback);
     }
-
 }
 
 void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
@@ -265,7 +256,7 @@ void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
             }
         } else {
             if (cfg->volume < -AUD_VOL_OUT_LEVEL15)
-                cfg->volume = -AUD_VOL_OUT_LEVEL15;            
+                cfg->volume = -AUD_VOL_OUT_LEVEL15;
             while (cfg->volume++ != 0) {
                 bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);
                 app_local_music_volume_down();
@@ -328,8 +319,7 @@ void main_bt_config(MainBt *msg) {
         LOG_MSGID_I(MAIN_CONTR, "battery_level %d", 1, msg->battery_level);
     }
 
-    if (charging_full)
-        main_controller_set_state(41);
+    if (charging_full) main_controller_set_state(41);
 
     if (ble_connected)
         main_controller_set_state(SYS_CONFIG__STATE__BLE_CONNECTED);

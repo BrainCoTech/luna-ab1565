@@ -103,9 +103,9 @@ int audio_local_audio_control_deinit(void)
     if (ctx->state == LOCAL_AUDIO_STATE_UNAVAILABLE) {
         return 0;
     }
-    if (ctx->state != LOCAL_AUDIO_STATE_READY) {
-        return -EBUSY;
-    }
+    // if (ctx->state != LOCAL_AUDIO_STATE_READY) {
+    //     return -EBUSY;
+    // }
 
     audio_src_srv_update_state(src->audio_hdl, AUDIO_SRC_SRV_EVT_UNAVAILABLE);
 
@@ -128,9 +128,9 @@ int audio_local_audio_control_play(local_stream_if_t *stream)
     local_audio_source_t *src = local_audio_get_src();
     int err;
 
-    if (ctx->state != LOCAL_AUDIO_STATE_READY) {
-        return -EINVAL;
-    }
+    // if (ctx->state != LOCAL_AUDIO_STATE_READY) {
+    //     return -EINVAL;
+    // }
 
     err = local_audio_source_set_stream(stream);
     if (err < 0) {
@@ -166,6 +166,15 @@ int audio_local_audio_control_pause(void)
 {
     local_audio_context_t *ctx = local_audio_get_ctx();
     local_audio_source_t *src = local_audio_get_src();
+
+    if (ctx->state == LOCAL_AUDIO_STATE_SUSPEND) {
+        audio_src_srv_del_waiting_list(src->audio_hdl);
+
+        audio_src_srv_update_state(src->audio_hdl, AUDIO_SRC_SRV_EVT_PREPARE_STOP);
+
+        local_audio_update_state(ctx, LOCAL_AUDIO_STATE_READY);
+        return 0;
+    }
 
     if (ctx->state != LOCAL_AUDIO_STATE_PLAYING) {
         return -EINVAL;

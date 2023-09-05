@@ -138,7 +138,7 @@ void local_music_callback(local_audio_state_t state, void *user_data) {
             break;
 
         case LOCAL_AUDIO_STATE_SUSPEND:
-            m_player.action = ACTION_STOP;
+            // m_player.action = ACTION_STOP;
             break;
 
         case LOCAL_AUDIO_STATE_FINISH:
@@ -293,12 +293,12 @@ void app_local_music_task(void) {
                     m_player.state = PLAY_IDLE;
                     break;
                 }
-                ret = wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 5000);
+                ret = wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
 
                 if (ret < 0) {
                     LOG_MSGID_I(LOCAL_MUSIC, "play timeout: %d", 1,
                                 m_player.audio_state);
-                    m_player.state = PLAY_IDLE;
+                    m_player.state = PLAY_START;
                     break;
                 }
 
@@ -345,7 +345,7 @@ void app_local_music_task(void) {
                 break;
 
             case PLAY_PAUSE:
-                if (wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 3000) < 0) {
+                if (wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 1000) < 0) {
                     LOG_MSGID_I(LOCAL_MUSIC, "PLAY_PAUSE error, audio state %d",
                                 1, m_player.audio_state);
                 }
@@ -376,15 +376,20 @@ void app_local_music_task(void) {
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_NEXT;
                     } else if (m_player.action == ACTION_NEW_ID) {
-                        /* 先恢复音乐，让停止音乐生效 */
-                        audio_local_audio_control_set_volume(0);
-                        audio_local_audio_control_resume();
-                        wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
-                        if (m_player.audio_state == LOCAL_AUDIO_STATE_PLAYING)
-                            audio_local_audio_control_stop();
-                        m_player.action = ACTION_PLAY;
-                        m_player.last_action = m_player.action;
-                        m_player.state = PLAY_NEW_ID;
+                        if (m_player.audio_state != LOCAL_AUDIO_STATE_READY) {
+                            /* 先恢复音乐，让停止音乐生效 */
+                            audio_local_audio_control_set_volume(0);
+                            audio_local_audio_control_resume();
+                            wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
+                            if (m_player.audio_state == LOCAL_AUDIO_STATE_PLAYING)
+                                audio_local_audio_control_stop();
+                            m_player.action = ACTION_PLAY;
+                            m_player.last_action = m_player.action;
+                            m_player.state = PLAY_NEW_ID;
+                        } else {
+                            audio_local_audio_control_deinit();
+                            m_player.state = PLAY_START;
+                        }
                     }
                 }
 
@@ -401,7 +406,7 @@ void app_local_music_task(void) {
                 /* not need change id, goto PLAY_REPEAT */
 
             case PLAY_REPEAT:
-                if (wait_for_ready(LOCAL_AUDIO_STATE_READY, 5000) < 0) {
+                if (wait_for_ready(LOCAL_AUDIO_STATE_READY, 1000) < 0) {
                     LOG_MSGID_I(LOCAL_MUSIC, "PLAY_NEXT error, audio state %d",
                                 1, m_player.audio_state);
                 }

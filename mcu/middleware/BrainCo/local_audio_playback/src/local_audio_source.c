@@ -77,7 +77,7 @@ int local_audio_source_init(void)
 
     audio_hdl->type = AUDIO_SRC_SRV_PSEUDO_DEVICE_LOCAL;
     /* Audio manager use this to judge multi sources playback behavior. */
-    audio_hdl->priority = AUDIO_SRC_SRV_PRIORITY_MIDDLE;
+    audio_hdl->priority = AUDIO_SRC_SRV_PRIORITY_LOW;
     audio_hdl->dev_id = 0;
     audio_hdl->play = local_audio_source_play;
     audio_hdl->stop = local_audio_source_stop;

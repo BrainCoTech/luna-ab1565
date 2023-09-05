@@ -35,7 +35,7 @@ static uint32_t last_music_id;
 
 #define EVENT_QUEUE_SIZE 20
 static QueueHandle_t event_queue;
-#define EVENT_WAIT_PROC_TIME 300 /*ms*/
+#define EVENT_WAIT_PROC_TIME 1000 /*ms*/
 static xSemaphoreHandle event_wait_proc_sem;
 
 static void a2dp_check_cb_function(TimerHandle_t xTimer);
@@ -315,13 +315,15 @@ void app_online_music_task(void) {
         }
 
         if (user_disconnect_a2dp) {
-            if (count++ > 2000/EVENT_WAIT_PROC_TIME) {
+            if (count++ > 5000/EVENT_WAIT_PROC_TIME) {
                 count = 0;
                 connect_a2dp();
+                user_disconnect_a2dp = false;
             }
         } else {
             count = 0;
         }
+
         if (cur_event.event == ONLINE_AVRCP_STATUS_PLAY) {
             LOG_MSGID_I(MUSIC_CONTR, "avrcp state: play", 0);
             cur_event.event = 0;
