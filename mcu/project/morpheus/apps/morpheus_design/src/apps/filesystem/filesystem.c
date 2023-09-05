@@ -10,9 +10,10 @@
 static lfs_t lfs;
 static bool initialized;
 
+/* 前4M用于littlefs */
 #define SECTOR_SIZE 4096
-#define SECTOR_NUMS 16384
-#define PAGE_SIZE 1024
+#define SECTOR_NUMS 512
+#define PAGE_SIZE 256
 
 log_create_module(LFS, PRINT_LEVEL_INFO);
 
@@ -166,4 +167,61 @@ int fs_format(void) {
     err = lfs_mount(&lfs, &cfg);
 
     return err;
+}
+
+int fs_write(char *path, const void *data, uint32_t size, bool append) {
+    int ret;
+    lfs_file_t file;
+
+    if (&lfs == NULL) {
+        return -ENODEV;
+    }
+
+    if (data == NULL || size == 0) {
+        return -EINVAL;
+    }
+
+    if (append) {
+        ret = lfs_file_open(&lfs, &file, path,
+                            LFS_O_CREAT | LFS_O_RDWR | LFS_O_APPEND);
+    } else {
+        ret = lfs_file_open(&lfs, &file, path, LFS_O_CREAT | LFS_O_RDWR);
+        if (ret < 0) return ret;
+        ret = lfs_file_rewind(&lfs, &file);
+    }
+
+    if (ret < 0) {
+        LOG_MSGID_I(LFS, "write, open file failed %d", 1, ret);
+        return ret;
+    }
+
+    ret = lfs_file_write(&lfs, &file, data, size);
+    if (ret < 0) {
+        LOG_MSGID_I(LFS, "write bytes failed %d", 1, ret);
+    }
+
+    lfs_file_close(&lfs, &file);
+
+    return ret;
+}
+
+int fs_read(char *path, void *data, uint32_t size) {
+    int ret;
+    lfs_file_t file;
+
+    ret = lfs_file_open(&lfs, &file, path, LFS_O_RDONLY);
+    if (ret < 0) {
+        LOG_MSGID_I(LFS, "read, open file failed %d", 1, ret);
+        return ret;
+    }
+
+    ret = lfs_file_read(&lfs, &file, data, size);
+    if (ret < 0) {
+        LOG_MSGID_I(LFS, "read, read file failed %d", 1, ret);
+        return ret;
+    }
+
+    lfs_file_close(&lfs, &file);
+
+    return ret;
 }

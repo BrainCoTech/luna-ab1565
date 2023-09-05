@@ -4,8 +4,11 @@
 #include <stdint.h>
 
 #include "FreeRTOS.h"
-#include "timers.h"
 #include "app_bt/app_bt_msg_helper.h"
+#include "bsp_external_flash_config.h"
+#include "bsp_flash.h"
+#include "filesystem.h"
+#include "main_controller.h"
 #include "morpheus.h"
 #include "music_file.h"
 #include "music_solution.h"
@@ -15,79 +18,111 @@
 #include "stdlib.h"
 #include "string.h"
 #include "syslog.h"
-#include "main_controller.h"
-#include "filesystem.h"
+#include "timers.h"
 
 log_create_module(MUSIC_RECV, PRINT_LEVEL_INFO);
 
-#define READY_RECV_FILE_NUMS MAX_MUSIC_FILE_NUMS
 #define RECV_DATA_QUEUE_SIZE 32
 typedef enum {
     FILE_RECV_STATE_IDLE = 0,  // 空闲，等待更新文件
-    FILE_RECV_STATE_START,  // 收到接收新文件消息，更新ready_recv_files
-    FILE_RECV_STATE_CANCEL,    // 取消当前任务
-    FILE_RECV_STATE_RUNNING,   // 接收中
-    FILE_RECV_STATE_FINISHED,  // 同步完成
+    FILE_RECV_STATE_STARTED,  // 收到接收新文件消息，更新ready_recv_files
+    FILE_RECV_STATE_DOWNLOADING,  // 接收中
+    FILE_RECV_STATE_PAUSED,       // 接收中
+    FILE_RECV_STATE_FINISHED,     // 同步完成
 } file_reciever_state_t;
 
+/* 固定4个方案，方案对应的音乐文件可以没有
+   方案ID对应音乐ID, 方案ID就是ID数组中的下标
+
+   60MB Nor Flash 内存，等分成6份10MB区域， 默认有4个区域存储了大约5MB的歌曲。
+   方案ID和音乐对应数据结构：
+   方案id 对应 音乐文件ID，文件大小，6等分区域物理地址和当前保存多少字节了。
+   typedef struct {
+        uint32_t solution_id;
+        uint32_t music_id;
+        uint32_t music_file_addr;
+        uint32_t music_size;
+        uint32_t music_offset;
+   } recv_file_t;
+
+   typedef struct {
+        recv_file_t files[4]; // 如果值是0，表示没有传输文件
+   } solution_t;
+
+   如何找到SWAP区域： 遍历 solution 中的地址
+
+   IDLE  -- 队列  支持连续传输和清除传输  多个recv_file_t msgq
+   开始           查找新区域，
+   请求数据
+   写入(固定位置)+保存断点(littlefs)
+   更新方案       更新 solution_t
+   暂停传输       FW 端暂停传输：开始播放本地音乐；恢复： 本地方案结束
+
+   音乐播放：读取内存中的 solution_t , 开始播放
+   刚更新完新文件，点击本地方案，这个时候需要播放新歌
+   单例模型，获取指针
+
+状态：
+    IDLE          等待开始
+    START         比对信息,断点；查找新区域，写入
+    DOWNLOADING   请求数据
+    PAUSEED       暂停传输
+    FINISHED      更新方案
+
+如何继续断点续传
+场景1
+APP 获取同步状态
+FW  返回同步状态
+APP 根据同步状态，发起方案设置
+FW  重新获取断点以后的数据
+场景2  TBD
+FW  满足条件后，自动获取数据
+
+
+
+   音乐播放接口从方案信息中获取音乐ID,
+如果对应方案没有音乐ID,则播放“需要同步音乐” */
+
 typedef struct {
-    uint32_t new_nums;
-    recv_file_t new_files[MAX_MUSIC_FILE_NUMS];
-    uint32_t cur_nums;
-    recv_file_t cur_files[MAX_MUSIC_FILE_NUMS];
-    uint32_t cur_index;
+    uint32_t addr;
+    uint32_t size;
+} partition_t;
+
+static partition_t music_partitions[] = {
+    {.addr = SPI_SERIAL_FLASH_ADDRESS + 0x400000, .size = 0xA00000},
+    {.addr = SPI_SERIAL_FLASH_ADDRESS + 0xE00000, .size = 0xA00000},
+    {.addr = SPI_SERIAL_FLASH_ADDRESS + 0x1800000, .size = 0xA00000},
+    {.addr = SPI_SERIAL_FLASH_ADDRESS + 0x2200000, .size = 0xA00000},
+    {.addr = SPI_SERIAL_FLASH_ADDRESS + 0x2C00000, .size = 0xA00000},
+    {.addr = SPI_SERIAL_FLASH_ADDRESS + 0x3600000, .size = 0xA00000},
+};
+
+#define BLOCK_SIZE (64 * 1024)
+typedef struct {
+    xQueueHandle new_file_queue;
+    xQueueHandle new_data_queue;
     file_reciever_state_t cur_state;
-    bool sync;
+    recv_file_t *cur_recv_file;
+    recv_file_t *sync_status;
+    music_sulotion_t *p_solution;
+    bool stop;
 } file_reciever_t;
 
 typedef struct {
     uint32_t fd;
     uint32_t size;
+    uint32_t offset;
     uint8_t *data;
-    bool append;
 } recv_data_t;
 
-
 static file_reciever_t m_reciever;
-static recv_file_t *m_receiving_file;
-static music_sulotion_t *p_solution;
-static music_files_t m_files;
-
-static bool read_dir_busy;
-static bool xfer_start;
-
-SemaphoreHandle_t recv_file_finished_sem;
-QueueHandle_t recv_data_queue;
-
-#define XFER_TIMER_NAME        "xfer"
-#define XFER_TIMER_ID          0
-#define XFER_TIMER_INTERVAL    (10 * 1000)
-#define XFER_RETRY_TIMEOUT     6 // XFER_RETRY_TIMEOUT * XFER_TIMER_INTERVAL = 60s
-#define USE_QUEUE 0
-
-TimerHandle_t m_timer = NULL; /* The pointer of the m_timer instance. */
-
-lfs_file_t file;
 
 static int request_file_data(uint32_t id, uint32_t offset);
-static int retry_req_data_count = 0;
-static void timer_cb_function(TimerHandle_t xTimer)
-{
-    LOG_MSGID_I(MUSIC_RECV, "receive data timeout", 0);
-    retry_req_data_count++;
-    request_file_data(m_receiving_file->fd, m_receiving_file->offset);
-    if (retry_req_data_count > XFER_RETRY_TIMEOUT) {
-        xSemaphoreGive(recv_file_finished_sem);
-        if (m_timer) {
-            xTimerStop(m_timer, 0);
-        }
-        retry_req_data_count = 0;
-    }
-}
 
 static int request_file_data(uint32_t id, uint32_t offset) {
     BtApp msg = BT_APP__INIT;
     GetMusicData get_music_data = GET_MUSIC_DATA__INIT;
+
     get_music_data.id = id;
     get_music_data.offset = offset;
     msg.get_music_data = &get_music_data;
@@ -96,116 +131,26 @@ static int request_file_data(uint32_t id, uint32_t offset) {
     return 0;
 }
 
-int sulotion_file_index_get(uint32_t fd, music_sulotion_t *solution) {
-    for (int i = 0; i < solution->nums; i++) {
-        if (fd == solution->files[i].fd) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-void receive_file_start(recv_file_t *recv_file) {
-    m_receiving_file = recv_file;
-    LOG_MSGID_I(MUSIC_RECV, "start recv fd %u, offset %u ", 2,
-                m_receiving_file->fd, m_receiving_file->offset);
-    request_file_data(m_receiving_file->fd, m_receiving_file->offset);
-
-    if (m_timer) {
-        xTimerStop(m_timer, 0);
-        xTimerStart(m_timer, 0);
-    }
-}
-
-void receive_file_wait_finished(void) {
-#if (USE_QUEUE)
-    recv_data_t recv_data;  
-    int ret = 0;
-    while(1) {
-        if (xQueueReceive(recv_data_queue, &recv_data, 300) == pdTRUE)
-        {
-            ret = music_file_file_size(recv_data.fd);
-            if (ret < m_receiving_file->size){
-                ret = music_file_write(recv_data.fd, recv_data.data, recv_data.size, recv_data.append);
-                if (ret != recv_data.size)
-                    LOG_MSGID_I(MUSIC_RECV, "write file error: %d", 1, ret);
-            } else {
-                LOG_MSGID_I(MUSIC_RECV, "write file error, bigger than size, file size %d", 1, ret);
-            }
-            vPortFree(recv_data.data);
-        }
-        if (xSemaphoreTake(recv_file_finished_sem, 20) == pdTRUE) {
-            break;
-        }
-    }
-#else
-    xSemaphoreTake(recv_file_finished_sem, portMAX_DELAY);
-#endif
-
-}
-
-
 void receive_file_append_data(uint32_t fd, void *data, uint32_t size,
-                              uint32_t offset, bool done) {
-    if (m_receiving_file == NULL) return;
+                              uint32_t offset) {
     recv_data_t recv_data;
 
-    if (m_timer) {
-        xTimerStop(m_timer, 0);
-        xTimerStart(m_timer, 0);
-    }
-    
-    // 先确保数据是准确的
-    if ((m_receiving_file->fd == fd) && (m_receiving_file->offset == offset)) {
-        bool append = (offset > 0);
-
-#if (USE_QUEUE)
-        uint32_t  heap_size = xPortGetFreeHeapSize();
-        LOG_MSGID_I(MUSIC_RECV, "try to alloc, heap size %d", 1, heap_size);
-        if (heap_size < 20480)
-            vTaskDelay(5);
-        if (heap_size < 10240)
-            vTaskDelay(20);
-        if (heap_size < 5120)
-            vTaskDelay(50);
-        recv_data.size = size;
-        recv_data.fd = fd;
-        recv_data.append = (offset > 0) ? true : false;
-        recv_data.data = pvPortMalloc(size);
-        if (recv_data.data) {
-            memcpy(recv_data.data, data, size);
-            if (xQueueSend(recv_data_queue, &recv_data, 30) != pdTRUE) {
-                LOG_MSGID_I(MUSIC_RECV, "append failed", 0);
-                vPortFree(recv_data.data);
-            } else {
-                m_receiving_file->offset += size;
-            }
-        }else{
-             LOG_MSGID_I(MUSIC_RECV, "alloc failed", 0);
-        }        
-#else
-#if (NOT_CLOSE)
-        if (offset == 0)
-            file_open(fd, true, &file);
-        
-        file_write(&file, data, size);
-#endif
-        music_file_write(fd, data, size, append);
-        m_receiving_file->offset += size;
-#endif
-        
-
-        if (m_receiving_file->offset == m_receiving_file->size) {
-#if (NOT_CLOSE)            
-            file_close(fd, &file);
-#endif            
-            LOG_MSGID_I(MUSIC_RECV, "music transfer done. size: %d ", 1,
-                        m_receiving_file->offset);
-            xSemaphoreGive(recv_file_finished_sem);
-            return;
+    uint32_t heap_size = xPortGetFreeHeapSize();
+    if (heap_size < 20480) vTaskDelay(5);
+    if (heap_size < 10240) vTaskDelay(20);
+    if (heap_size < 5120) vTaskDelay(50);
+    recv_data.size = size;
+    recv_data.fd = fd;
+    recv_data.offset = offset;
+    recv_data.data = pvPortMalloc(size);
+    if (recv_data.data) {
+        memcpy(recv_data.data, data, size);
+        if (xQueueSend(m_reciever.new_data_queue, &recv_data, 30) != pdTRUE) {
+            LOG_MSGID_I(MUSIC_RECV, "append failed", 0);
+            vPortFree(recv_data.data);
         }
-    
-        request_file_data(m_receiving_file->fd, m_receiving_file->offset); 
+    } else {
+        LOG_MSGID_I(MUSIC_RECV, "alloc failed", 0);
     }
 }
 
@@ -213,29 +158,30 @@ void send_sync_progress_to_app(uint32_t msgid) {
     BtApp msg = BT_APP__INIT;
     msg.msg_id = msgid;
 
-    int count = 0;
-    while (read_dir_busy) {
-        vTaskDelay(5);
-        count++;
-        if (count > 400)
-            break;
+    if (m_reciever.cur_recv_file->music_size >
+        m_reciever.cur_recv_file->music_offset) {
+        msg.n_music_sync_progress = 1;
+    } else {
+        msg.n_music_sync_progress = 0;
     }
-    msg.n_music_sync_progress = p_solution->nums;
-    LOG_MSGID_I(MUSIC_RECV, "sulotion. nums: %d", 1, p_solution->nums);
+
     MusicSyncProgress **sync_process;
     if (msg.n_music_sync_progress > 0) {
-        sync_process = pvPortMalloc(sizeof(MusicSyncProgress *) * p_solution->nums);
+        sync_process = pvPortMalloc(sizeof(MusicSyncProgress *) *
+                                    msg.n_music_sync_progress);
         msg.music_sync_progress = sync_process;
         if (sync_process == NULL)
             LOG_MSGID_I(MUSIC_RECV, "sycn progress ** alloc failed", 0);
-        for (int i = 0; i < p_solution->nums; i++) {
+        for (int i = 0; i < msg.n_music_sync_progress; i++) {
             sync_process[i] = pvPortMalloc(sizeof(MusicSyncProgress));
             music_sync_progress__init(sync_process[i]);
-            sync_process[i]->id = p_solution->files[i].fd;
-            sync_process[i]->offset = p_solution->files[i].offset;
-            sync_process[i]->finished = (sync_process[i]->offset == p_solution->files[i].size) ? true : false;
-            LOG_MSGID_I(MUSIC_RECV, "sycn progress. offset %u, size %u, finished %d", 3, sync_process[i]->offset, p_solution->files[i].size, sync_process[i]->finished);   
-            LOG_MSGID_I(MUSIC_RECV, "sycn progress. stack size %u", 1, uxTaskGetStackHighWaterMark(NULL)); 
+            sync_process[i]->id = m_reciever.cur_recv_file->music_id;
+            sync_process[i]->offset = m_reciever.cur_recv_file->music_offset;
+            sync_process[i]->finished = false;
+
+            LOG_MSGID_I(MUSIC_RECV, "sycn progress. size %u, offset %u", 2,
+                        m_reciever.cur_recv_file->music_size,
+                        sync_process[i]->offset);
         }
     }
 
@@ -243,206 +189,164 @@ void send_sync_progress_to_app(uint32_t msgid) {
 
     if (msg.n_music_sync_progress > 0) {
         vPortFree(sync_process);
-        for (int i = 0; i < p_solution->nums; i++) vPortFree(sync_process[i]);
+        for (int i = 0; i < msg.n_music_sync_progress; i++)
+            vPortFree(sync_process[i]);
     }
 }
 
+int find_free_partition() {
+    int i, j, flag;
 
-void update_solution_offset_from_files(music_sulotion_t *sulotion, music_files_t *files)
-{
-    bool should_delete = true;
-    read_dir_busy = true;
-    music_file_files_get(files);
-    for (int i = 0; i < files->nums; i++) {
-        LOG_MSGID_I(MUSIC_RECV, "music file in nor flash, file [%u], size %u",
-                    3, files->files[i].fd, files->files[i].size);
-    }
-
-    for (int i = 0; i < files->nums; i++) {
-        should_delete = true;
-        for (int n = 0; n < p_solution->nums; n++) {
-            if (files->files[i].fd == p_solution->files[n].fd) {
-                should_delete = false;
-                p_solution->files[n].offset = files->files[i].size;
+    for (i = 0; i < 6; i++) {
+        flag = 0;
+        for (j = 0; j < 4; j++) {
+            if (music_partitions[i].addr ==
+                m_reciever.p_solution->files[j].music_file_addr) {
+                flag = 1;
+                break;
             }
         }
-        if (should_delete) {
-            LOG_MSGID_I(MUSIC_RECV, "delete file %u", 1, files->files[i].fd);
-            music_file_delete(files->files[i].fd);
+
+        if (flag == 0) {
+            return i;
         }
     }
-    solution_write_to_nvdm(p_solution);
-    read_dir_busy = false;
+
+    return -1;
 }
 
 void file_receiver_task(void) {
-#if (USE_QUEUE)
-    recv_data_queue = xQueueCreate(RECV_DATA_QUEUE_SIZE, sizeof(recv_data_t));
-#endif
-    recv_file_finished_sem = xSemaphoreCreateBinary();
-
-
-    m_timer = xTimerCreate(XFER_TIMER_NAME, XFER_TIMER_INTERVAL / portTICK_PERIOD_MS, pdTRUE, XFER_TIMER_ID, timer_cb_function);
-
-    recv_file_t receiving_file;
-
-    bool resume_sync = true;
-    bool should_delete;
-    
-    const recv_file_t *cur_files = m_reciever.cur_files;
-    const recv_file_t *new_files = m_reciever.new_files;
+    recv_file_t new_recv_file;
     recv_file_t *cur_file;
-    
+    recv_data_t new_data;
 
-    music_file_init();    
-    nvdm_status_t status = solution_read_from_nvdm(&p_solution);
-    if (status == NVDM_STATUS_ITEM_NOT_FOUND) {
-        music_file_files_get(&m_files);
-        for (int i = 0; i < m_files.nums; i++) {
-            p_solution->files[i].fd = m_files.files[i].fd;
-            p_solution->files[i].offset = m_files.files[i].size;
-            p_solution->files[i].size = m_files.files[i].size;              
-            LOG_MSGID_I(MUSIC_RECV, "solution file not found, file size %u, index %d", 2, p_solution->files[i].size, i);
-        }
-        p_solution->nums = m_files.nums;
-        solution_write_to_nvdm(p_solution);
-    }
-    if (status == NVDM_STATUS_OK) {
-        update_solution_offset_from_files(p_solution, &m_files);
-    }
-
-    music_sulotion_t old_solution;
-    
+    m_reciever.new_file_queue = xQueueCreate(6, sizeof(recv_file_t));
+    m_reciever.new_data_queue = xQueueCreate(6, sizeof(recv_data_t));
+    music_solution_read(&m_reciever.p_solution);
+    music_file_sync_status_get(&m_reciever.cur_recv_file);
+    cur_file = m_reciever.cur_recv_file;
 
     while (1) {
         switch (m_reciever.cur_state) {
             case FILE_RECV_STATE_IDLE:
-                if (m_reciever.new_nums) {
-                    m_reciever.cur_state = FILE_RECV_STATE_START;
-                    /* should stop play local music when transfer music file */
-                    app_local_music_pause();
-                    xfer_start = true;
-                    main_controller_set_state(SYS_CONFIG__STATE__OTA_STARTED);
+                if (xQueueReceive(m_reciever.new_file_queue, &new_recv_file,
+                                  1000 / portTICK_PERIOD_MS) == pdTRUE) {
+                    m_reciever.cur_state = FILE_RECV_STATE_STARTED;
+                }
+                break;
+
+            case FILE_RECV_STATE_STARTED:
+                LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_STARTED", 0);
+                // 查找Flash address 并且擦除
+                int free_partition_idx = find_free_partition();
+                LOG_MSGID_I(MUSIC_RECV, "free_partition_idx %d", 1,
+                            free_partition_idx);
+
+                if (free_partition_idx < 0) {
+                    m_reciever.cur_state = FILE_RECV_STATE_IDLE;
+                    break;
+                }
+                int n = music_partitions[free_partition_idx].size / BLOCK_SIZE;
+                for (int i = 0; i < n; i++) {
+                    bsp_flash_erase(music_partitions[free_partition_idx].addr + i * BLOCK_SIZE ,
+                                    BSP_FLASH_BLOCK_64K);
+                }
+
+                music_file_sync_status_get(&m_reciever.cur_recv_file);
+                cur_file = m_reciever.cur_recv_file;
+                cur_file->music_file_addr =
+                    music_partitions[free_partition_idx].addr;
+                if (m_reciever.cur_recv_file->music_id ==
+                        new_recv_file.music_id &&
+                    m_reciever.cur_recv_file->music_size ==
+                        new_recv_file.music_size) {
+                    cur_file->solution_id = new_recv_file.solution_id;
                 } else {
-                    if (xfer_start) {
-                        if (m_timer) {
-                            xTimerStop(m_timer, 0);
-                        } 
-                        main_controller_set_state(SYS_CONFIG__STATE__OTA_FINISHED);
-                    }
-                    xfer_start = false;
-                    vTaskDelay(2000);
+                    cur_file->solution_id = new_recv_file.solution_id;
+                    cur_file->music_id = new_recv_file.music_id;
+                    cur_file->music_size = new_recv_file.music_size;
+                    cur_file->music_offset = 0;
                 }
+
+                m_reciever.cur_state = FILE_RECV_STATE_DOWNLOADING;
                 break;
 
-            case FILE_RECV_STATE_START:
-                LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_START", 0);
-                read_dir_busy = true;
-                /* update solution from new configuration */
-                memcpy(&old_solution, p_solution, sizeof(music_sulotion_t));
-                p_solution->nums = m_reciever.new_nums;
-                for (int i = 0; i < m_reciever.new_nums; i++) {
-                    p_solution->files[i].fd = new_files[i].fd;
-                    p_solution->files[i].size = new_files[i].size;
-                    int id = sulotion_file_index_get(new_files[i].fd, &old_solution);
-                    if (id >= 0)
-                        p_solution->files[i].offset = old_solution.files[id].offset;
-                    else
-                        p_solution->files[i].offset = 0;
+            case FILE_RECV_STATE_DOWNLOADING:
+                request_file_data(cur_file->music_id, cur_file->music_offset);
+                if (xQueueReceive(m_reciever.new_data_queue, &new_data,
+                                  5000 / portTICK_PERIOD_MS) == pdTRUE) {
+                    if ((cur_file->music_id == new_data.fd) &&
+                        (cur_file->music_offset == new_data.offset)) {
 
-                    LOG_MSGID_I(MUSIC_RECV, "file %u,size %u", 2,
-                        p_solution->files[i].fd,
-                        p_solution->files[i].size);                    
-                }
-                read_dir_busy = false;
-                /* update solution from files */
-                update_solution_offset_from_files(p_solution, &m_files);
-
-                memcpy(cur_files, new_files, sizeof(m_reciever.cur_files));
-                m_reciever.cur_nums = m_reciever.new_nums;
-                m_reciever.cur_index = 0;
-                m_reciever.new_nums = 0;
-                m_reciever.sync = true;
-                memset(new_files, 0, sizeof(m_reciever.new_files));
-                m_reciever.cur_state = FILE_RECV_STATE_RUNNING;
-                break;
-
-            case FILE_RECV_STATE_RUNNING:
-                while ((m_reciever.cur_index < m_reciever.cur_nums) && m_reciever.sync) {
-                    if (m_reciever.new_nums) {
-                        break;
-                    }
-                    cur_file = &cur_files[m_reciever.cur_index];
-                    LOG_MSGID_I(MUSIC_RECV, "index %d, fd %u", 3,
-                                m_reciever.cur_index, cur_file->fd);
+                        bsp_flash_write(
+                            cur_file->music_file_addr + cur_file->music_offset,
+                            new_data.data, new_data.size);
                     
-                    int file_size = music_file_file_size(cur_file->fd);
 
-                    cur_file->offset = (file_size < 0) ? 0 : file_size;
-                    LOG_MSGID_I(MUSIC_RECV, "cur fd %u, size %u, offset %u ", 3,
-                                cur_file->fd, cur_file->size, cur_file->offset);
-                    if (cur_file->offset > cur_file->size) {
-                        music_file_delete(cur_file->fd);
-                        cur_file->offset = 0;
-                        receive_file_start(cur_file);
-                        receive_file_wait_finished();
-                    } else if (cur_file->offset < cur_file->size) {
-                        receive_file_start(cur_file);
-                        receive_file_wait_finished();
-                    }
+                        cur_file->music_offset += new_data.size;
+                        /* 保存断点 */
+                        music_file_sync_status_set(cur_file);
 
-                    read_dir_busy = true;
-                    if (m_reciever.new_nums == 0) {
-                        int id = sulotion_file_index_get(cur_file->fd, p_solution);
-                        if (id >= 0) {
-                            p_solution->files[id].offset = cur_file->offset;
+                        
+
+                        if (cur_file->music_offset == cur_file->music_size) {
+                            LOG_MSGID_I(MUSIC_RECV, "music transfer done", 0);
+                            m_reciever.cur_state = FILE_RECV_STATE_FINISHED;
                         }
-
-                        solution_write_to_nvdm(p_solution);
-
-                        m_reciever.cur_index++;
-                        LOG_MSGID_I(MUSIC_RECV, "one_finished nums %d index %d",
-                                    2, m_reciever.cur_nums,
-                                    m_reciever.cur_index);
                     }
-                    read_dir_busy = false;
-                }
-                m_reciever.cur_state = FILE_RECV_STATE_IDLE;
-                break;
 
-            case FILE_RECV_STATE_CANCEL:
+                    vPortFree(new_data.data);
+                } else {
+                }
                 break;
 
             case FILE_RECV_STATE_FINISHED:
-                LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_IDLE", 0);
+                LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_FINISHED", 0);
+
+                memcpy(&m_reciever.p_solution->files[cur_file->solution_id - 1],
+                       cur_file, sizeof(recv_file_t));
+                music_solution_write(m_reciever.p_solution);
                 m_reciever.cur_state = FILE_RECV_STATE_IDLE;
                 break;
+
             default:
                 break;
         }
     }
+}
 
-    if (!main_controller_ble_status()) resume_sync = true;
+void main_bt_music_file_info(uint32_t msg_id, MusicFileInfo *file_info) {
+    recv_file_t new_recv_file;
+
+    LOG_MSGID_I(MUSIC_RECV, "main_bt_music_file_info", 0);
+    /* 先停止接收，再开始新接收 */
+    m_reciever.stop = true;
+
+    new_recv_file.solution_id = file_info->solution_id;
+    new_recv_file.music_id = file_info->music_id;
+    new_recv_file.music_size = file_info->music_size;
+    new_recv_file.music_offset = 0;
+
+    xQueueSend(m_reciever.new_file_queue, &new_recv_file,
+               100 / portTICK_PERIOD_MS);
 }
 
 void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
-    LOG_MSGID_I(MUSIC_RECV, "music_config_handler %d", 1,
+    recv_file_t new_recv_file;
+
+    LOG_MSGID_I(MUSIC_RECV, "music_config_handler, nums %d", 1,
                 music_sync->n_music_ids);
+    /* 先停止接收，再开始新接收 */
+    m_reciever.stop = true;
 
-    if (music_sync->n_music_ids) {
-        m_reciever.new_nums = music_sync->n_music_ids;
-        for (int i = 0; i < music_sync->n_music_ids; i++) {
-            m_reciever.new_files[i].fd = music_sync->music_ids[i];
-            m_reciever.new_files[i].size = music_sync->music_file_size[i];
-            m_reciever.new_files[i].offset = 0;
-            LOG_MSGID_I(MUSIC_RECV, "new solution: fd %u, size %u, offset %u ", 3,
-                                m_reciever.new_files[i].fd, m_reciever.new_files[i].size, m_reciever.new_files[i].offset);
-        }
+    for (int i = 0; i < music_sync->n_music_ids; i++) {
+        new_recv_file.solution_id = i + 1;
+        new_recv_file.music_id = music_sync->music_ids[i];
+        new_recv_file.music_size = music_sync->music_file_size[i];
+        new_recv_file.music_offset = 0;
 
-        if (m_reciever.cur_state == FILE_RECV_STATE_RUNNING) {
-            xQueueReset(recv_data_queue);
-            xSemaphoreGive(recv_file_finished_sem);
-        }  
+        xQueueSend(m_reciever.new_file_queue, &new_recv_file,
+                   100 / portTICK_PERIOD_MS);
     }
 }
 
@@ -466,37 +370,18 @@ static void calculate_data_rate(uint32_t len) {
 }
 
 void music_data_handler(uint32_t msg_id, MusicData *music_data) {
-    if(!m_reciever.sync)
-        return;
     uint32_t tick = xTaskGetTickCount();
     static old_tick = 0;
     calculate_data_rate(music_data->data.len);
 
     receive_file_append_data(music_data->id, music_data->data.data,
-                             music_data->data.len, music_data->offset,
-                             false);
-    
+                             music_data->data.len, music_data->offset);
+
     uint32_t ts = xTaskGetTickCount();
-    LOG_MSGID_I(MUSIC_RECV, "musig data handler speed time %d, two handler %d", 2, ts - tick, ts - old_tick);   
+    LOG_MSGID_I(MUSIC_RECV, "interval: music data handler %d, two handler %d",
+                2, ts - tick, ts - old_tick);
 
-    old_tick = ts;                          
+    old_tick = ts;
 }
 
-void music_solution_handler(uint32_t msg_id, MusicSolution *music_solution)
-{
-    p_solution->mode = music_solution->play_mode;
-    p_solution->single_id = music_solution->music_single_loop_id;
-}
-
-bool music_file_receiver_is_xfer(void) {
-    return xfer_start;
-}
-
-void music_pause_sync(void)
-{
-    if (m_reciever.cur_state == FILE_RECV_STATE_RUNNING) {
-        xSemaphoreGive(recv_file_finished_sem);
-        m_reciever.sync = false;
-    }     
-
-}
+void music_pause_sync(void) {}

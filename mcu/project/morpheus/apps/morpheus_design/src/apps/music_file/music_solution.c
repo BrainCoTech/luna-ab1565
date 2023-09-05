@@ -1,43 +1,90 @@
 #include "music_solution.h"
 
+#include <filesystem.h>
 #include <stdint.h>
 
 #include "syslog.h"
 
 log_create_module(SOLUTION, PRINT_LEVEL_INFO);
 
-#define SYNC_INFO_SETTING "sync_info"
+#define SOLUTION_PATH "/music_solution"
+#define SYNC_STATUS_PATH "/sync_status"
 
-music_sulotion_t m_music_solution;
+static music_sulotion_t m_music_solution;
+static recv_file_t m_sync_status;
 
-nvdm_status_t solution_read_from_nvdm(music_sulotion_t **sulotion) {
-    uint32_t size = sizeof(music_sulotion_t);
-    nvdm_status_t status = nvdm_read_data_item(NVDM_INTERNAL_USE_GROUP, SYNC_INFO_SETTING,
-                        (uint8_t *)&m_music_solution, &size);
-    if (status < NVDM_STATUS_OK)
-        m_music_solution.nums = 0;
+int music_solution_read(music_sulotion_t **sulotion) {
+    int ret = 0;
 
-    for (int i = 0; i < m_music_solution.nums; i++) {
-        LOG_MSGID_I(SOLUTION, "solution nvdm, file [%u], size %u, offset %u", 3,
-                    m_music_solution.files[i].fd,
-                    m_music_solution.files[i].size,
-                    m_music_solution.files[i].offset);
+    ret = fs_read(SOLUTION_PATH, &m_music_solution, sizeof(music_sulotion_t));
+
+
+    for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
+        LOG_MSGID_I(SOLUTION,
+                    "read solution %u, file [%u], size %u, addr %x, offset %u",
+                    5, m_music_solution.files[i].solution_id,
+                    m_music_solution.files[i].music_id,
+                    m_music_solution.files[i].music_size,
+                    m_music_solution.files[i].music_file_addr,
+                    m_music_solution.files[i].music_offset);
     }
+
     *sulotion = &m_music_solution;
-    return status;
+
+    return ret;
 }
 
-nvdm_status_t solution_write_to_nvdm(const music_sulotion_t *sulotion) {
-    nvdm_status_t status = NVDM_STATUS_OK;
-    uint32_t size = sizeof(music_sulotion_t);
-    status = nvdm_write_data_item(NVDM_INTERNAL_USE_GROUP, SYNC_INFO_SETTING,
-                         NVDM_DATA_ITEM_TYPE_RAW_DATA,
-                         (uint8_t *)&m_music_solution, size);
-    for (int i = 0; i < m_music_solution.nums; i++) {
-        LOG_MSGID_I(SOLUTION, "solution nvdm, file [%u], size %u, offset %u", 3,
-                    m_music_solution.files[i].fd,
-                    m_music_solution.files[i].size,
-                    m_music_solution.files[i].offset);
+music_sulotion_t *music_solution_get() { return &m_music_solution; }
+
+int music_solution_write(const music_sulotion_t *sulotion) {
+    int ret = 0;
+
+    memcpy(&m_music_solution, sulotion, sizeof(recv_file_t));
+
+    for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
+        LOG_MSGID_I(SOLUTION,
+                    "write solution %u, file [%u], size %u, addr %x, offset %u",
+                    5, m_music_solution.files[i].solution_id,
+                    m_music_solution.files[i].music_id,
+                    m_music_solution.files[i].music_size,
+                    m_music_solution.files[i].music_file_addr,
+                    m_music_solution.files[i].music_offset);
     }
-    return status;
+
+    ret = fs_write(SOLUTION_PATH, &m_music_solution, sizeof(music_sulotion_t),
+                   false);
+
+    return ret;
+}
+
+int music_file_sync_status_get(recv_file_t **file) {
+    int ret = 0;
+
+    ret = fs_read(SYNC_STATUS_PATH, &m_sync_status, sizeof(recv_file_t));
+
+
+    LOG_MSGID_I(SOLUTION,
+                "sync status %u, file [%u], size %u, addr %x, offset %u", 5,
+                m_sync_status.solution_id, m_sync_status.music_id,
+                m_sync_status.music_size, m_sync_status.music_file_addr,
+                m_sync_status.music_offset);
+
+    *file = &m_sync_status;
+    return ret;
+}
+
+int music_file_sync_status_set(const recv_file_t *file) {
+    int ret = 0;
+
+    memcpy(&m_sync_status, file, sizeof(recv_file_t));
+
+    LOG_MSGID_I(SOLUTION,
+                "sync status %u, file [%u], size %u, addr %x, offset %u", 5,
+                m_sync_status.solution_id, m_sync_status.music_id,
+                m_sync_status.music_size, m_sync_status.music_file_addr,
+                m_sync_status.music_offset);
+
+    ret = fs_write(SOLUTION_PATH, &m_sync_status, sizeof(recv_file_t), false);
+
+    return ret;
 }

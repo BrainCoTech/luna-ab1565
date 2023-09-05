@@ -23,6 +23,8 @@ log_create_module(LOCAL_MUSIC, PRINT_LEVEL_INFO);
 #include "music_solution.h"
 #include "stdlib.h"
 #include "task.h"
+#include "bsp_external_flash_config.h"
+#include "bsp_flash.h"
 
 static local_music_player_t m_player;
 xSemaphoreHandle local_music_finished_sem;
@@ -33,13 +35,7 @@ static void local_stream_open(void *private_data) {
     local_music_player_t *player = (local_music_player_t *)private_data;
     local_stream_if_t *stream = &player->stream_if;
 
-    lfs_t *lfs = player->lfs;
-    lfs_file_t *file = &player->file;
-    char *path = player->path;
-
-    int ret = lfs_file_open(lfs, file, path, LFS_O_RDONLY);
-
-    player->file_size = lfs_file_size(lfs, file);
+    player->file_size = m_player.p_solution->files[m_player.index].music_size;
 
     stream->state = LOCAL_STREAM_STATE_GOOD;
     stream->offset = 0U;
@@ -52,14 +48,9 @@ static void local_stream_close(void *private_data) {
     local_music_player_t *player = (local_music_player_t *)private_data;
     local_stream_if_t *stream = &player->stream_if;
 
-    lfs_t *lfs = player->lfs;
-    lfs_file_t *file = &player->file;
-
     stream->state = LOCAL_STREAM_STATE_UNAVAILABLE;
 
     stream->offset = 0U;
-
-    lfs_file_close(lfs, file);
 }
 
 static uint32_t local_stream_read(void *private_data, uint8_t *buffer,
@@ -67,35 +58,52 @@ static uint32_t local_stream_read(void *private_data, uint8_t *buffer,
     local_music_player_t *player = (local_music_player_t *)private_data;
     local_stream_if_t *stream = &player->stream_if;
 
-    lfs_t *lfs = player->lfs;
-    lfs_file_t *file = &player->file;
 
-    int read = 0;
+
     uint32_t file_size = 0;
 
     if (stream->state != LOCAL_STREAM_STATE_GOOD) {
         return 0U;
     }
 
-    read = lfs_file_read(lfs, file, buffer, size);
-    if (read < 0) return 0;
-    stream->offset += read;
+    recv_file_t *cur_file = &player->p_solution->files[m_player.index];
+
+    bsp_flash_status_t status =  bsp_flash_read(
+                            cur_file->music_file_addr + stream->offset,
+                            buffer, size);
+    if (status != BSP_FLASH_STATUS_OK) {
+        return 0;
+    }
+
+    stream->offset += size;
     if (stream->offset >= player->file_size) {
         stream->state = LOCAL_STREAM_STATE_EOF;
         LOG_MSGID_I(LOCAL_MUSIC, "read file, eof", 0);
     }
 
-    return read;
+    return size;
 }
-
+#define MINIMUM(a,b)            ((a) < (b) ? (a) : (b))
 static uint32_t local_stream_seek(void *private_data, uint32_t offset) {
     local_music_player_t *player = (local_music_player_t *)private_data;
     local_stream_if_t *stream = &player->stream_if;
+    recv_file_t *cur_file = &player->p_solution->files[m_player.index];
 
-    lfs_t *lfs = player->lfs;
-    lfs_file_t *file = &player->file;
+    if (stream->state == LOCAL_STREAM_STATE_BAD) {
+        return stream->offset;
+    }
 
-    lfs_file_seek(lfs, file, offset, LFS_SEEK_SET);
+    stream->offset = MINIMUM(offset, cur_file->music_offset);
+
+    if (stream->offset == cur_file->music_offset) {
+        stream->state = LOCAL_STREAM_STATE_EOF;
+    }
+
+    if ((stream->offset < cur_file->music_offset) &&
+        (stream->state == LOCAL_STREAM_STATE_EOF)) {
+        stream->state = LOCAL_STREAM_STATE_GOOD;
+    }
+
     return 0;
 }
 
@@ -224,20 +232,11 @@ void app_local_music_play_next() {
 }
 
 static void app_local_music_update_id_from_flash(void) {
-    music_sulotion_t *p_solution;
-    music_files_t m_music_files;
+    m_player.p_solution = music_solution_get();
 
-    music_file_files_get(&m_music_files);
-    solution_read_from_nvdm(&p_solution);
-
-    m_player.music_ids_nums = 0;
-    for (int i = 0; i < p_solution->nums; i++) {
-        for (int n = 0; n < m_music_files.nums; n++)
-            if (p_solution->files[i].fd == m_music_files.files[n].fd &&
-                m_music_files.files[n].size > 10240) {
-                m_player.music_ids_list[i] = m_music_files.files[n].fd;
-                m_player.music_ids_nums++;
-            }
+    m_player.music_ids_nums = MUSIC_SOLUTION_NUMS;
+    for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
+        m_player.music_ids_list[i] = m_player.p_solution->files[i].music_id;        
     }
 }
 
@@ -266,12 +265,16 @@ void app_local_music_task(void) {
             case PLAY_START:
                 app_local_music_lock();
                 m_player.id = m_player.music_ids_list[m_player.index];
-                snprintf(m_player.path, PATH_MAX_LEN, "%u", m_player.id);
                 app_local_music_unlock();
 
                 LOG_MSGID_I(LOCAL_MUSIC, "play music id: %u, index %u", 2,
                             m_player.id, m_player.index);
 
+                if (m_player.id == 0) {
+                    LOG_MSGID_I(LOCAL_MUSIC, "play error, no resouce", 1);
+                    m_player.state = PLAY_IDLE;
+                    break;
+                }
                 /* 开始播放 */
                 audio_local_audio_control_init(local_music_callback, NULL);
                 ret = audio_local_audio_control_play(&m_player.stream_if);

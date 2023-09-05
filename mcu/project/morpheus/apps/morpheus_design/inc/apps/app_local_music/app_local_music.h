@@ -13,6 +13,7 @@ extern "C" {
 #include "local_audio_control.h"
 #include "local_stream_interface.h"
 #include "music_file.h"
+#include "music_solution.h"
 typedef enum {
     PLAY_IDLE = 0,
     PLAY_START,
@@ -48,6 +49,7 @@ typedef struct {
     bool ready;
     player_action_t last_action;
     player_action_t action;
+    music_sulotion_t *p_solution;
 
     uint32_t volume;
 } local_music_player_t;
