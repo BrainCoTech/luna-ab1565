@@ -268,7 +268,8 @@ static void app_bt_state_service_check_and_do_bt_visible(void)
         if (s_current_status.current_power_state == APP_BT_STATE_POWER_STATE_ENABLED) {
             if (!s_visible_pending_request.need_wait_aws || s_current_status.aws_connected) {
                 s_visible_pending_request.bt_visible = false;
-                bt_cm_discoverable(true);
+                if (!ship_mode_flag_get())
+                    bt_cm_discoverable(true);
             }
         }
     }
