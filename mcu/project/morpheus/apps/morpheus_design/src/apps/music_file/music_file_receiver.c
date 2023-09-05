@@ -109,7 +109,7 @@ typedef struct {
 } file_reciever_t;
 
 typedef struct {
-    uint32_t fd;
+    uint32_t id;
     uint32_t size;
     uint32_t offset;
     uint8_t *data;
@@ -131,7 +131,7 @@ static int request_file_data(uint32_t id, uint32_t offset) {
     return 0;
 }
 
-void receive_file_append_data(uint32_t fd, void *data, uint32_t size,
+void receive_file_append_data(uint32_t id, void *data, uint32_t size,
                               uint32_t offset) {
     recv_data_t recv_data;
 
@@ -144,7 +144,7 @@ void receive_file_append_data(uint32_t fd, void *data, uint32_t size,
     if (heap_size < 10240) vTaskDelay(20);
     if (heap_size < 5120) vTaskDelay(50);
     recv_data.size = size;
-    recv_data.fd = fd;
+    recv_data.id = id;
     recv_data.offset = offset;
     recv_data.data = pvPortMalloc(size);
     if (recv_data.data) {
@@ -301,7 +301,7 @@ void file_receiver_task(void) {
                 request_file_data(cur_file->music_id, cur_file->music_offset);
                 if (xQueueReceive(m_reciever.new_data_queue, &new_data,
                                   5000 / portTICK_PERIOD_MS) == pdTRUE) {
-                    if ((cur_file->music_id == new_data.fd) &&
+                    if ((cur_file->music_id == new_data.id) &&
                         (cur_file->music_offset == new_data.offset)) {
 
                         bsp_flash_write(
