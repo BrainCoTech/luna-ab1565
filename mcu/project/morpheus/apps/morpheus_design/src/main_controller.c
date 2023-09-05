@@ -86,7 +86,6 @@ void main_controller_set_state(uint32_t state) {
         before_goto_power_off = true;
     }
     if (state == SYS_CONFIG__STATE__PAIR) {
-        before_goto_power_off = false;
     }    
 
     BtMain msg = BT_MAIN__INIT;
@@ -217,7 +216,11 @@ void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
 }
 
 void main_bt_config(MainBt *msg) {
-    if (msg->power_off && !before_goto_power_off) {
+    if (msg->power_off) {
+        if (before_goto_power_off) {
+            before_goto_power_off = false;
+            return;
+        }
         LOG_MSGID_I(MAIN_CONTR, "set power off", 0);
         send_power_off_flag_to_app();
         vTaskDelay(1000);
