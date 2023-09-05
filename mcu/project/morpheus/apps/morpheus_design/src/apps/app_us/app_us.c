@@ -83,38 +83,39 @@ void app_us_tx_task() {
     us_tx_queue = xQueueCreate(US_TX_QUEUE_SIZE, sizeof(uint8_array_t));
 
     while (1) {
-        if (us_tx_queue) {
-            if (xQueueReceive(us_tx_queue, &tx, portMAX_DELAY) == pdTRUE) {
-                size = 0;
-                pos = 0;
-                retry_count = 0;
-                m_mtu = ble_us_get_mtu() - 3;
-                LOG_MSGID_I(APP_US, "mtu %d", 1, m_mtu);
+        if (us_tx_queue == NULL) {
+            vTaskDelay(100);
+            us_tx_queue = xQueueCreate(US_TX_QUEUE_SIZE, sizeof(uint8_array_t));
+            continue;
+        }
 
-                if ((tx.data != NULL) && (tx.size != 0)) {
-                    do {
-                        if (m_mtu == 0) break;
+        if (xQueueReceive(us_tx_queue, &tx, portMAX_DELAY) == pdTRUE) {
+            size = 0;
+            pos = 0;
+            retry_count = 0;
+            m_mtu = ble_us_get_mtu() - 3;
+            LOG_MSGID_I(APP_US, "mtu %d", 1, m_mtu);
 
-                        size = (tx.size <= m_mtu) ? tx.size : m_mtu;
+            if ((tx.data != NULL) && (tx.size != 0)) {
+                do {
+                    if (m_mtu == 0) break;
 
-                        if (ble_us_send_data(tx.data + pos, size) == 0) {
-                            pos += size;
-                            tx.size -= size;
-                            retry_count = 0;
-                        } else {
-                            vTaskDelay(pdMS_TO_TICKS(1));
-                            if (retry_count++ > 10) break;
-                        }
-                    } while (tx.size > 0);
+                    size = (tx.size <= m_mtu) ? tx.size : m_mtu;
 
-                    vPortFree(tx.data);
-                }
-            } else {
-                LOG_MSGID_I(APP_US, "recieve from app_us failed", 0);
+                    if (ble_us_send_data(tx.data + pos, size) == 0) {
+                        pos += size;
+                        tx.size -= size;
+                        retry_count = 0;
+                    } else {
+                        vTaskDelay(pdMS_TO_TICKS(1));
+                        if (retry_count++ > 10) break;
+                    }
+                } while (tx.size > 0);
+
+                vPortFree(tx.data);
             }
         } else {
-            us_tx_queue = xQueueCreate(US_TX_QUEUE_SIZE, sizeof(uint8_array_t));
-            vTaskDelay(100);
+            LOG_MSGID_I(APP_US, "recieve from app_us failed", 0);
         }
     }
 
@@ -151,19 +152,20 @@ void app_us_rx_task() {
         pdTRUE, UNPACKER_TIMER_ID, unpacker_cb_function);
 
     while (1) {
-        if (us_rx_queue != NULL) {
-            if (xQueueReceive(us_rx_queue, &rx, 100) == pdTRUE) {
-                packet_unpacker_enqueue(&us_unpacker, rx.data, rx.size);
-                packet_unpacker_process(&us_unpacker);
-                vPortFree(rx.data);
-            }
+        if (us_rx_queue == NULL) {
+            vTaskDelay(100);
+            us_rx_queue = xQueueCreate(US_RX_QUEUE_SIZE, sizeof(uint8_array_t));
+            continue;
+        }
+     
+        if (xQueueReceive(us_rx_queue, &rx, 100) == pdTRUE) {
+            packet_unpacker_enqueue(&us_unpacker, rx.data, rx.size);
+            packet_unpacker_process(&us_unpacker);
+            vPortFree(rx.data);
+        }
 
-            if (!app_us_notification_enable())
-                packet_unpacker_reset(&us_unpacker);
-
-        } else {
-            LOG_MSGID_I(APP_US, "us service rx task deleted", 0);
-            vTaskDelete(NULL);
+        if (!app_us_notification_enable()) {
+            packet_unpacker_reset(&us_unpacker);
         }
     }
 

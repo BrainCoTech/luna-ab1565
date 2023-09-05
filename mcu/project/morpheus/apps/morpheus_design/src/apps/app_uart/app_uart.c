@@ -260,7 +260,7 @@ void send_msg_to_main_controller(BtMain *msg) {
         msg_body.data = pvPortMalloc(msg_body.size);
         if (msg_body.data) {
             memcpy(msg_body.data, packer.packet, msg_body.size);
-            xQueueSend(uart_tx_queue, &msg_body, 20 / portTICK_PERIOD_MS);
+            app_uart_enqueue(&msg_body);
         }
         packet_packer_free(&packer);
     }
