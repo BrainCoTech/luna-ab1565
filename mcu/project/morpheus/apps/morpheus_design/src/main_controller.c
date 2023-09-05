@@ -59,6 +59,11 @@ void main_controller_powerkey_map(int status) {
     // hal_gpio_set_output(POWERKEY_PIN, status);
 }
 
+/******************************************************
+ * 长按2s关机，长按6秒进入配对
+ * 开始关机，不处理MCU发过来的关机。进入配对模式结束关机流程 
+ ******************************************************/
+static bool before_goto_power_off;
 static bool bt_connected;
 static bool ble_connected;
 
@@ -77,6 +82,12 @@ void main_controller_set_state(uint32_t state) {
     if (state == SYS_CONFIG__STATE__BT_DISCONNECTED) {
         bt_connected = false;
     }
+    if (state == SYS_CONFIG__STATE__POWER_OFF) {
+        before_goto_power_off = true;
+    }
+    if (state == SYS_CONFIG__STATE__PAIR) {
+        before_goto_power_off = false;
+    }    
 
     BtMain msg = BT_MAIN__INIT;
     msg.msg_id = 100;
@@ -206,7 +217,7 @@ void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
 }
 
 void main_bt_config(MainBt *msg) {
-    if (msg->power_off) {
+    if (msg->power_off && !before_goto_power_off) {
         LOG_MSGID_I(MAIN_CONTR, "set power off", 0);
         send_power_off_flag_to_app();
         vTaskDelay(1000);
