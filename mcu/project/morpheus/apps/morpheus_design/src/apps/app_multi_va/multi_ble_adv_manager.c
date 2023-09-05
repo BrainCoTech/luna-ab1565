@@ -254,8 +254,8 @@ uint8_t multi_adv_manager_get_adv_data_cb(multi_adv_instance_t instance, bt_gap_
                 adv_info.adv_param->primary_advertising_interval_max = 0xA0;
                 adv_info.adv_param->primary_advertising_interval_min = 0xA0;
             } else {
-                adv_info.adv_param->primary_advertising_interval_max = 0x29C;
-                adv_info.adv_param->primary_advertising_interval_min = 0x29C;
+                adv_info.adv_param->primary_advertising_interval_max = 0xA0;
+                adv_info.adv_param->primary_advertising_interval_min = 0xA0;
             }
         }
         s_multi_adv_data[instance].m_adv_addr_type = config_info->adv_param.own_address_type;
@@ -464,7 +464,7 @@ static void multi_ble_adv_manager_do_start_ble_adv(multi_adv_instance_t instance
                     if (MULTI_ADV_INTERVAL_NORMAL == s_multi_adv_data[instance].m_interval_mode) {
                         temp_interval = 0xA0;
                     } else {
-                        temp_interval = 0x29C;
+                        temp_interval = 0xA0;
                     }
                 } else {
                     temp_interval = adv_info.adv_param->primary_advertising_interval_max;

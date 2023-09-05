@@ -778,8 +778,8 @@ bt_status_t bt_app_common_advtising_start(uint16_t adv_interval_min,
     }
 
     bt_hci_cmd_le_set_advertising_parameters_t adv_param = {
-        .advertising_interval_min = 0x0500,
-        .advertising_interval_max = 0x0500,
+        .advertising_interval_min = 0x0050,
+        .advertising_interval_max = 0x0050,
         .advertising_type = BT_HCI_ADV_TYPE_CONNECTABLE_UNDIRECTED,
         .own_address_type = BT_ADDR_PUBLIC,
         .advertising_channel_map = 7,
@@ -813,6 +813,8 @@ bt_status_t bt_app_common_advtising_start(uint16_t adv_interval_min,
     uint8_t default_unique_id[16] = {0};
     bt_status_t ret = BT_STATUS_FAIL;
 
+    adv_interval_min = 0x50;
+    adv_interval_max = 0x50;
     if (adv_interval_min < 0x0020 || adv_interval_min > 0x4000 ||
         adv_interval_max < 0x0020 || adv_interval_max > 0x4000 ||
         adv_interval_max < adv_interval_min ||
@@ -1174,7 +1176,7 @@ bt_status_t bt_app_common_ext_advertising_stop_test(uint8_t instance)
 bt_status_t bt_app_common_start_ble_adv_with_default_interval(void)
 {
     bt_app_common_generate_device_name();
-    bt_status_t ret = bt_app_common_advtising_start(0xF4, 0xF4, NULL, 0);
+    bt_status_t ret = bt_app_common_advtising_start(0x50, 0x50, NULL, 0);
     if (BT_STATUS_SUCCESS == ret) {
         ret = bt_app_common_ble_adv_timer_start();
     }
@@ -1499,7 +1501,7 @@ static bt_status_t bt_app_common_event_callback(bt_msg_type_t msg, bt_status_t s
 #endif
             if (BT_APP_COMMON_BLE_ADV_STOPPED == bt_app_adv_ongoing && ble_adv_increase_interval) {
                 ble_adv_increase_interval = false;
-                bt_app_common_advtising_start(0x29C, 0x29C, NULL, 0);
+                bt_app_common_advtising_start(0x50, 0x50, NULL, 0);
             }
         }
         break;
