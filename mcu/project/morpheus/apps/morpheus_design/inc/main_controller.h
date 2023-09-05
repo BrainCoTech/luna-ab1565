@@ -18,6 +18,16 @@ void main_controller_set_state(uint32_t state);
 
 void main_controller_powerkey_map(int status);
 
+bool get_music_type(void);
+
+void set_music_type(bool app_music);
+
+void send_track_id_to_main(uint32_t id, bool playing);
+
+void a2dp_playing_flag_set(bool flag);
+
+bool a2dp_playing_flag_get(void);
+
 #ifdef __cplusplus
 }
 #endif
