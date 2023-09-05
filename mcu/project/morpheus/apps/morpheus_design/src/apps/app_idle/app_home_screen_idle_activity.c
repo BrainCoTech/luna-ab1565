@@ -764,6 +764,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             }
 #else
             app_bt_state_service_set_bt_visible(false, false, 0);
+            apps_config_set_vp(VP_INDEX_PAIRING_TIMEOUT, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
             main_controller_set_state(SYS_CONFIG__STATE__PARI_TIMEOUT);
 #endif
             break;

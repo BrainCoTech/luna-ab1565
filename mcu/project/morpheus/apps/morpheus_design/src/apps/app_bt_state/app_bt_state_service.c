@@ -524,6 +524,7 @@ static bool app_bt_state_service_process_interaction_events(uint32_t event_id,
             break;
         case APPS_EVENTS_INTERACTION_BT_VISIBLE_TIMEOUT:
             APPS_LOG_MSGID_I(LOG_TAG" received BT visible timeout", 0);
+            apps_config_set_vp(VP_INDEX_PAIRING_TIMEOUT, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
             main_controller_set_state(SYS_CONFIG__STATE__PARI_TIMEOUT);
 #ifdef MTK_AWS_MCE_ENABLE
             /* The Agent should disable BT visibility when BT visibility duration timeout. */
