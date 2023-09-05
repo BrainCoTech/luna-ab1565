@@ -66,15 +66,16 @@ void app_spp_rx_task() {
 
 
     while (1) {
-        if (spp_rx_queue != NULL) {
-            if (xQueueReceive(spp_rx_queue, &rx, 100) == pdTRUE) {
-                packet_unpacker_enqueue(&spp_unpacker, rx.data, rx.size);
-                packet_unpacker_process(&spp_unpacker);
-                vPortFree(rx.data);
-            }
-        } else {
-            LOG_MSGID_I(APP_SPP, "us service rx task deleted", 0);
-            vTaskDelete(NULL);
+        if (spp_rx_queue == NULL) {
+            vTaskDelay(100);
+            spp_rx_queue = xQueueCreate(SPP_RX_QUEUE_SIZE, sizeof(uint8_array_t));
+            continue;
+        }
+        
+        if (xQueueReceive(spp_rx_queue, &rx, 100) == pdTRUE) {
+            packet_unpacker_enqueue(&spp_unpacker, rx.data, rx.size);
+            packet_unpacker_process(&spp_unpacker);
+            vPortFree(rx.data);
         }
     }
 
