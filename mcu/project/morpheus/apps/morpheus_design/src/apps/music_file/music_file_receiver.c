@@ -135,6 +135,10 @@ void receive_file_append_data(uint32_t fd, void *data, uint32_t size,
                               uint32_t offset) {
     recv_data_t recv_data;
 
+    if (size == 0) {
+        return;
+    }
+
     uint32_t heap_size = xPortGetFreeHeapSize();
     if (heap_size < 20480) vTaskDelay(5);
     if (heap_size < 10240) vTaskDelay(20);
@@ -237,6 +241,23 @@ void file_receiver_task(void) {
 
             case FILE_RECV_STATE_STARTED:
                 LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_STARTED", 0);
+                bool file_existed = false;
+
+                // for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
+                //     if (new_recv_file.music_id == m_reciever.p_solution->files[i].music_id &&
+                //         new_recv_file.music_size == m_reciever.p_solution->files[i].music_size) {
+                //         cur_file->solution_id = new_recv_file.solution_id;
+                //         cur_file->music_id = new_recv_file.music_id;
+                //         cur_file->music_size = new_recv_file.music_size;
+                //         cur_file->music_offset = new_recv_file.music_size;
+                //         file_existed = true;
+                //         break;
+                //     }
+                // }
+                // if (file_existed) {
+                //     m_reciever.cur_state = FILE_RECV_STATE_DOWNLOADING;
+                //     break;
+                // }
                 // 查找Flash address 并且擦除
                 int free_partition_idx = find_free_partition();
                 LOG_MSGID_I(MUSIC_RECV, "free_partition_idx %d", 1,
@@ -289,14 +310,16 @@ void file_receiver_task(void) {
 
                         
 
-                        if (cur_file->music_offset == cur_file->music_size) {
-                            LOG_MSGID_I(MUSIC_RECV, "music transfer done", 0);
-                            m_reciever.cur_state = FILE_RECV_STATE_FINISHED;
-                        }
                     }
 
                     vPortFree(new_data.data);
                 } else {
+                }
+
+                if (cur_file->music_offset == cur_file->music_size) {
+                    LOG_MSGID_I(MUSIC_RECV, "music transfer done", 0);
+                    music_file_sync_status_set(cur_file);
+                    m_reciever.cur_state = FILE_RECV_STATE_FINISHED;
                 }
                 break;
 
@@ -341,6 +364,8 @@ void music_config_handler(uint32_t msg_id, MusicSync *music_sync) {
 
     for (int i = 0; i < music_sync->n_music_ids; i++) {
         new_recv_file.solution_id = i + 1;
+        new_recv_file.solution_id = music_sync->music_ids[i];
+
         new_recv_file.music_id = music_sync->music_ids[i];
         new_recv_file.music_size = music_sync->music_file_size[i];
         new_recv_file.music_offset = 0;
