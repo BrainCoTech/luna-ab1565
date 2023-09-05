@@ -85,6 +85,7 @@
 #include "app_uart.h"
 #include "app_usb.h"
 #include "app_spp.h"
+#include "app_online_music.h"
 #ifdef BRC_LOCAL_MUSIC_ENABLE
 #include "music_file_receiver.h"
 #include "app_local_music.h"
@@ -166,6 +167,7 @@ static const tasks_list_t tasks_list[] = {
 #endif
     {app_usb_tx_task, "APP_USB_TX", 704, NULL, TASK_PRIORITY_SOFT_REALTIME},
     {app_usb_rx_task, "APP_USB_RX", 704, NULL, TASK_PRIORITY_SOFT_REALTIME},
+    {app_online_music_task, "APP_ONLINE", 704, NULL, TASK_PRIORITY_NORMAL},
 };
 
 #define tasks_list_count  (sizeof(tasks_list) / sizeof(tasks_list_t))

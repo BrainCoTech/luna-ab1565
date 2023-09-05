@@ -7,6 +7,16 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+#define ONLINE_AVRCP_STATUS_PLAY 1
+#define ONLINE_AVRCP_STATUS_PAUSE 2
+#define ONLINE_AVRCP_CMD_PLAY 3
+#define ONLINE_AVRCP_CMD_PAUSE 4
+
+typedef struct {
+    uint32_t event;
+    uint32_t ticks;
+} online_music_event_t;
+
 typedef enum {
     AUDIO_ACTION_NONE = 0,
     AUDIO_ACTION_APP_PLAY,        // key try to play or pause audio
@@ -48,6 +58,12 @@ bool a2dp_playing_flag_get(void);
 void a2dp_play_handler(void);
 
 void a2dp_pause_handler(void);
+
+void app_online_music_task(void);
+
+bool is_user_disconnect_a2dp();
+
+void user_disconnect_a2dp_set(bool flag);
 
 #ifdef __cplusplus
 }

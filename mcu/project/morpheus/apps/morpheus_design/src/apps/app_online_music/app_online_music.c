@@ -33,6 +33,11 @@ static bool m_is_app_music;
 static bool user_pause_music;
 static uint32_t last_music_id;
 
+#define EVENT_QUEUE_SIZE 20
+static QueueHandle_t event_queue;
+#define EVENT_WAIT_PROC_TIME 300 /*ms*/
+static xSemaphoreHandle event_wait_proc_sem;
+
 static void a2dp_check_cb_function(TimerHandle_t xTimer);
 
 void app_online_music_var_init(void) {
@@ -138,7 +143,6 @@ void main_controller_audio_config(play_action_t action) {
         return;
     }
 
-
     LOG_MSGID_I(MUSIC_CONTR, "play_state %d, action %d", 2, play_state, action);
     switch (play_state) {
         case AUDIO_PLAY_STATE_STOP:
@@ -153,7 +157,7 @@ void main_controller_audio_config(play_action_t action) {
                 lead_off_paused = false;
             }
             if (action == AUDIO_ACTION_SW_STOP) {
-                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
+                // bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
 
                 play_state = AUDIO_PLAY_STATE_STOP;
             }
@@ -241,37 +245,110 @@ void main_controller_audio_config(play_action_t action) {
     xSemaphoreGive(audio_config_sem);
 }
 
-void a2dp_play_handler(void) {
-    LOG_MSGID_I(MUSIC_CONTR, "avrcp state: play", 0);
+bool user_disconnect_a2dp;
+bool is_user_disconnect_a2dp()
+{
+    return user_disconnect_a2dp;
+}
 
-    main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
-    a2dp_playing_flag_set(true);
+void user_disconnect_a2dp_set(bool flag)
+{
+    user_disconnect_a2dp = flag;
+}
 
-    if (!get_music_type()) {
-        send_track_id_to_main(0, true);
+void disconnect_a2dp(void) {
+    bt_bd_addr_t *p_bd_addr = bt_device_manager_remote_get_dev_by_seq_num(1);
+    if (p_bd_addr) {
+        bt_cm_connect_t dis_conn;
+        dis_conn.profile =
+            BT_CM_PROFILE_SERVICE_MASK(BT_CM_PROFILE_SERVICE_A2DP_SINK) |
+            BT_CM_PROFILE_SERVICE_MASK(BT_CM_PROFILE_SERVICE_A2DP_SOURCE);
+        memcpy(dis_conn.address, *p_bd_addr, sizeof(bt_bd_addr_t));
+        bt_cm_disconnect(&dis_conn);
     }
-    
-    main_controller_audio_config(AUDIO_ACTION_KEY_PLAY_PAUSE);
-    main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
+    user_disconnect_a2dp = true;
+}
+
+void connect_a2dp(void) {
+    LOG_MSGID_I(MUSIC_CONTR, "try reconnect", 0);
+    bt_cm_connect_t conn_cntx;
+    bt_bd_addr_t *address_p = bt_cm_get_last_connected_device();
+    if (address_p == NULL) {
+        return;
+    }
+    conn_cntx.profile = BT_CM_PROFILE_SERVICE_MASK(BT_CM_PROFILE_SERVICE_A2DP_SINK);
+    bt_cm_memcpy(&conn_cntx.address, address_p, sizeof(bt_bd_addr_t));
+    bt_cm_connect(&conn_cntx);
+}
+
+
+void a2dp_play_handler(void) {
+    online_music_event_t event;
+    event.event = ONLINE_AVRCP_STATUS_PLAY;
+    xQueueSend(event_queue, &event, 100/portTICK_PERIOD_MS);
 }
 
 void a2dp_pause_handler(void) {
-    LOG_MSGID_I(MUSIC_CONTR, "avrcp state: pause", 0);
+    online_music_event_t event;
+    event.event = ONLINE_AVRCP_STATUS_PAUSE;
+    xQueueSend(event_queue, &event, 100/portTICK_PERIOD_MS);
+}
 
-    a2dp_playing_flag_set(false);
+void app_online_music_task(void) {
+    online_music_event_t new_event;
+    online_music_event_t cur_event;
+    uint32_t count = 0;
 
-    if (!get_music_type()) {
-        send_track_id_to_main(0, false);
+    event_queue = xQueueCreate(EVENT_QUEUE_SIZE, sizeof(online_music_event_t));
+    event_wait_proc_sem = xSemaphoreCreateBinary();
+
+    while (1) {
+        if (event_queue == NULL) {
+            vTaskDelay(100);
+            event_queue = xQueueCreate(EVENT_QUEUE_SIZE, sizeof(online_music_event_t));
+            continue;
+        }
+
+        if (xQueueReceive(event_queue, &new_event, EVENT_WAIT_PROC_TIME / portTICK_PERIOD_MS) == pdTRUE) {
+            cur_event = new_event;
+            continue;
+        }
+
+        if (user_disconnect_a2dp) {
+            if (count++ > 2000/EVENT_WAIT_PROC_TIME) {
+                count = 0;
+                connect_a2dp();
+            }
+        } else {
+            count = 0;
+        }
+        if (cur_event.event == ONLINE_AVRCP_STATUS_PLAY) {
+            LOG_MSGID_I(MUSIC_CONTR, "avrcp state: play", 0);
+            cur_event.event = 0;
+
+            main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
+
+            a2dp_playing_flag_set(true);
+            // if (!get_music_type()) {
+            //     send_track_id_to_main(0, true);
+            // }
+            // main_controller_audio_config(AUDIO_ACTION_APP_PLAY);
+
+            // main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
+        }
+
+        if (cur_event.event == ONLINE_AVRCP_STATUS_PAUSE) {
+            LOG_MSGID_I(MUSIC_CONTR, "avrcp state: pause", 0);
+            cur_event.event = 0;
+
+            a2dp_playing_flag_set(false);
+            // if (!get_music_type()) {
+            //     send_track_id_to_main(0, false);
+            // }
+            // main_controller_audio_sm_reset();
+
+            // main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
+        }
+
     }
-
-    if (lead_off_paused) {
-        lead_off_paused = false;
-        LOG_MSGID_I(MUSIC_CONTR, "avrcp state: lead off pause", 0);
-    } else {
-        main_controller_audio_sm_reset();
-        main_controller_audio_config(AUDIO_ACTION_APP_PAUSE);
-        LOG_MSGID_I(MUSIC_CONTR, "avrcp state: key/app pause", 0);
-    }
-
-    main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
 }

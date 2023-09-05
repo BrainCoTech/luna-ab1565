@@ -118,6 +118,8 @@ void main_controller_set_time(uint64_t time) {
     send_msg_to_main_controller(&msg);
 }
 
+
+
 static AudioConfig__Mode m_music_mode;
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
@@ -127,16 +129,20 @@ void main_controller_set_music_mode(AudioConfig__Mode mode) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause local music", mode);
             app_local_music_pause();
             wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 3000);
+            vTaskDelay(1000);
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PLAY, NULL);
             m_music_mode = mode;
             music_sync_event_set(MUSIC_SYNC_RESUME);
         }
         if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause a2dp music", mode);
-            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
-            
+            if (a2dp_playing_flag_get())
+                disconnect_a2dp();
+            int count = 0;
             while(a2dp_playing_flag_get()) {
-                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
                 vTaskDelay(100);
+                if (count++ > 20)
+                    break;
             }
             m_music_mode = mode;
         }        

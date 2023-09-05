@@ -138,6 +138,7 @@ void local_music_callback(local_audio_state_t state, void *user_data) {
             break;
 
         case LOCAL_AUDIO_STATE_SUSPEND:
+            m_player.action = ACTION_STOP;
             break;
 
         case LOCAL_AUDIO_STATE_FINISH:

@@ -224,7 +224,10 @@ bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t even
                         local_ctx->connection_state = true;
                         local_ctx->bt_power_off = false;
                         APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY" Agent connection_state set true", 0);
-                        apps_config_set_vp(VP_INDEX_CONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                        if (!is_user_disconnect_a2dp()) {
+                            apps_config_set_vp(VP_INDEX_CONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                            user_disconnect_a2dp_set(false);
+                        }
                         main_controller_set_state(SYS_CONFIG__STATE__BT_CONNECTED);                        
                         bt_conn_component_update_mmi();
                         local_ctx->conn_device_num = 1;
@@ -234,9 +237,13 @@ bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t even
                         APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY" Agent connect another device", 0);
                         if (local_ctx->conn_device_num == APP_CONN_MAX_DEVICE_NUM) {
                             //this will take over another
-                            apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                            if (!is_user_disconnect_a2dp())
+                                apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
                         }
-                        apps_config_set_vp(VP_INDEX_CONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                        if (is_user_disconnect_a2dp()) {
+                            apps_config_set_vp(VP_INDEX_CONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                            user_disconnect_a2dp_set(false);
+                        }
                     }
                 } else if (BT_CM_ACL_LINK_DISCONNECTED != remote_update->pre_acl_state
                            && BT_CM_ACL_LINK_DISCONNECTED == remote_update->acl_state) {
@@ -260,7 +267,8 @@ bool bt_conn_component_bt_cm_event_proc(ui_shell_activity_t *self, uint32_t even
 							}
 							else
 							{
-								apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                                if (!is_user_disconnect_a2dp())
+								    apps_config_set_vp(VP_INDEX_DEVICE_DISCONNECTED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
 							}
 
 							g_manual_pairing = false;
