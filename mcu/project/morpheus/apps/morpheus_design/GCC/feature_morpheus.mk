@@ -93,8 +93,8 @@ MTK_BT_DUO_ENABLE = y
 # bt module enable
 MTK_BT_ENABLE                       = y
 MTK_BLE_ONLY_ENABLE                 = n
-MTK_BT_HFP_ENABLE                   = n
-MTK_BT_HSP_ENABLE                   = n
+MTK_BT_HFP_ENABLE                   = y
+MTK_BT_HSP_ENABLE                   = y
 MTK_BT_AVRCP_ENABLE                 = y
 MTK_BT_AVRCP_ENH_ENABLE             = y
 MTK_BT_A2DP_ENABLE                  = y
@@ -151,7 +151,7 @@ MTK_MP3_CODEC_TASK_DEDICATE_BRC     = n
 # wave decoder by charlie
 MTK_WAV_DECODER_ENABLE              = n
 # record middleware
-MTK_RECORD_ENABLE                   = n
+MTK_RECORD_ENABLE                   = y
 # audio dump
 MTK_AUDIO_DUMP_ENABLE               = y
 # PEQ
