@@ -231,5 +231,7 @@ bool app_music_set_volume_value(bool isUp, uint32_t value);
 */
 bool app_music_get_curr_link_is_connected(void);
 
+bool app_music_is_play(void);
+
 #endif /*__APP_MUSIC_UTILS_H__*/
 

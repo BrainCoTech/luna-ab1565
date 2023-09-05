@@ -98,6 +98,8 @@ extern bt_le_sink_srv_music_active_handle g_music_active_handle;
 uint8_t g_music_in_ear_config = APP_MUSIC_IN_EAR_NONE;        /**<  Record the music in ear config. */
 #endif
 
+static bool g_is_playing;
+
 static bool app_music_do_music_actions(bool from_aws_data, ui_shell_activity_t *self, apps_config_key_action_t action)
 {
     bt_sink_srv_action_t sink_action = BT_SINK_SRV_ACTION_NONE;
@@ -397,6 +399,8 @@ apps_config_key_action_t app_music_utils_proc_key_events(
     app_event_key_event_decode(&key_id, &key_event, event_id);
 
     apps_config_key_action_t action;
+    if (event_id == (0x5200 | (KEY_AVRCP_PLAY & 0xFF))) action = KEY_AVRCP_PLAY;
+    if (event_id == (0x5200 | (KEY_AVRCP_PAUSE & 0xFF))) action = KEY_AVRCP_PAUSE;
 
     if (extra_data) {
         action = *(uint16_t *)extra_data;
@@ -444,10 +448,12 @@ bool app_music_idle_proc_bt_sink_events(ui_shell_activity_t *self, uint32_t even
                 APPS_LOG_MSGID_I(APP_MUSIC_UTILS" app_music_proc_bt_sink_events ui_shell_start_activity , current activity : %x, isAutoPaused: %d",
                         2, (uint32_t)self, local_context->isAutoPaused);
                 local_context->music_playing = true;
+                g_is_playing = true;
             }
         }
         else if ((param->previous == BT_SINK_SRV_STATE_STREAMING) && (param->current != BT_SINK_SRV_STATE_STREAMING)) {
             local_context->music_playing = false;
+            g_is_playing = false;
         }
     }
 #if defined(MTK_IN_EAR_FEATURE_ENABLE)
@@ -465,6 +471,7 @@ bool app_music_idle_proc_bt_sink_events(ui_shell_activity_t *self, uint32_t even
             if ((!local_context->music_playing) && (bt_sink_state < BT_SINK_SRV_STATE_INCOMING)) {
                 local_context->isAutoPaused = false;
                 local_context->music_playing = true;
+                g_is_playing = true;
                 ui_shell_start_activity(self, app_music_activity_proc, ACTIVITY_PRIORITY_MIDDLE, local_context, 0);
                 APPS_LOG_MSGID_I(APP_MUSIC_UTILS" app_music_proc_bt_sink_events ui_shell_start_activity , current activity : %x, isAutoPaused: %d",
                         2, (uint32_t)self, local_context->isAutoPaused);
@@ -473,6 +480,7 @@ bool app_music_idle_proc_bt_sink_events(ui_shell_activity_t *self, uint32_t even
         else if ((BT_AVRCP_STATUS_PLAY_PAUSED == avrcp_status) || (BT_AVRCP_STATUS_PLAY_STOPPED == avrcp_status)) {
             if (0 == memcmp(local_context->activate_con_addr, event->avrcp_status_change.address, sizeof(bt_bd_addr_t))){
                 local_context->music_playing = false;
+                g_is_playing = false;
             }
         }
     }
@@ -669,6 +677,7 @@ bool app_music_idle_proc_gsound_reject_action(ui_shell_activity_t *self, bt_sink
                     APPS_LOG_MSGID_I(APP_MUSIC_UTILS" app_music_proc_gsound_reject_action ui_shell_start_activity app_music_activity_proc, current activity : %x, isAutoPaused: %d", 2,
                                      (uint32_t)self, local_ctx->isAutoPaused);
                     local_ctx->music_playing = true;
+                    g_is_playing = true;
                 }
             }
             ret = true;
@@ -992,3 +1001,7 @@ bool app_music_get_curr_link_is_connected(void)
     return ret;
 }
 
+bool app_music_is_play(void)
+{
+    return g_is_playing;
+}
