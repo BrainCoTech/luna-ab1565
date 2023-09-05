@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "morpheus_utils.h"
 
-#define FW_VERSION "0.0.5"
+#define FW_VERSION "0.1.0"
 #define MODEL "Easleep"
 
 #define FIXED_LOCAL_VOLUME 1
