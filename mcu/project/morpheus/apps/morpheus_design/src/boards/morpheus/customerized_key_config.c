@@ -112,7 +112,17 @@ const apps_config_key_event_map_t temp_key_dlong_release_configs[] = {
 
 // For right side or default configurable mapping table
 const static apps_config_configurable_table_t default_configurable_table[] = {
-   {
+    {
+        APPS_CONFIG_KEY_SHORT_CLICK,
+        DEVICE_KEY_POWER,
+        KEY_ANC,
+        (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
+        | (1 << APP_HFP_OUTGOING) | (1 << APP_HFP_CALLACTIVE) | (1 << APP_HFP_CALLACTIVE_WITHOUT_SCO) | (1 << APP_HFP_TWC_INCOMING)
+        | (1 << APP_HFP_TWC_OUTGOING) | (1 << APP_HFP_MULTITPART_CALL) | (1 << APP_A2DP_PLAYING) | (1 << APP_STATE_HELD_ACTIVE)
+        | (1 << APP_STATE_FIND_ME) | (1 << APP_ULTRA_LOW_LATENCY_PLAYING) | (1 << APP_WIRED_MUSIC_PLAY)
+        | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
+    },
+    {
         APPS_CONFIG_KEY_LONG_PRESS_1,
         DEVICE_KEY_POWER,
         KEY_POWER_ON,
