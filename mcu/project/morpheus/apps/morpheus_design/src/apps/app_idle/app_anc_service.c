@@ -180,7 +180,7 @@ void app_anc_service_save_into_flash(void)
 void app_anc_service_play_vp(void)
 {
     APPS_LOG_MSGID_I(LOG_TAG" play VP", 0);
-    apps_config_set_vp(VP_INDEX_SUCCESSED, true, 200, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+    // apps_config_set_vp(VP_INDEX_SUCCESSED, true, 200, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
 }
 
 bool app_anc_service_is_enable(void)

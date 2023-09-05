@@ -149,10 +149,10 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
 void app_vp_play_callback(uint32_t idx, vp_err_code err) {}
 
 void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
-    LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->id);
+    LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->vp_id);
 
-    if (cfg->id > 0) {
-        apps_config_set_vp(cfg->id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
+    if (cfg->vp_id > 0) {
+        apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
                         cfg->preemption, app_vp_play_callback);
     }
 
@@ -160,7 +160,7 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
     PromptConfigResp prompt_resp = PROMPT_CONFIG_RESP__INIT;
 
     msg.msg_id = msg_id;
-    prompt_resp.vp_id = cfg->id;
+    prompt_resp.vp_id = cfg->vp_id;
     send_msg_to_main_controller(&msg);
 }
 

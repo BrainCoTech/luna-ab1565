@@ -278,7 +278,7 @@ static bool app_fota_idle_proc_fota_group(struct _ui_shell_activity *self,
             if (role == BT_AWS_MCE_ROLE_AGENT)
 #endif
             {
-                apps_config_set_vp(VP_INDEX_SUCCESSED, TRUE, 200, VOICE_PROMPT_PRIO_MEDIUM, FALSE, NULL);
+                // apps_config_set_vp(VP_INDEX_SUCCESSED, TRUE, 200, VOICE_PROMPT_PRIO_MEDIUM, FALSE, NULL);
                 apps_config_set_foreground_led_pattern(LED_INDEX_FOTA_START, 30, FALSE);
             }
 #ifdef APPS_SLEEP_AFTER_NO_CONNECTION

@@ -779,7 +779,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                     memcpy(connect_param.address, *p_bd_addr, sizeof(bt_bd_addr_t));
                     APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", app_homescreen_idle_activity receive KEY_RECONNECT_LAST_DEVICE", 0);
                     bt_cm_connect(&connect_param);
-                    apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                    // apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
                 }
             }
             ret = true;
@@ -803,7 +803,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             {
                 APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", app_homescreen_idle_activity receive KEY_RESET_PAIRED_DEVICES", 0);
                 bt_device_manager_unpair_all();
-                apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                // apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
             }
             ret = true;
             break;
@@ -828,7 +828,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             }
             apps_config_set_vp(VP_INDEX_SUCCESSED, true, 100, VOICE_PROMPT_PRIO_EXTREME, false, NULL);
 #else
-            apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_EXTREME, false, NULL);
+            // apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_EXTREME, false, NULL);
 #endif
             s_factory_reset_key_action = KEY_FACTORY_RESET;
             ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,
@@ -849,7 +849,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             }
             apps_config_set_vp(VP_INDEX_SUCCESSED, true, 100, VOICE_PROMPT_PRIO_EXTREME, false, NULL);
 #else
-            apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_EXTREME, false, NULL);
+            // apps_config_set_vp(VP_INDEX_SUCCESSED, false, 0, VOICE_PROMPT_PRIO_EXTREME, false, NULL);
 #endif
             s_factory_reset_key_action = KEY_FACTORY_RESET_AND_POWEROFF;
             ui_shell_send_event(false, EVENT_PRIORITY_HIGNEST, EVENT_GROUP_UI_SHELL_APP_INTERACTION,

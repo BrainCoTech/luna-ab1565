@@ -251,7 +251,7 @@ static void app_music_idle_activity_handle_peq_switch()
 {
 #if defined(MTK_PEQ_ENABLE) || defined(MTK_LINEIN_PEQ_ENABLE)
 
-    apps_config_set_vp(VP_INDEX_DOUBLE, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+    // apps_config_set_vp(VP_INDEX_DOUBLE, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
 
 #ifdef MTK_AWS_MCE_ENABLE
     if (bt_device_manager_aws_local_info_get_role() == BT_AWS_MCE_ROLE_PARTNER) {
@@ -270,7 +270,7 @@ static void app_music_idle_activity_handle_peq_switch()
     APPS_LOG_MSGID_I(APP_MUSIC_TAG" app_music_idle_activity_handle_peq_switch, get peq status result : %d", 1, status);
 
     if (status == 0) {
-        apps_config_set_vp(VP_INDEX_FAILED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        // apps_config_set_vp(VP_INDEX_FAILED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
         return;
     }
 
@@ -280,7 +280,7 @@ static void app_music_idle_activity_handle_peq_switch()
                                 2, total_peq_num, current_peq_id);
 
     if (current_peq_id > total_peq_num) {
-        apps_config_set_vp(VP_INDEX_FAILED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        // apps_config_set_vp(VP_INDEX_FAILED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
         return;
     }
 
@@ -297,9 +297,9 @@ static void app_music_idle_activity_handle_peq_switch()
                             2, next_peq_id, status);
 
     if (status == RACE_ERRCODE_SUCCESS) {
-        apps_config_set_vp(VP_INDEX_SUCCESSED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        // apps_config_set_vp(VP_INDEX_SUCCESSED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
     } else {
-        apps_config_set_vp(VP_INDEX_FAILED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        // apps_config_set_vp(VP_INDEX_FAILED, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
     }
 #endif /* PEQ_ENABLE || LINE_IN_PEQ_ENABLE */
 }
