@@ -265,7 +265,7 @@ const bt_cm_config_t *bt_customer_config_app_get_cm_config(void)
 
 
 /******************** Config the parameter of sink GAP *******************************************/
-#define BT_SINK_SRV_CM_DB_NAME  "BT_Headset_Demo"                       /* Default BT name */
+#define BT_SINK_SRV_CM_DB_NAME  "Luna"                       /* Default BT name */
 #define BT_SINK_SRV_CM_DB_COD 0x240404                                  /* Default BT COD(Class Of Device) refer to BT spec. */
 #define BT_SINK_SRV_CM_DB_IO    BT_GAP_IO_CAPABILITY_NO_INPUT_NO_OUTPUT /* Default GAP IO capability */
 
@@ -324,6 +324,16 @@ const bt_gap_config_t *bt_customer_config_get_gap_config(void)
                  (*local_addr)[5], (*local_addr)[4], (*local_addr)[3],
                  (*local_addr)[2], (*local_addr)[1], (*local_addr)[0]);
     }
+
+    strcpy(name, BT_SINK_SRV_CM_DB_NAME);
+    bt_bd_addr_t *local_addr = bt_device_manager_get_local_address();
+    uint8_t addr_str[13];
+
+    snprintf((char *)addr_str, sizeof(addr_str), "%.2X%.2X%.2X%.2X%.2X%.2X",
+                (*local_addr)[5], (*local_addr)[4], (*local_addr)[3],
+                (*local_addr)[2], (*local_addr)[1], (*local_addr)[0]);
+    snprintf((char *)name, sizeof(name), "%s-%s", BT_SINK_SRV_CM_DB_NAME, addr_str + 7);
+
     name_length = strlen((char *)name);
     if (name_length > sizeof(g_bt_sink_srv_gap_config.device_name) - 1) {
         name_length = sizeof(g_bt_sink_srv_gap_config.device_name) - 1;
@@ -512,54 +522,86 @@ bool bt_sink_srv_aird_support_call_mode(bt_handle_t handle)
 
 #define BT_SINK_STATE_MAX_INDEX 25
 typedef struct {
+
     uint16_t le_state;
     uint16_t edr_state;
     uint16_t map_state;
 } bt_sink_srv_state_map;
 static const bt_sink_srv_state_map g_sink_state_tab[BT_SINK_STATE_MAX_INDEX] =
 {
-#if 0    
+
+#if 0
+    
 {(BT_SINK_SRV_STATE_INCOMING | BT_SINK_SRV_STATE_OUTGOING | BT_SINK_SRV_STATE_ACTIVE | BT_SINK_SRV_STATE_HELD_ACTIVE), BT_SINK_SRV_STATE_STREAMING, BT_SINK_STATE_NOT_CHANGE}
+
 #endif
 
 { BT_SINK_SRV_STATE_INCOMING, BT_SINK_SRV_STATE_STREAMING, BT_SINK_SRV_STATE_INCOMING},
+
 { BT_SINK_SRV_STATE_INCOMING, BT_SINK_SRV_STATE_INCOMING, BT_SINK_STATE_INVAILD},
 { BT_SINK_SRV_STATE_INCOMING, (BT_SINK_SRV_STATE_OUTGOING | BT_SINK_SRV_STATE_ACTIVE | BT_SINK_SRV_STATE_HELD_ACTIVE) , BT_SINK_SRV_STATE_TWC_INCOMING},
+
 { BT_SINK_SRV_STATE_OUTGOING, BT_SINK_SRV_STATE_STREAMING, BT_SINK_SRV_STATE_OUTGOING},
 { BT_SINK_SRV_STATE_OUTGOING, BT_SINK_SRV_STATE_INCOMING, BT_SINK_SRV_STATE_TWC_INCOMING},
+
 { BT_SINK_SRV_STATE_OUTGOING, BT_SINK_SRV_STATE_OUTGOING, BT_SINK_STATE_INVAILD},
+
 { BT_SINK_SRV_STATE_OUTGOING, BT_SINK_SRV_STATE_ACTIVE,  BT_SINK_SRV_STATE_TWC_OUTGOING},
+
 { BT_SINK_SRV_STATE_OUTGOING, BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_SRV_STATE_TWC_OUTGOING},
+
 { BT_SINK_SRV_STATE_ACTIVE, BT_SINK_SRV_STATE_STREAMING, BT_SINK_SRV_STATE_ACTIVE},
+
 { BT_SINK_SRV_STATE_ACTIVE, BT_SINK_SRV_STATE_INCOMING, BT_SINK_SRV_STATE_TWC_INCOMING},
+
 { BT_SINK_SRV_STATE_ACTIVE, BT_SINK_SRV_STATE_OUTGOING, BT_SINK_SRV_STATE_TWC_OUTGOING},
+
 { BT_SINK_SRV_STATE_ACTIVE, BT_SINK_SRV_STATE_ACTIVE, BT_SINK_STATE_INVAILD},
+
 { BT_SINK_SRV_STATE_ACTIVE, BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_SRV_STATE_HELD_ACTIVE},
+
 { BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_SRV_STATE_STREAMING, BT_SINK_SRV_STATE_HELD_REMAINING},
+
 { BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_SRV_STATE_INCOMING, BT_SINK_SRV_STATE_TWC_INCOMING},
 { BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_SRV_STATE_OUTGOING, BT_SINK_SRV_STATE_TWC_OUTGOING},
+
 { BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_SRV_STATE_ACTIVE, BT_SINK_SRV_STATE_HELD_ACTIVE},
 { BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_SRV_STATE_HELD_REMAINING, BT_SINK_STATE_INVAILD}
-};
 
-uint16_t bt_sink_srv_get_state_map_table(uint16_t le_state, uint16_t edr_state)
+};
+
+
+
+uint16_t bt_sink_srv_get_state_map_table(uint16_t le_state, uint16_t edr_state)
+
 {
+
     uint8_t i = 0;
+
     LOG_MSGID_I(BT_APP, "[BT_state_map], i: %x, state:%x", 2, le_state, edr_state);
-     for (; i < BT_SINK_STATE_MAX_INDEX; i++) {
+
+     for (; i < BT_SINK_STATE_MAX_INDEX; i++) {
         LOG_MSGID_I(BT_APP, "[BT_state_map]-----> i: %x, map_state:%x,le_state:%x", 3, i, g_sink_state_tab[i].le_state, g_sink_state_tab[i].edr_state);
         if ((g_sink_state_tab[i].le_state & le_state) && (g_sink_state_tab[i].edr_state & edr_state)) {
             break;
+
         }
+
     }
 
     if (i == BT_SINK_STATE_MAX_INDEX) {
+
         return BT_SINK_STATE_INVAILD;
+
     }
+
 
     LOG_MSGID_I(BT_APP, "[BT_state_map], i: %x, state:%x", 2, i, g_sink_state_tab[i].map_state);
     return g_sink_state_tab[i].map_state;
-}
+
+}
+
+
 
 
 
