@@ -530,19 +530,19 @@ void usb_dev_app_init_cdc_acm()
                                     (usb_speed_if_func_ptr)USB_Acm1_DataIf_Speed_Reset,
                                     NULL);
 
-            USB_Register_CreateFunc("ACM COMMU2",
-                                    USB_Acm2_CommIf_Create,
-                                    USB_Acm2_CommIf_Reset,
-                                    USB_Acm2_CommIf_Enable,
-                                    (usb_speed_if_func_ptr)USB_Acm2_CommIf_Speed_Reset,
-                                    NULL);
+            // USB_Register_CreateFunc("ACM COMMU2",
+            //                         USB_Acm2_CommIf_Create,
+            //                         USB_Acm2_CommIf_Reset,
+            //                         USB_Acm2_CommIf_Enable,
+            //                         (usb_speed_if_func_ptr)USB_Acm2_CommIf_Speed_Reset,
+            //                         NULL);
 
-            USB_Register_CreateFunc("ACM DATA2",
-                                    USB_Acm2_DataIf_Create,
-                                    USB_Acm2_DataIf_Reset,
-                                    USB_Acm2_DataIf_Enable,
-                                    (usb_speed_if_func_ptr)USB_Acm2_DataIf_Speed_Reset,
-                                    NULL);
+            // USB_Register_CreateFunc("ACM DATA2",
+            //                         USB_Acm2_DataIf_Create,
+            //                         USB_Acm2_DataIf_Reset,
+            //                         USB_Acm2_DataIf_Enable,
+            //                         (usb_speed_if_func_ptr)USB_Acm2_DataIf_Speed_Reset,
+            //                         NULL);
 
             USB_Init(USB_CDC_ACM);
 #endif  
