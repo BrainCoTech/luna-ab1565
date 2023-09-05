@@ -59,7 +59,7 @@ extern uint32_t SystemCoreClock;
 #define configMAX_PRIORITIES            ( 15 )
 #define configMINIMAL_STACK_SIZE        ( ( unsigned short ) 384 )
 /* BTA-23979: usb increase 3kb*/
-#define configTOTAL_HEAP_SIZE           ( ( size_t ) ( (135+3) * 1024 ) )
+#define configTOTAL_HEAP_SIZE           ( ( size_t ) ( (130+3) * 1024 ) )
 #define configMAX_TASK_NAME_LEN         ( 6 )
 #define configUSE_TRACE_FACILITY        1
 #define configUSE_16_BIT_TICKS          0
