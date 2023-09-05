@@ -3226,7 +3226,7 @@ static void am_audio_set_stop(bt_sink_srv_am_background_t *background_ptr)
     else if (background_ptr->type == LOCAL_AUDIO) {
         audio_src_srv_report("[Sink][AM][PLAY]LOCAL_AUDIO stop.", 0);
         audio_local_audio_playback_stop();
-        aud_dl_control(false);
+        // aud_dl_control(false);
         audio_local_audio_playback_close();
     }
 #endif
