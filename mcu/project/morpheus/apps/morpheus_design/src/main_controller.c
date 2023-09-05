@@ -20,6 +20,7 @@
 #include "app_online_music.h"
 #include "hal_audio.h"
 #include "music_file_receiver.h"
+#include "bt_sink_srv_ami.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -249,11 +250,15 @@ void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
 
     if (cfg->type == VOLUME_CONFIG__TYPE__UPDATE) {
         if (cfg->volume > 0) {
+            if (cfg->volume > AUD_VOL_OUT_LEVEL15)
+                cfg->volume = AUD_VOL_OUT_LEVEL15;
             while (cfg->volume-- != 0) {
                 bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL);
                 app_local_music_volume_up();
             }
         } else {
+            if (cfg->volume < -AUD_VOL_OUT_LEVEL15)
+                cfg->volume = -AUD_VOL_OUT_LEVEL15;            
             while (cfg->volume++ != 0) {
                 bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);
                 app_local_music_volume_down();
