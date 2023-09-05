@@ -51,7 +51,10 @@ void main_controller_power_set(int status, int reason) {
 
     hal_gpio_set_output(MAIN_POWEN_EN_PIN, status);
 
-    battery_set_enable_charger(0);
+    // battery_set_enable_charger(0);
+    if (status) {
+        app_uart_init();
+    }
 }
 
 void main_controller_powerkey_map(int status) {
