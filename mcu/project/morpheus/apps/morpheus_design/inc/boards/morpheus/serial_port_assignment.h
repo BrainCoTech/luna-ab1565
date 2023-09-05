@@ -72,7 +72,7 @@ extern "C" {
 /*This port only for ATCI communication port, And can be USB or UART Port.
 * If you want use USB Port for ATCI, must be define   MTK_ATCI_VIA_PORT_SERVICE  &
 * MTK_PORT_SERVICE_ENABLE   in file( such as:./GCC/feature_ab1552_evb.mk).*/
-#define     CONFIG_ATCI_PORT            MUX_UART_2  //SERIAL_PORT_DEV_USB_COM1
+#define     CONFIG_ATCI_PORT            MUX_UART_1  //SERIAL_PORT_DEV_USB_COM1
 #define     CONFIG_ATCI_BAUDRATE        HAL_UART_BAUDRATE_921600
 
 
@@ -87,7 +87,7 @@ extern "C" {
 * Config ONE  WIRE UART Info
 *
 */
-#define     PORT_UART_PORT_NUMBER       HAL_UART_1              /*one wire uart port,decide by your architect*/
+#define     PORT_UART_PORT_NUMBER       HAL_UART_2              /*one wire uart port,decide by your architect*/
 #define     PORT_UART_BAUDRATE          HAL_UART_BAUDRATE_115200/*one wire uart baudrate*/
 
 /*Below macro can be found in Chip 's Datasheet*/

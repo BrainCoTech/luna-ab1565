@@ -24,7 +24,7 @@ log_create_module(APP_UART, PRINT_LEVEL_INFO);
 
 static bool m_uart_is_initialized;
 
-hal_uart_port_t m_app_uart_port = HAL_UART_1;
+hal_uart_port_t m_app_uart_port = HAL_UART_2;
 #define APP_UART_RX_FIFO_ALERT_SIZE (50)
 #define APP_UART_RX_FIFO_THRESHOLD_SIZE (256)
 #define APP_UART_TX_FIFO_THRESHOLD_SIZE (51)
@@ -101,10 +101,10 @@ static void user_uart_callback(hal_uart_callback_event_t status,
 
 void uart_pinmux_init(void)
 {
-    hal_gpio_init(HAL_GPIO_4);
-    hal_pinmux_set_function(HAL_GPIO_4, HAL_GPIO_4_UART1_TXD);
-    hal_gpio_init(HAL_GPIO_5);
-    hal_pinmux_set_function(HAL_GPIO_5, HAL_GPIO_5_UART1_RXD);
+    hal_gpio_init(HAL_GPIO_7);
+    hal_pinmux_set_function(HAL_GPIO_7, HAL_GPIO_7_UART2_TXD);
+    hal_gpio_init(HAL_GPIO_3);
+    hal_pinmux_set_function(HAL_GPIO_3, HAL_GPIO_3_UART2_RXD);
 }
 
 void app_uart_init(void) {

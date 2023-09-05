@@ -258,7 +258,7 @@ void uart_send_handler(hal_uart_port_t uart_port, bool is_send_complete_trigger)
             if (g_uart_dma_config[uart_port].send_vfifo_buffer_size - empty_space == 0) {
                 if (g_uart_send_lock_status[uart_port] == true) {
                     if( hal_sleep_manager_is_sleep_handle_alive(uart_sleep_handle[uart_port]) == true &&
-                        uart_port != HAL_UART_1 ) {
+                        uart_port != HAL_UART_2 ) {
                         hal_sleep_manager_unlock_sleep(uart_sleep_handle[uart_port]);
                     }
                     g_uart_send_lock_status[uart_port] = false;
