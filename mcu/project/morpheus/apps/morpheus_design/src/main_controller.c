@@ -249,8 +249,10 @@ void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
 
     if (cfg->type == VOLUME_CONFIG__TYPE__UPDATE) {
         if (cfg->volume > 0) {
-            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL);
-            app_local_music_volume_up();
+            while (cfg->volume-- != 0) {
+                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL);
+                app_local_music_volume_up();
+            }
         } else {
             while (cfg->volume++ != 0) {
                 bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);
