@@ -561,3 +561,7 @@ C_FILES +=   $(APPS_SRC)/music_file/music_file.c
 C_FILES +=   $(APPS_SRC)/music_file/music_solution.c
 C_FILES +=   $(APPS_SRC)/music_file/music_file_receiver.c
 C_FILES +=   $(APPS_SRC)/app_local_music/app_local_music.c
+
+ifeq ($(BRC_LOCAL_MUSIC_ENABLE), y)
+CFLAGS += -DBRC_LOCAL_MUSIC_ENABLE
+endif
