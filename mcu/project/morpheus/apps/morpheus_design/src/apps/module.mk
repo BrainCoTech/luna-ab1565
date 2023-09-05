@@ -547,6 +547,7 @@ CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_ms_xbox
 C_FILES += $(APPS_SRC)/app_ms_xbox/app_ms_xbox_idle_activity.c
 endif # AIR_MS_GIP_ENABLE
 
+CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_usb
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_us
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_uart
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/filesystem
@@ -554,6 +555,7 @@ CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/music_file
 CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_local_music
 
 C_FILES += $(APPS_SRC)/morpheus_utils.c
+C_FILES +=   $(APPS_SRC)/app_usb/app_usb.c
 C_FILES +=   $(APPS_SRC)/app_us/app_us.c
 C_FILES +=   $(APPS_SRC)/app_uart/app_uart.c
 C_FILES +=   $(APPS_SRC)/filesystem/filesystem.c
