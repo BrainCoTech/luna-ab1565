@@ -242,51 +242,56 @@ void file_receiver_task(void) {
             case FILE_RECV_STATE_STARTED:
                 LOG_MSGID_I(MUSIC_RECV, "FILE_RECV_STATE_STARTED", 0);
                 bool file_existed = false;
-
-                // for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
-                //     if (new_recv_file.music_id == m_reciever.p_solution->files[i].music_id &&
-                //         new_recv_file.music_size == m_reciever.p_solution->files[i].music_size) {
-                //         cur_file->solution_id = new_recv_file.solution_id;
-                //         cur_file->music_id = new_recv_file.music_id;
-                //         cur_file->music_size = new_recv_file.music_size;
-                //         cur_file->music_offset = new_recv_file.music_size;
-                //         file_existed = true;
-                //         break;
-                //     }
-                // }
-                // if (file_existed) {
-                //     m_reciever.cur_state = FILE_RECV_STATE_DOWNLOADING;
-                //     break;
-                // }
-                // 查找Flash address 并且擦除
-                int free_partition_idx = find_free_partition();
-                LOG_MSGID_I(MUSIC_RECV, "free_partition_idx %d", 1,
-                            free_partition_idx);
-
-                if (free_partition_idx < 0) {
-                    m_reciever.cur_state = FILE_RECV_STATE_IDLE;
-                    break;
-                }
-                int n = music_partitions[free_partition_idx].size / BLOCK_SIZE;
-                for (int i = 0; i < n; i++) {
-                    bsp_flash_erase(music_partitions[free_partition_idx].addr + i * BLOCK_SIZE ,
-                                    BSP_FLASH_BLOCK_64K);
-                }
-
-                music_file_sync_status_get(&m_reciever.cur_recv_file);
-                cur_file = m_reciever.cur_recv_file;
-                cur_file->music_file_addr =
-                    music_partitions[free_partition_idx].addr;
+                // 获取当前断点，比对信息，更新接收文件信息
+                music_solution_read(&m_reciever.p_solution);
+                music_file_sync_status_get(&cur_file);
                 if (m_reciever.cur_recv_file->music_id ==
                         new_recv_file.music_id &&
                     m_reciever.cur_recv_file->music_size ==
                         new_recv_file.music_size) {
                     cur_file->solution_id = new_recv_file.solution_id;
+
                 } else {
                     cur_file->solution_id = new_recv_file.solution_id;
                     cur_file->music_id = new_recv_file.music_id;
                     cur_file->music_size = new_recv_file.music_size;
                     cur_file->music_offset = 0;
+                }
+
+                for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
+                    if (new_recv_file.music_id == m_reciever.p_solution->files[i].music_id &&
+                        new_recv_file.music_size == m_reciever.p_solution->files[i].music_size &&
+                        m_reciever.p_solution->files[i].music_offset == m_reciever.p_solution->files[i].music_size) {
+                        cur_file->solution_id = new_recv_file.solution_id;
+                        cur_file->music_id = m_reciever.p_solution->files[i].music_id;
+                        cur_file->music_size = m_reciever.p_solution->files[i].music_size;
+                        cur_file->music_offset = m_reciever.p_solution->files[i].music_offset;
+                        cur_file->music_file_addr = m_reciever.p_solution->files[i].music_file_addr;
+                        file_existed = true;
+                        break;
+                    }
+                }
+                if (file_existed) {
+                    // 再次申请下数据，让APP知道已经传输完成了
+                    m_reciever.cur_state = FILE_RECV_STATE_DOWNLOADING;
+                    break;
+                }
+                // 如何需要从头开始传输， 查找Flash address 并且擦除
+                if (cur_file->music_offset == 0) {
+                    int free_partition_idx = find_free_partition();
+                    LOG_MSGID_I(MUSIC_RECV, "free_partition_idx %d", 1,
+                                free_partition_idx);
+
+                    if (free_partition_idx < 0) {
+                        m_reciever.cur_state = FILE_RECV_STATE_IDLE;
+                        break;
+                    }
+                    int n = music_partitions[free_partition_idx].size / BLOCK_SIZE;
+                    for (int i = 0; i < n; i++) {
+                        bsp_flash_erase(music_partitions[free_partition_idx].addr + i * BLOCK_SIZE ,
+                                        BSP_FLASH_BLOCK_64K);
+                    }
+                    cur_file->music_file_addr = music_partitions[free_partition_idx].addr;
                 }
 
                 m_reciever.cur_state = FILE_RECV_STATE_DOWNLOADING;
