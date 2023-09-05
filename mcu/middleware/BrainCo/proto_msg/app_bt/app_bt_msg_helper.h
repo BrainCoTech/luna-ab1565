@@ -16,6 +16,7 @@ extern "C" {
 #endif
 #include "app_bt/app_to_bt.pb-c.h"
 #include "app_bt/bt_to_app.pb-c.h"
+#include "app_main/main_to_app.pb-c.h"
 #include "crc/crc16.h"
 #include "packet/packet_packer.h"
 
@@ -86,6 +87,8 @@ void music_config_handler(uint32_t msg_id, MusicSync *music_sync);
 void music_data_handler(uint32_t msg_id, MusicData *music_data);
 
 void music_solution_handler(uint32_t msg_id, MusicSolution *music_solution);
+
+int main_app_msg_encode(packet_packer_t *packer, MainApp *msg);
 
 #ifdef __cplusplus
 }

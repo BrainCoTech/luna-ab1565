@@ -41,6 +41,40 @@ LOG_MODULE_REGISTER(app_main, LOG_LEVEL_DBG);
 #define LOG_ERR(...) printf(__VA_ARGS__);printf("\n")
 #endif
 
+int main_app_msg_encode(packet_packer_t *packer, MainApp *msg)
+{
+	uint16_t payload_len = main_app__get_packed_size(msg);
+	LOG_INF("payload size %d, header size %d ", payload_len, sizeof(packet_header_t));
+	if (payload_len == 0) {
+		LOG_ERR("size is zero");
+		return -ENOMEM;
+	}
+
+	/* allocate memory */
+	packet_packer_alloc(packer, payload_len);
+	if (packer->packet == NULL) {
+		LOG_INF("packet alloc failed, %d", payload_len);
+		return -ENOMEM;
+	}
+
+	/* fill header */
+	packet_header_t *header = &packer->packet->header;
+	header->header_version = HEADER_VERSION;
+	header->project_id = PROJECT_ID;
+	header->payload_version = 1;
+	header->dst_id = APP_ID;
+	header->src_id = MAIN_CONTROLLER_ID;
+
+	/* fill payload */
+	main_app__pack(msg, packer->packet->payload);
+
+	/* fill crc16 */
+	uint16_t crc16 = calc_crc16_long_table((uint8_t *)packer->packet, packer->packet_size - 2);
+	packer->crc16[1] = 0xff & (crc16 >> 8);
+	packer->crc16[0] = 0xff & (crc16 >> 0);
+	return 0;
+}
+
 int app_bt_msg_encode(packet_packer_t *packer, AppBt *msg) {
     uint16_t payload_len = app_bt__get_packed_size(msg);
     LOG_DBG("payload size %d, header size %ld", payload_len,
