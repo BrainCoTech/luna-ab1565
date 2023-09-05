@@ -17,6 +17,7 @@
 #include "proto_msg/main_bt/main_bt_msg_helper.h"
 #include "syslog.h"
 #include "ui_shell_manager.h"
+#include "app_online_music.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -42,6 +43,8 @@ void main_controller_gpio_init(void) {
     hal_pinmux_set_function(POWERKEY_PIN, 0);
     hal_gpio_set_direction(POWERKEY_PIN, HAL_GPIO_DIRECTION_OUTPUT);
     hal_gpio_set_output(POWERKEY_PIN, HAL_GPIO_DATA_LOW);
+
+    app_online_music_var_init();
 }
 
 void main_controller_power_set(int status, int reason) {
@@ -161,10 +164,12 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
         case AUDIO_CONFIG__CMD__STOP:
             if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
                 app_local_music_pause();
+                LOG_MSGID_I(MUSIC_CONTR, "main2bt stop local", 0);
             } 
             
             if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
                 main_controller_audio_config(AUDIO_ACTION_SW_STOP);
+                LOG_MSGID_I(MUSIC_CONTR, "main2bt stop online", 0);
             }
             break;
 

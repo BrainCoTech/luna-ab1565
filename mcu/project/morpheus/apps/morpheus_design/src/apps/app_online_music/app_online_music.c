@@ -122,28 +122,24 @@ static void a2dp_check_cb_function(TimerHandle_t xTimer) {
 }
 
 void main_controller_audio_config(play_action_t action) {
-    return;
     uint32_t mutex_time = 2000;
     if (action == AUDIO_ACTION_SW_PAUSE) {
         mutex_time = 5000;
     }
 
     if (xSemaphoreTake(audio_config_sem, pdMS_TO_TICKS(mutex_time)) == pdFAIL) {
+        LOG_MSGID_I(MUSIC_CONTR, "audio_config take sem error", 0);
         return;
     }
 
-    if (!bt_is_connected() && action == AUDIO_ACTION_KEY_PLAY_PAUSE) {
+    if (!main_controller_bt_status() && action == AUDIO_ACTION_KEY_PLAY_PAUSE) {
+        LOG_MSGID_I(MUSIC_CONTR, "audio_config not bt connect error", 0);
         xSemaphoreGive(audio_config_sem);
         return;
     }
 
-    if (a2dp_playing_flag_get()) {
-        /* 修复错误状态 */
-        if (action >= AUDIO_ACTION_KEY_PLAY_PAUSE) {
-            play_state = AUDIO_PLAY_STATE_A2DP_PLAY;
-        }
-    }
 
+    LOG_MSGID_I(MUSIC_CONTR, "play_state %d, action %d", 2, play_state, action);
     switch (play_state) {
         case AUDIO_PLAY_STATE_STOP:
             if (action == AUDIO_ACTION_APP_PLAY)
