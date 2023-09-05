@@ -135,6 +135,7 @@ void main_controller_set_music_mode(AudioConfig__Mode mode) {
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
             
             while(a2dp_playing_flag_get()) {
+                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
                 vTaskDelay(100);
             }
             m_music_mode = mode;
