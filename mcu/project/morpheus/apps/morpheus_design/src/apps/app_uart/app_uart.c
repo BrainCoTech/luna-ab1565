@@ -49,6 +49,7 @@ static void packet_unpacker_handler(int32_t src_id, int32_t dst_id,
                                     uint8_t *data, uint16_t size) {
     const packet_t *packet = (packet_t *)data;
     uint8_array_t msg;
+    uint8_array_t usb_msg;
 
     switch (dst_id) {
         case APP_ID:
@@ -59,6 +60,13 @@ static void packet_unpacker_handler(int32_t src_id, int32_t dst_id,
                 memcpy(msg.data, data, size);
                 app_us_enqueue(&msg);
             }
+            usb_msg.size = size;
+            usb_msg.data = pvPortMalloc(size);
+            if (usb_msg.data) {
+                memcpy(usb_msg.data, data, size);
+                app_usb_enqueue(&usb_msg);
+            }            
+            
             break;
 
         case BLUETOOTH_ID:
