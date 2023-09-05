@@ -461,7 +461,7 @@ void music_sync_event_set(music_file_sync_event_t event)
 {
     m_reciever.event = event;
     if (event == MUSIC_SYNC_PAUSE) {
-        while(m_reciever.cur_state != FILE_RECV_STATE_IDLE) {
+        while(m_reciever.cur_state == FILE_RECV_STATE_DOWNLOADING) {
             vTaskDelay(100);
         }
     }
