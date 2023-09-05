@@ -262,7 +262,10 @@ void app_local_music_task(void) {
                 LOG_MSGID_I(LOCAL_MUSIC, "play music id: %u, index %u", 2,
                             m_player.id, m_player.index);
 
-                if (m_player.id == 0) {
+                if (m_player.p_solution->files[m_player.index].music_id == 0 ||
+                    m_player.p_solution->files[m_player.index].music_size == 0 ||
+                    m_player.p_solution->files[m_player.index].music_offset == 0 ||
+                    m_player.p_solution->files[m_player.index].music_file_addr == 0  ) {
                     LOG_MSGID_I(LOCAL_MUSIC, "play error, no resouce", 1);
                     m_player.state = PLAY_IDLE;
                     break;
