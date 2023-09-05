@@ -184,11 +184,20 @@ void app_local_music_pause() {
     app_local_music_unlock();
 }
 
+void app_local_music_stop() {
+    app_local_music_lock();
+
+    m_player.action = ACTION_STOP;
+    app_local_music_unlock();
+}
+
 void app_local_music_play() {
     app_local_music_lock();
-    m_player.action = ACTION_PLAY;
-    if (m_player.state == PLAY_IDLE) {
-        xSemaphoreGive(local_music_start_sem);
+    if (m_player.action != ACTION_NEW_ID) {
+        m_player.action = ACTION_PLAY;
+        if (m_player.state == PLAY_IDLE) {
+            xSemaphoreGive(local_music_start_sem);
+        }
     }
     app_local_music_unlock();
 }
@@ -294,6 +303,7 @@ void app_local_music_task(void) {
                 audio_local_audio_control_set_volume(m_player.volume);
                 LOG_MSGID_I(LOCAL_MUSIC, "play start --> playing", 0);
                 m_player.state = PLAY_PLAYING;
+                m_player.last_action = ACTION_IDLE;
                 break;
 
             case PLAY_PLAYING:
@@ -331,7 +341,7 @@ void app_local_music_task(void) {
                 break;
 
             case PLAY_PAUSE:
-                if (wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 5000) < 0) {
+                if (wait_for_ready(LOCAL_AUDIO_STATE_PAUSE, 3000) < 0) {
                     LOG_MSGID_I(LOCAL_MUSIC, "PLAY_PAUSE error, audio state %d",
                                 1, m_player.audio_state);
                 }
@@ -344,6 +354,11 @@ void app_local_music_task(void) {
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_PLAYING;
                     } else if (m_player.action == ACTION_STOP) {
+                        /* 先恢复音乐，让停止音乐生效 */
+                        audio_local_audio_control_set_volume(0);
+                        audio_local_audio_control_resume();
+                        wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
+                        audio_local_audio_control_stop();                        
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_STOP;
                     } else if (m_player.action == ACTION_FORWARD) {
@@ -360,7 +375,8 @@ void app_local_music_task(void) {
                         audio_local_audio_control_set_volume(0);
                         audio_local_audio_control_resume();
                         wait_for_ready(LOCAL_AUDIO_STATE_PLAYING, 1000);
-                        audio_local_audio_control_stop();
+                        if (m_player.audio_state == LOCAL_AUDIO_STATE_PLAYING)
+                            audio_local_audio_control_stop();
                         m_player.action = ACTION_PLAY;
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_NEW_ID;
@@ -392,6 +408,7 @@ void app_local_music_task(void) {
                 LOG_MSGID_I(LOCAL_MUSIC, "stop music, audio state %d", 1,
                             m_player.audio_state);
                 wait_for_ready(LOCAL_AUDIO_STATE_READY, 5000);
+                audio_local_audio_control_deinit();
                 m_player.state = PLAY_IDLE;
                 break;
 
@@ -409,8 +426,10 @@ void app_local_play_idx(uint32_t idx) {
     }
     m_player.index = idx;
     if (m_player.state == PLAY_IDLE) {
+        LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx play", 0);
         m_player.action = ACTION_PLAY;
     } else {
+        LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx new id, state %d", 2, m_player.state);
         m_player.action = ACTION_NEW_ID;
     }
     xSemaphoreGive(local_music_start_sem);
