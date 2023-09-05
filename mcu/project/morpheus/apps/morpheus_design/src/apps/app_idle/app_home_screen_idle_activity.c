@@ -725,6 +725,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
 #ifdef AIR_SWIFT_PAIR_ENABLE
                 app_swift_pair_start_adv();
 #endif
+                app_local_music_pause();
                 /* disconnect device in pairing state */
                 bt_bd_addr_t *p_bd_addr = bt_device_manager_remote_get_dev_by_seq_num(1);
                 if (p_bd_addr) {
