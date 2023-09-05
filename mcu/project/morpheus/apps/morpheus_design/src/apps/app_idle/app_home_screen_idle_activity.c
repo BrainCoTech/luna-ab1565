@@ -134,7 +134,7 @@
 #define UI_SHELL_IDLE_BT_CONN_ACTIVITY  "[TK_Home]app_home_screen_idle_activity"
 
 #define POWER_OFF_TIMER_NAME       "POWER_OFF"              /* Use a timeout before power off, to show LED and play VP. */
-#define WAIT_TIME_BEFORE_POWER_OFF  (4 * 1000)              /* The delay time to do system power off for playing VP and LED. */
+#define WAIT_TIME_BEFORE_POWER_OFF  (1 * 1000)              /* The delay time to do system power off for playing VP and LED. */
 #define RECONNECT_DEVICE_NUMS       (1)                     /* The max device nums of try to reconnected after power on.  */
 #define TIME_TO_RECONNECT_DEVICE    (10 * 1000)             /* The time of reconnect the connected device. */
 #define TIME_TO_START_VISIBLE_AFTER_POWER_ON   (RECONNECT_DEVICE_NUMS * TIME_TO_RECONNECT_DEVICE)
@@ -180,6 +180,7 @@ void app_home_screen_check_power_off_and_reboot(void)
                 return;
             }
 #endif
+            main_controller_power_set(0, 0);
             /* Enter RTC mode as power off action when no waiting and power_key released. */
             uint32_t i;
             /* Because some chip can display LED in RTC mode, must clear it before enter RTC mode. */
@@ -628,9 +629,10 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
     if (event_id == (0x5200 | (KEY_POWER_ON & 0xFF))) action = KEY_POWER_ON;
     if (event_id == (0x5200 | (KEY_DISCOVERABLE & 0xFF))) action = KEY_DISCOVERABLE;
     if (event_id == (0x5200 | (KEY_ANC & 0xFF))) action = KEY_ANC;
-
+    static uint32_t discover_entry_ticks;
     switch (action) {
-        case KEY_BEFORE_POWER_OFF:  
+        case KEY_BEFORE_POWER_OFF:
+            discover_entry_ticks = 0;
             apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
             app_local_music_pause();
@@ -640,10 +642,11 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             break;
 
         case KEY_POWER_OFF:
+            if ((discover_entry_ticks > 0) && (xTaskGetTickCount() - discover_entry_ticks < 3000)) {
+                break;
+            }
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
             audio_local_audio_control_set_volume(0);
-            vTaskDelay(500);
-            main_controller_power_set(0, 0);
                 /* Apply "power off" VP and foreground LED pattern. */
                 apps_config_set_foreground_led_pattern(LED_INDEX_POWER_OFF, 30, false);
             if (battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST)) {
@@ -737,6 +740,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 main_controller_set_state(SYS_CONFIG__STATE__PAIR);
                 app_bt_state_service_set_bt_visible(true, false, VISIBLE_TIMEOUT);
                 apps_config_set_vp(VP_INDEX_PAIRING, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                discover_entry_ticks = xTaskGetTickCount();
             }
             ret = true;
             break;
