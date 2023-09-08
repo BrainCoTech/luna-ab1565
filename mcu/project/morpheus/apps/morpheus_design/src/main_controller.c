@@ -29,11 +29,29 @@ log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
 #define POWERKEY_PIN HAL_GPIO_10
 #define CLK_32K_EN_PIN HAL_GPIO_8
 
+#define LED_R_PIN HAL_GPIO_5
+#define LED_G_PIN HAL_GPIO_4
+
+void main_controller_led_power_off(void)
+{
+    hal_gpio_set_output(LED_G_PIN, HAL_GPIO_DATA_LOW);
+    hal_gpio_set_output(LED_R_PIN, HAL_GPIO_DATA_HIGH);
+}
 void main_controller_gpio_init(void) {
     hal_gpio_init(CLK_32K_EN_PIN);
     hal_pinmux_set_function(CLK_32K_EN_PIN, 0);
     hal_gpio_set_direction(CLK_32K_EN_PIN, HAL_GPIO_DIRECTION_OUTPUT);
     hal_gpio_set_output(CLK_32K_EN_PIN, HAL_GPIO_DATA_LOW);
+
+    hal_gpio_init(LED_G_PIN);
+    hal_pinmux_set_function(LED_G_PIN, 0);
+    hal_gpio_set_direction(LED_G_PIN, HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(LED_G_PIN, HAL_GPIO_DATA_HIGH);
+
+    hal_gpio_init(LED_R_PIN);
+    hal_pinmux_set_function(LED_R_PIN, 0);
+    hal_gpio_set_direction(LED_R_PIN, HAL_GPIO_DIRECTION_OUTPUT);
+    hal_gpio_set_output(LED_R_PIN, HAL_GPIO_DATA_LOW);
 
     vTaskDelay(100);
     hal_gpio_init(MAIN_POWEN_EN_PIN);
