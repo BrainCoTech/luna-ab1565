@@ -646,7 +646,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
             audio_local_audio_control_set_volume(0);
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY ", go to power off", 0);
-            break;
+            // break;
 
         case KEY_POWER_OFF:
             if ((discover_entry_ticks > 0) && (xTaskGetTickCount() - discover_entry_ticks < 3000)) {
