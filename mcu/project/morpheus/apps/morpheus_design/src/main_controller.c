@@ -390,3 +390,7 @@ void send_music_file_recv_finished(uint32_t solution_id, uint32_t music_id) {
 
     send_main_msg_to_app(&msg);
 }
+
+void work_mode_handler(uint32_t msg_id, WorkMode *work_mode) {
+    LOG_MSGID_I(MAIN_CONTR, "work mode %d", 1, work_mode->mode);
+}

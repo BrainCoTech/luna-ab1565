@@ -618,7 +618,16 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
     }
 
     if (app_battery_is_on_charger()) {
-        return true;
+
+		if (INVALID_KEY_EVENT_ID == event_id)
+        {
+            /* Key event from CMD, not real key. */
+            APPS_LOG_MSGID_I("Receive CMD key event, continue", 0);
+        }
+		else
+		{
+			return true;
+		}
     }
 
     apps_config_key_action_t action;
