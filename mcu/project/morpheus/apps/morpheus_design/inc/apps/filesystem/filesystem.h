@@ -10,6 +10,8 @@ int fs_init(void);
 
 int fs_uninit(void);
 
+int fs_is_initialized(void);
+
 lfs_t* fs_get_lfs(void);
 
 int fs_get_size(void);

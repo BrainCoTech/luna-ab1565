@@ -24,6 +24,7 @@
 #include "task.h"
 #include "timers.h"
 #include "ui_shell_manager.h"
+#include "battery_management.h"
 
 log_create_module(app_usb, PRINT_LEVEL_INFO);
 
@@ -54,6 +55,8 @@ log_create_module(app_usb, PRINT_LEVEL_INFO);
 #define USB_CMD_HW_VER_GET 0x010C
 #define USB_CMD_MCU_FW_VER_GET 0x010D
 #define USB_CMD_CES_FW_VER_GET 0x010E
+#define USB_CMD_BUTTON_GET 0x0110
+#define USB_CMD_KNOB_SET 0x0111
 
 #define USB_MUX_PORT_RX_BUF_SIZE 512
 #define USB_MUX_PORT_TX_BUF_SIZE 512
@@ -188,12 +191,13 @@ static void usb_race_key_app_event_send(uint16_t param) {
 
 static bool wait_factory_cmd_resp;
 static bool factory_cmd_busy;
-static uint8_t resp_str[64];
+static char resp_str[64];
 static AtCommandResp wait_cmd_resp = {
     .cmd = AT__CMD__UNUSED,
     .status = 0,
     .value1 = 0,
-    .value2 = resp_str,
+    .value2 = 0,
+    .str_value = resp_str,
 };
 
 void main_bt_at_cmd_resp(uint32_t msg_id, AtCommandResp *resp) {
@@ -201,11 +205,22 @@ void main_bt_at_cmd_resp(uint32_t msg_id, AtCommandResp *resp) {
         wait_factory_cmd_resp = false;
         wait_cmd_resp.status = resp->status;
         wait_cmd_resp.value1 = resp->value1;
-        strcpy(wait_cmd_resp.value2, resp->value2);
+        wait_cmd_resp.value2, resp->value2;
+        wait_cmd_resp.str_value = resp_str;
+        memset(resp_str, 0, sizeof(resp_str));
+        if (resp->str_value != NULL) {
+            strncpy(resp_str, resp->str_value, strlen(resp->str_value));
+            printf("app_usb, wait_cmd_resp.str_value %s, strlen: %d, %d", wait_cmd_resp.str_value, strlen(resp->str_value), strlen(resp_str));
+        }
+        
+        LOG_MSGID_I(
+            app_usb, "at_cmd_resp: cmd %d, status %d, value1 %u, value2 %u",
+            4, wait_cmd_resp.cmd, wait_cmd_resp.status, wait_cmd_resp.value1,
+            wait_cmd_resp.value2);
     }
 }
 
-int send_factory_cmd_to_main(AtCommand *cmd) {
+int send_factory_cmd_to_main(AtCommand *cmd, AtCommandResp **resp) {
     int ret = 0;
     BtMain msg = BT_MAIN__INIT;
     static uint32_t msg_id = 0;
@@ -216,6 +231,7 @@ int send_factory_cmd_to_main(AtCommand *cmd) {
 
     /* 保存当前的命令 */
     wait_cmd_resp.cmd = cmd->cmd;
+    *resp = &wait_cmd_resp;
 
     if (factory_cmd_busy) {
         return -1;
@@ -224,41 +240,67 @@ int send_factory_cmd_to_main(AtCommand *cmd) {
 
     send_msg_to_main_controller(&msg);
     wait_factory_cmd_resp = true;
-    while (wait_factory_cmd_resp || count++ < 100) {
+    while (wait_factory_cmd_resp && count++ < 50) {
         vTaskDelay(100);
     }
 
+    factory_cmd_busy = false;
+
     if (wait_factory_cmd_resp) {
-    } else {
+        LOG_MSGID_I(app_usb, "at cmd to main timeout", 0);
         return -2;
     }
 
     return 0;
 }
 
+static void fill_string_to_tx_buf (char *databuf, int buf_size, char *string) {
+    if (databuf == NULL || string == NULL) {
+        return;
+    }
+
+    int str_len = strlen(string);
+
+    if (buf_size < 10 + str_len) {
+        return;
+    }
+
+    databuf[6] = 0;
+    databuf[2] += 2 + str_len; /* 长度1字节 + 'V'1字节 + 变长字符串长度*/
+    databuf[8] = str_len;
+    databuf[9] = 0x76; /* 'V' */
+    strcpy((char *)&databuf[10], string);
+}
+
+#define DATA_BUF_SIZE 64
 bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
     bool cmdFlag = true;
     uint32_t send_done_data_len = 0;
-    uint8_t databuf[48];
+    uint8_t databuf[DATA_BUF_SIZE];
     mux_buffer_t mux_buff;
+    int err = 0;
+
+    AtCommandResp *resp = NULL;
+    AtCommand cmd = AT_COMMAND__INIT;
 
     // 数据头2个字节05 5A,数据长度2个字节最小为02 00,
     // 真实数据最小2个字节因为命令由2个字节组成可以不带额外数据(所以整个数据最小6个字节)
     if ((p_buf != NULL) && ((buf_size >= 6) && ((4 + p_buf[2]) == buf_size)) &&
         (0x05 == p_buf[0]) && (0x5A == p_buf[1])) {
-        uint16_t cmd = (p_buf[5] << 8) + p_buf[4];
+        uint16_t usb_cmd = (p_buf[5] << 8) + p_buf[4];
 
-        LOG_MSGID_I(app_usb, "...app usb data for production test %x", cmd);
+        LOG_MSGID_I(app_usb, "...app usb data for production test %04x", 1,
+                    usb_cmd);
 
         memset((void *)databuf, 0x0, 48);
         memcpy(databuf, p_buf, buf_size);
 
-        if ((USB_CMD_KEY_ID_EVENT == cmd) && (buf_size == 8)) {
+        if ((USB_CMD_KEY_ID_EVENT == usb_cmd) && (buf_size == 8)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
             usb_race_key_app_event_send((uint16_t)((p_buf[7] << 8) + p_buf[6]));
-        } else if ((USB_CMD_GET_VERSION == cmd) && (buf_size == 7)) {
+        } else if ((USB_CMD_GET_VERSION == usb_cmd) && (buf_size == 7)) {
             databuf[1] = 0x5D;
             databuf[7] = 0x00;
 
@@ -281,13 +323,13 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
                     }
                 }
             }
-        } else if ((USB_CMD_GET_BATTERY == cmd) && (buf_size == 7)) {
+        } else if ((USB_CMD_GET_BATTERY == usb_cmd) && (buf_size == 7)) {
             uint8_t battery_level = race_get_battery_level();
 
             databuf[1] = 0x5D;
             databuf[2] = 0x05;
             databuf[8] = battery_level;
-        } else if ((USB_CMD_GET_ADDRESS == cmd) && (buf_size == 7)) {
+        } else if ((USB_CMD_GET_ADDRESS == usb_cmd) && (buf_size == 7)) {
             bt_bd_addr_t *addr = bt_device_manager_get_local_address();
             databuf[1] = 0x5B;
             databuf[2] = 0x04;
@@ -296,7 +338,7 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
                 databuf[2] += BT_BD_ADDR_LEN;
                 memcpy(&databuf[8], addr, BT_BD_ADDR_LEN);
             }
-        } else if ((USB_CMD_GET_SN == cmd) && (buf_size == 10) &&
+        } else if ((USB_CMD_GET_SN == usb_cmd) && (buf_size == 10) &&
                    (p_buf[6] == 0x00) && (p_buf[7] == 0xFC)) {
             uint32_t size = CUSTOMER_SN_LEN;
 
@@ -307,7 +349,7 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
 
             nvkey_read_data(NVKEYID_CUSTOMER_PRODUCT_INFO_SN, &databuf[8],
                             &size);
-        } else if ((USB_CMD_SET_SN == cmd) &&
+        } else if ((USB_CMD_SET_SN == usb_cmd) &&
                    (buf_size == (4 + 4 + CUSTOMER_SN_LEN)) &&
                    (p_buf[6] == 0x00) && (p_buf[7] == 0xFC)) {
             databuf[1] = 0x5B;
@@ -320,118 +362,257 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
             } else {
                 databuf[6] = 0x01;
             }
-        } else if ((USB_CMD_LED_SET == cmd) && (buf_size == (4 + 4)) &&
+        } else if ((USB_CMD_LED_SET == usb_cmd) && (buf_size == (4 + 4)) &&
                    (p_buf[6] < 0x03) && (p_buf[7] <= 1)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            AtCommand cmd = AT_COMMAND__INIT;
-            int err = 0;
-            cmd.cmd = (p_buf[7] == 1) ? AT__CMD__LED_ON : AT__CMD__LED_OFF;
+            cmd.cmd = AT__CMD__LED_SET;
             cmd.params1 = p_buf[6];
             cmd.params2 = p_buf[7];
-            err = send_factory_cmd_to_main(&cmd);
-            if (err < 0) {
-                databuf[6] = 0x01;
-            } else {
-                databuf[6] = 0x00;
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
             }
-        } else if ((USB_CMD_FLASH1_GET == cmd) && (buf_size == 7) &&
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "led set: id %d, status %d", 2,
+                            resp->value1, resp->value2);
+                databuf[6] = (resp->status < 0) ? 1 : 0;
+            }
+        } else if ((USB_CMD_FLASH1_GET == usb_cmd) && (buf_size == 7) &&
                    (p_buf[6] == 0)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            AtCommand cmd = AT_COMMAND__INIT;
-            int err = 0;
             cmd.cmd = AT__CMD__FLASH1_STATUS_GET;
-            err = send_factory_cmd_to_main(&cmd);
-            if (err < 0) {
-                databuf[6] = 0x01;
-            } else {
-                databuf[6] = 0x00;
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
             }
-        } else if ((USB_CMD_FLASH2_GET == cmd) && (buf_size == 7) &&
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "flash1 initialized: %d", 1, resp->value1);
+                databuf[6] = (resp->status < 0) ? 1 : 0;
+            }
+        } else if ((USB_CMD_FLASH2_GET == usb_cmd) && (buf_size == 7) &&
                    (p_buf[6] == 0)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            AtCommand cmd = AT_COMMAND__INIT;
-            int err = 0;
-            cmd.cmd = AT__CMD__FLASH2_STATUS_GET;
-            err = send_factory_cmd_to_main(&cmd);
-            if (err < 0) {
-                databuf[6] = 0x01;
-            } else {
-                databuf[6] = 0x00;
-            }
-        } else if ((USB_CMD_IR_GET == cmd) && (buf_size == 7) &&
+            databuf[6] = fs_is_initialized();
+        } else if ((USB_CMD_IR_GET == usb_cmd) && (buf_size == 7) &&
                    (p_buf[6] == 0)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            AtCommand cmd = AT_COMMAND__INIT;
-            int err = 0;
             cmd.cmd = AT__CMD__IR_VALUE_GET;
-            err = send_factory_cmd_to_main(&cmd);
-            if (err < 0) {
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
                 databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "ir value: %d", 1, resp->value1);
+                databuf[6] = resp->value1;
+            }
+        } else if ((USB_CMD_RTC_SET == usb_cmd) && (buf_size == 10)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x03;
+
+            cmd.cmd = AT__CMD__RTC_TIME_SET;
+            /* RTC只支持32bit数据*/
+            memcpy(&cmd.params1, &p_buf[6], sizeof(uint32_t));
+            LOG_MSGID_I(app_usb, "rtc set value: %u,%u", 2, cmd.params1, cmd.params2);
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "rtc set value: %u", 1, cmd.params1);
+                databuf[6] = (resp->status < 0) ? 1 : 0;
+            }
+        } else if ((USB_CMD_RTC_GET == usb_cmd) && (buf_size == 7) &&
+                   (p_buf[6] == 0)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x07;
+
+            cmd.cmd = AT__CMD__RTC_TIME_GET;
+
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
             } else {
                 databuf[6] = 0x00;
+                LOG_MSGID_I(app_usb, "rtc get value: %u", 1, resp->value1);
+                memcpy(&databuf[6], &resp->value1, sizeof(uint32_t));
             }
-        } else if ((USB_CMD_RTC_SET == cmd) && (buf_size == 7) &&
+        } else if ((USB_CMD_MAX30001_GET == usb_cmd) && (buf_size == 7) &&
                    (p_buf[6] == 0)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_RTC_GET == cmd) && (buf_size == 7) &&
+            cmd.cmd = AT__CMD__SENSOR_ADC_STATUS_GET;
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "MAX30001 value %d", 1, resp->status);
+                databuf[6] = (resp->status) ? 0x00 : 0x01;
+            }
+        } else if ((USB_CMD_BAT_VOL_GET == usb_cmd) && (buf_size == 7) &&
+                   (p_buf[6] == 0)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x04;
+
+            int16_t battery_voltage = 0;
+#ifdef MTK_BATTERY_MANAGEMENT_ENABLE
+            battery_voltage = battery_management_get_battery_property(BATTERY_PROPERTY_VOLTAGE);
+#endif
+            memcpy(&databuf[6], &battery_voltage, sizeof(int16_t));
+            LOG_MSGID_I(app_usb, "battery_voltage %d", 1, battery_voltage);
+        } else if ((USB_CMD_BAT_NTC_GET == usb_cmd) && (buf_size == 7) &&
                    (p_buf[6] == 0)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_MAX30001_GET == cmd) && (buf_size == 7) &&
-                   (p_buf[6] == 0)) {
+            int8_t ntc_temp = 0;
+#ifdef MTK_BATTERY_MANAGEMENT_ENABLE
+            ntc_temp = battery_management_get_battery_property(BATTERY_PROPERTY_TEMPERATURE);
+#endif
+            memcpy(&databuf[6], &ntc_temp, sizeof(int8_t));
+            LOG_MSGID_I(app_usb, "ntc_temp %d", 1, ntc_temp);
+        } else if ((USB_CMD_CES_SET == usb_cmd) && (buf_size == 7)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_BAT_VOL_GET == cmd) && (buf_size == 7) &&
+            cmd.cmd = AT__CMD__CES_GEAR_SET;
+            cmd.params1 = p_buf[6];
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x00;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "ces gear set, status %d", 1, resp->status);
+                databuf[6] = (resp->status < 0) ? 0 : resp->value1;
+            }
+        } else if ((USB_CMD_HW_VER_GET == usb_cmd) && (buf_size == 7) &&
                    (p_buf[6] == 0)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x04;
+            databuf[7] = 0x00;
+
+            cmd.cmd = AT__CMD__HW_VER_GET;
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                fill_string_to_tx_buf(databuf, DATA_BUF_SIZE, resp->str_value);
+            }
+        } else if ((USB_CMD_MCU_FW_VER_GET == usb_cmd) && (buf_size == 7) &&
+                   (p_buf[6] == 0)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x04;
+            databuf[7] = 0x00;
+
+            cmd.cmd = AT__CMD__MCU_FW_VER_GET;
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                fill_string_to_tx_buf(databuf, DATA_BUF_SIZE, resp->str_value);
+            }
+        } else if ((USB_CMD_CES_FW_VER_GET == usb_cmd) && (buf_size == 7) &&
+                   (p_buf[6] == 0)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x04;
+            databuf[7] = 0x00;
+
+            cmd.cmd = AT__CMD__CES_FW_VER_GET;
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                fill_string_to_tx_buf(databuf, DATA_BUF_SIZE, resp->str_value);
+            }
+        } else if ((USB_CMD_BUTTON_GET == usb_cmd) && (buf_size == 7)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_BAT_NTC_GET == cmd) && (buf_size == 7) &&
-                   (p_buf[6] == 0)) {
+            cmd.cmd = AT__CMD__BUTTON_GET;
+            cmd.params1 = p_buf[6];
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "button value %d", 1, resp->value1);
+                databuf[6] = (resp->value1 > 0) ? 0 : 1;
+            }
+        } else if ((USB_CMD_KNOB_SET == usb_cmd) && (buf_size == 7)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_CES_SET == cmd) && (buf_size == 7) &&
-                   (p_buf[6] == 0)) {
-            databuf[1] = 0x5B;
-            databuf[2] = 0x03;
-
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_HW_VER_GET == cmd) && (buf_size == 7) &&
-                   (p_buf[6] == 0)) {
-            databuf[1] = 0x5B;
-            databuf[2] = 0x03;
-
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_MCU_FW_VER_GET == cmd) && (buf_size == 7) &&
-                   (p_buf[6] == 0)) {
-            databuf[1] = 0x5B;
-            databuf[2] = 0x03;
-
-            databuf[6] = 0x00;
-        } else if ((USB_CMD_CES_FW_VER_GET == cmd) && (buf_size == 7) &&
-                   (p_buf[6] == 0)) {
-            databuf[1] = 0x5B;
-            databuf[2] = 0x03;
-
-            databuf[6] = 0x00;
+            cmd.cmd = AT__CMD__KNOB_GET;
+            cmd.params1 = p_buf[6];
+            err = send_factory_cmd_to_main(&cmd, &resp);
+            if (resp == NULL) {
+                LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
+            }
+            if (err < 0 || resp->status < 0) {
+                databuf[6] = 0x01;
+                LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
+                            err, resp->status);
+            } else {
+                LOG_MSGID_I(app_usb, "knob value %d", 1, resp->value1);
+                databuf[6] = (resp->value1 > 0) ? 0 : 1;
+            }
         } else {
             cmdFlag = false;
         }
@@ -442,6 +623,7 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
         mux_tx(m_usb_handle, &mux_buff, 1, &send_done_data_len);
     } else {
         cmdFlag = false;
+        LOG_MSGID_I(app_usb, "...app usb data for production failed", 0);
     }
 
     return cmdFlag;
@@ -467,7 +649,7 @@ void app_usb_rx_task(void) {
         }
         bytes_read = xStreamBufferReceive(m_rx_stream, rx_buf,
                                           USB_RX_BUF_SIZE / 2, portMAX_DELAY);
-
+        LOG_MSGID_I(app_usb, "usb rx data %d", 1, bytes_read);
         if (usb_race_app_event_respond(rx_buf, bytes_read)) {
             continue;
         }

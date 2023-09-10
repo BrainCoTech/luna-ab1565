@@ -100,6 +100,10 @@ int fs_uninit(void) {
     return 0;
 }
 
+int fs_is_initialized(void) {
+    return initialized ? 0 : -ENODEV;
+}
+
 lfs_t *fs_get_lfs(void) {
     if (initialized) {
         return &lfs;
