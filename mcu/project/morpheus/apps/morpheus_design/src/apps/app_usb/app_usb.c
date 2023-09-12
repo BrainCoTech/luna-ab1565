@@ -588,12 +588,12 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
                 LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
             }
             if (err < 0 || resp->status < 0) {
-                databuf[6] = 0x01;
+                databuf[6] = 0x00;
                 LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
                             err, resp->status);
             } else {
                 LOG_MSGID_I(app_usb, "button value %d", 1, resp->value1);
-                databuf[6] = (resp->value1 > 0) ? 0 : 1;
+                databuf[6] = (resp->value1 > 0) ? 1 : 0;
             }
         } else if ((USB_CMD_KNOB_SET == usb_cmd) && (buf_size == 7)) {
             databuf[1] = 0x5B;
@@ -606,12 +606,12 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
                 LOG_MSGID_I(app_usb, "resp is NULL", 0); return cmdFlag;
             }
             if (err < 0 || resp->status < 0) {
-                databuf[6] = 0x01;
+                databuf[6] = 0x00;
                 LOG_MSGID_E(app_usb, "error. cmd: %04x, err %d, status %d", 3, cmd.cmd,
                             err, resp->status);
             } else {
                 LOG_MSGID_I(app_usb, "knob value %d", 1, resp->value1);
-                databuf[6] = (resp->value1 > 0) ? 0 : 1;
+                databuf[6] = (resp->value1 > 0) ? resp->value1 : 0;
             }
         } else {
             cmdFlag = false;
