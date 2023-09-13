@@ -49,6 +49,7 @@ void battery_jetia_create_check_timer(void) {
 #include "battery_management_sw_ntc.h"
 #include "hal_pmu_cali_2565.h"
 #include "hal_pmu_charger_2565.h"
+#include "main_controller.h"
 uint8_t executing_status=sw_ntc_charger_normal;
 extern uint8_t battery_sw_ntc_feature;
 
@@ -93,7 +94,9 @@ void battery_jetia_timer_callback(TimerHandle_t pxTimer) {
     }  else if ((jeita_status == sw_ntc_nocharger_power_off_low) ||(jeita_status == sw_ntc_nocharger_power_off_high)) {
         if (battery_sw_ntc_feature == battery_sw_ntc_sucess) {
         LOG_MSGID_I(battery_management, "Abnormal temperature! System will be enter rtc mode\r\n", 0);
-        hal_rtc_enter_rtc_mode();
+        /* 触发正常的关机流程，确保52840正常关机 */
+        power_off_1565();
+        // hal_rtc_enter_rtc_mode();
         }
     }else {
         LOG_MSGID_I(battery_management, "battery_jetia_timer_callback error\r\n", 0);

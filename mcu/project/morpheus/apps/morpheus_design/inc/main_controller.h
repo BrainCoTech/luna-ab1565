@@ -20,6 +20,7 @@ void main_controller_powerkey_map(int status);
 
 void send_track_id_to_main(uint32_t id, bool playing);
 
+void power_off_1565(void);
 
 void send_main_msg_to_app(MainApp *msg);
 

@@ -272,6 +272,13 @@ void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
     send_msg_to_main_controller(&msg);
 }
 
+void power_off_1565(void)
+{
+    ui_shell_send_event(
+    true, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_KEY,
+    (KEY_POWER_OFF & 0xFF) | ((0x52 & 0xFF) << 8), NULL, 0, NULL, 0);
+}
+
 void main_bt_config(MainBt *msg) {
     if (msg->power_off) {
         LOG_MSGID_I(MAIN_CONTR, "set power off", 0);
