@@ -1896,11 +1896,6 @@ bt_status_t bt_gap_ata_callback(bt_msg_type_t msg, bt_status_t status, void*buf)
     }
 
     if (BT_GAP_ENTER_TEST_MODE_CNF == msg) {
-		bool dut_config = false;
-		uint32_t dut_size = sizeof(dut_config);
-		nvkey_status_t nvkey_ret = nvkey_write_data(NVKEYID_BT_DUT_ENABLE, (uint8_t *)(&dut_config), dut_size);
-		
-        LOG_MSGID_I(atci_bt, "...enter dut mode %x!!!", 1, nvkey_ret);
         dut_mode_enable = true;
     }
 
