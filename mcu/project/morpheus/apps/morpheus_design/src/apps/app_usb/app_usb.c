@@ -317,10 +317,11 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
                     version_len = strlen((const char *)version);
 
                     databuf[8] = version_len;
-                    databuf[2] = version_len + 5;
+                    databuf[9] = 0x76; /* 增加一个 'v' */
+                    databuf[2] = version_len + 6;
 
                     if (version_len) {
-                        memcpy(&databuf[9], version, version_len);
+                        memcpy(&databuf[10], version, version_len);
                     }
                 }
             }

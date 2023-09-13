@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 #include "morpheus_utils.h"
+#include "fota_util.h"
 
-#define FW_VERSION "0.6.2"
+#define FW_VERSION FOTA_DEFAULT_VERSION
 #define MODEL "Easleep"
 
 #define FIXED_LOCAL_VOLUME 1
