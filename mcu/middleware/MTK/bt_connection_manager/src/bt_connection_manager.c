@@ -1282,8 +1282,23 @@ bt_status_t         bt_cm_discoverable(bool discoverable)
         return bt_aws_mce_srv_switch_role(BT_AWS_MCE_ROLE_AGENT);
     }
 #endif
+	printf("...discoverable %d", discoverable);
     if (true == discoverable) {
         bt_cm_write_scan_mode(BT_CM_COMMON_TYPE_ENABLE, BT_CM_COMMON_TYPE_UNKNOW);
+		{
+			bt_status_t status = bt_gap_enter_test_mode();
+			
+			if (status == BT_STATUS_SUCCESS)
+			{
+				/* BT enter dut mode successed. */
+				printf("...enable dut mode success!!!");
+			
+			} else 
+			{
+				/* BT enter dut mode failed. */
+				printf("...enable dut mode fail!!!");
+			}
+		}
     } else {
         bt_cm_write_scan_mode(BT_CM_COMMON_TYPE_DISABLE, BT_CM_COMMON_TYPE_UNKNOW);
     }
