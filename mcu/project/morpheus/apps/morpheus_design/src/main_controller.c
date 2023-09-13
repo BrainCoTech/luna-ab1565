@@ -32,11 +32,13 @@ log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
 #define LED_R_PIN HAL_GPIO_5
 #define LED_G_PIN HAL_GPIO_4
 
-void main_controller_led_power_off(void)
+
+void main_controller_led_set(int red, int green, int blue)
 {
-    hal_gpio_set_output(LED_G_PIN, HAL_GPIO_DATA_LOW);
-    hal_gpio_set_output(LED_R_PIN, HAL_GPIO_DATA_HIGH);
+    hal_gpio_set_output(LED_G_PIN, (green == 0 ? HAL_GPIO_DATA_LOW : HAL_GPIO_DATA_HIGH));
+    hal_gpio_set_output(LED_R_PIN, (red == 0 ? HAL_GPIO_DATA_LOW : HAL_GPIO_DATA_HIGH));
 }
+
 void main_controller_gpio_init(void) {
     hal_gpio_init(CLK_32K_EN_PIN);
     hal_pinmux_set_function(CLK_32K_EN_PIN, 0);

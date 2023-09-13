@@ -486,6 +486,11 @@ static bool _proc_battery_event_group(
         apps_config_set_foreground_led_pattern(LED_INDEX_CHARGING_FULL, 50, false);
         APPS_LOG_MSGID_I(LOG_TAG" Full charged", 0);
         main_controller_set_state(41);
+        main_controller_led_set(0, 1, 0);
+    }
+
+    if (bat_state == APP_BATTERY_STATE_CHARGING) {
+        main_controller_led_set(1, 0, 0);
     }
 
 #ifdef APPS_DISABLE_BT_WHEN_CHARGING
