@@ -314,6 +314,7 @@ void app_online_music_task(void) {
             continue;
         }
 
+#if (0)
         if (user_disconnect_a2dp) {
             if (count++ > 5000/EVENT_WAIT_PROC_TIME) {
                 count = 0;
@@ -323,6 +324,7 @@ void app_online_music_task(void) {
         } else {
             count = 0;
         }
+#endif
 
         if (cur_event.event == ONLINE_AVRCP_STATUS_PLAY) {
             LOG_MSGID_I(MUSIC_CONTR, "avrcp state: play", 0);

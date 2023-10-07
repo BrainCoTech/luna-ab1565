@@ -124,6 +124,9 @@ static uint32_t switch_ticks = 0;
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
 
+    if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
+        disconnect_a2dp();
+    }
     if (m_music_mode != mode) {
         if (mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause local music", mode);
@@ -136,7 +139,7 @@ void main_controller_set_music_mode(AudioConfig__Mode mode) {
         }
         if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause a2dp music", mode);
-            disconnect_a2dp();
+            music_sync_event_set(MUSIC_SYNC_PAUSE);
             m_music_mode = mode;
         }
     }
