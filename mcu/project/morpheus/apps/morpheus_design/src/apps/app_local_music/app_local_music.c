@@ -283,7 +283,7 @@ void app_local_music_task(void) {
                     m_player.state = PLAY_IDLE;
                     break;
                 }
-                music_sync_event_set(MUSIC_SYNC_PAUSE);
+                // music_sync_event_set(MUSIC_SYNC_PAUSE);
                 /* 开始播放 */
                 audio_local_audio_control_init(local_music_callback, NULL);
                 ret = audio_local_audio_control_play(&m_player.stream_if);
@@ -312,7 +312,7 @@ void app_local_music_task(void) {
             case PLAY_PLAYING:
                 /* 轮询action是否需要更新，进行相应的动作 */
                 vTaskDelay(100);
-                music_sync_event_set(MUSIC_SYNC_PAUSE);
+                // music_sync_event_set(MUSIC_SYNC_PAUSE);
                 app_local_music_lock();
                 if (m_player.last_action != m_player.action) {
                     if (m_player.action == ACTION_PAUSE) {
@@ -350,7 +350,7 @@ void app_local_music_task(void) {
                                 1, m_player.audio_state);
                 }
                 vTaskDelay(100);
-                music_sync_event_set(MUSIC_SYNC_RESUME);
+                // music_sync_event_set(MUSIC_SYNC_RESUME);
                 app_local_music_lock();
                 if (m_player.last_action != m_player.action) {
                     if (m_player.action == ACTION_PLAY) {

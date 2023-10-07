@@ -29,6 +29,8 @@ log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
 #define POWERKEY_PIN HAL_GPIO_10
 #define CLK_32K_EN_PIN HAL_GPIO_8
 
+static AudioConfig__Mode m_music_mode;
+
 void main_controller_gpio_init(void) {
     hal_gpio_init(CLK_32K_EN_PIN);
     hal_pinmux_set_function(CLK_32K_EN_PIN, 0);
@@ -118,9 +120,6 @@ void main_controller_set_time(uint64_t time) {
     send_msg_to_main_controller(&msg);
 }
 
-static xSemaphoreHandle m_music_mode_mutex;
-static AudioConfig__Mode m_music_mode;
-static uint32_t switch_ticks = 0;
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
 
