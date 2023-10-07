@@ -28,9 +28,11 @@ hal_uart_port_t m_app_uart_port = HAL_UART_2;
 #define APP_UART_RX_FIFO_ALERT_SIZE (50)
 #define APP_UART_RX_FIFO_THRESHOLD_SIZE (256)
 #define APP_UART_TX_FIFO_THRESHOLD_SIZE (51)
-#define APP_UART_RX_FIFO_BUFFER_SIZE (4096 + 2048)
+#define APP_UART_RX_FIFO_BUFFER_SIZE (1024)
 #define APP_UART_TX_FIFO_BUFFER_SIZE (2048)
 
+#define UNPACKER_BUF_SIZE (4096 + 128)
+static uint8_t unpacker_buf[UNPACKER_BUF_SIZE];
 static uint8_t rx_buf[APP_UART_RX_FIFO_BUFFER_SIZE];
 
 /* clang-format off */
@@ -60,12 +62,14 @@ static void packet_unpacker_handler(int32_t src_id, int32_t dst_id,
                 memcpy(msg.data, data, size);
                 app_us_enqueue(&msg);
             }
-            usb_msg.size = size;
-            usb_msg.data = pvPortMalloc(size);
-            if (usb_msg.data) {
-                memcpy(usb_msg.data, data, size);
-                app_usb_enqueue(&usb_msg);
-            }            
+            if (size < 512) {
+                usb_msg.size = size;
+                usb_msg.data = pvPortMalloc(size);
+                if (usb_msg.data) {
+                    memcpy(usb_msg.data, data, size);
+                    app_usb_enqueue(&usb_msg);
+                }
+            }
             
             break;
 
@@ -185,7 +189,7 @@ void app_uart_rx_task() {
     uint32_t rx_size = APP_UART_RX_FIFO_BUFFER_SIZE;
     uint32_t bytes = 0;
 
-    ret = packet_unpacker_init(&unpacker, APP_UART_RX_FIFO_BUFFER_SIZE, 1);
+    packet_unpacker_init_static(&unpacker, unpacker_buf, UNPACKER_BUF_SIZE, 1);
     packet_unpacker_register_handler(&unpacker, packet_unpacker_handler);
 
     if (ret < 0) {
