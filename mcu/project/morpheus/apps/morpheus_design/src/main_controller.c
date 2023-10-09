@@ -21,6 +21,7 @@
 #include "proto_msg/main_bt/main_bt_msg_helper.h"
 #include "syslog.h"
 #include "ui_shell_manager.h"
+#include "nvdm_id_list.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -122,6 +123,7 @@ void main_controller_set_time(uint64_t time) {
 
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
+    uint8_t volume = 0;
 
     if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
         disconnect_a2dp();
@@ -244,28 +246,66 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
     }
 }
 
-void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
-    LOG_MSGID_I(MAIN_CONTR, "volume type %d, value %d", 2, cfg->type,
-                cfg->volume);
+void set_volume_to_local(uint32_t volume) {
+    int32_t status;
 
+    LOG_MSGID_I(MAIN_CONTR, "try to set volume %d", 1, volume);
+
+    status = nvdm_write_data_item(NVDM_INTERNAL_USE_GROUP, NVDM_USE_SETTING,
+                                  NVDM_DATA_ITEM_TYPE_RAW_DATA, &volume,
+                                  sizeof(volume));
+    if (status != NVDM_STATUS_OK) {
+        LOG_MSGID_I(MAIN_CONTR, "set user settings failed", 0);
+    }
+}
+
+uint32_t get_volume_from_local(void) {
+    int size = 4;
+    int vol = 10;
+    int32_t status = nvdm_read_data_item(NVDM_INTERNAL_USE_GROUP,
+                                         NVDM_USE_SETTING, &vol, &size);
+    if (status != NVDM_STATUS_OK) {
+        LOG_MSGID_I(MAIN_CONTR, "read user settings failed, status %d", 1,
+                    status);
+        vol = LOCAL_DEFAULT_VOLUME;
+        set_volume_to_local(vol);            
+    } else {
+        LOG_MSGID_I(MAIN_CONTR, "read user settings success, volume %d", 1,
+                    vol);
+    }
+
+    return vol;
+}
+
+void volume_config(uint32_t msg_id, VolumeConfig *cfg) {
+    uint8_t volume = 0;
+    volume = get_volume_from_local();
+
+    LOG_MSGID_I(MAIN_CONTR, "volume type %d, value %d, current volume %d", 3, cfg->type,
+                cfg->volume, volume);
+ 
     if (cfg->type == VOLUME_CONFIG__TYPE__UPDATE) {
         if (cfg->volume > 0) {
-            if (cfg->volume > AUD_VOL_OUT_LEVEL15)
-                cfg->volume = AUD_VOL_OUT_LEVEL15;
+            volume += cfg->volume;
+            if (volume > AUD_VOL_OUT_LEVEL15)
+                volume = AUD_VOL_OUT_LEVEL15;
             while (cfg->volume-- != 0) {
                 bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_UP, NULL);
                 app_local_music_volume_up();
             }
         } else {
-            if (cfg->volume < -AUD_VOL_OUT_LEVEL15)
-                cfg->volume = -AUD_VOL_OUT_LEVEL15;
+            if (volume < -cfg->volume)
+               volume = 0;
+            else
+                volume += cfg->volume;
             while (cfg->volume++ != 0) {
                 bt_sink_srv_send_action(BT_SINK_SRV_ACTION_VOLUME_DOWN, NULL);
                 app_local_music_volume_down();
             }
         }
-    } else {
     }
+
+    set_volume_to_local(volume);
 
     BtMain msg = BT_MAIN__INIT;
     VolumeConfigResp volume_resp = VOLUME_CONFIG_RESP__INIT;

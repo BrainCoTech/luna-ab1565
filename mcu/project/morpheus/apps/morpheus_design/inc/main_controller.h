@@ -30,6 +30,10 @@ void send_solution_music_ids(uint32_t *ids, uint32_t size);
 
 void main_controller_set_music_mode(AudioConfig__Mode mode);
 
+void set_volume_to_local(uint32_t volume);
+
+uint32_t get_volume_from_local(void);
+
 #ifdef __cplusplus
 }
 #endif

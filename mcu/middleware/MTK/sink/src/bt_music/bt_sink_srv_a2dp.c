@@ -73,6 +73,8 @@
 #include "bt_sink_srv_dual_ant.h"
 #endif
 
+#include "main_controller.h"
+
 //#define MTK_BT_A2DP_FPGA_IT
 #define BT_AUDIO_PLAY_EN_EXPIRED_SUPPORT
 
@@ -2152,6 +2154,7 @@ int32_t bt_sink_srv_a2dp_change_volume(uint8_t type, uint8_t sync, uint32_t volu
         ctx->last_volume = vol;
         if(sync) {
             bt_sink_srv_music_set_nvdm_data(&(a2dp_dev->dev_addr), BT_SINK_SRV_MUSIC_DATA_VOLUME, &ctx->vol_lev);
+            set_volume_to_local(vol);
         }
 #ifdef MTK_BT_SPEAKER_ENABLE
         else {
@@ -2247,7 +2250,7 @@ void bt_sink_srv_a2dp_play(audio_src_srv_handle_t *handle)
     bt_sink_srv_music_update_run_device(a2dp_dev);
     /* 1. Open A2DP codec */
     bt_sink_srv_music_get_nvdm_data(&(a2dp_dev->dev_addr), BT_SINK_SRV_MUSIC_DATA_VOLUME, &ctx->vol_lev);
-
+    ctx->vol_lev = get_volume_from_local();
     uint16_t a2dp_mtu = bt_a2dp_get_mtu_size(a2dp_dev->a2dp_hd);
     bt_sink_srv_music_fill_am_aud_param(&aud_cap, &a2dp_dev->codec, BT_A2DP_SINK, a2dp_mtu);
 #ifdef AIR_A2DP_SYNC_STOP_ENABLE

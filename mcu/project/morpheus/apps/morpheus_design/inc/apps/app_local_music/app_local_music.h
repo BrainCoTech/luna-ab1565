@@ -77,6 +77,10 @@ void app_local_music_volume_up();
 
 void app_local_music_volume_down();
 
+void app_local_music_volume_set(uint8_t volume);
+
+uint8_t app_local_music_volume_get(void);
+
 #ifdef __cplusplus
 }
 #endif
