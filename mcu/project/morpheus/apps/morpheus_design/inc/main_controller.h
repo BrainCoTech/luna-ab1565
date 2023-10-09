@@ -34,6 +34,12 @@ void set_volume_to_local(uint32_t volume);
 
 uint32_t get_volume_from_local(void);
 
+#define CUSTOMER_SN_LEN 0x11
+
+char *sn_get(void);
+
+void sn_set(char *sn);
+
 #ifdef __cplusplus
 }
 #endif

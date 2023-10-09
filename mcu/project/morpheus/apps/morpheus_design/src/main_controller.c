@@ -22,6 +22,8 @@
 #include "syslog.h"
 #include "ui_shell_manager.h"
 #include "nvdm_id_list.h"
+#include "nvkey.h"
+#include "nvkey_id_list.h"
 
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
@@ -442,4 +444,14 @@ void send_music_file_recv_finished(uint32_t solution_id, uint32_t music_id) {
 
 void work_mode_handler(uint32_t msg_id, WorkMode *work_mode) {
     LOG_MSGID_I(MAIN_CONTR, "work mode %d", 1, work_mode->mode);
+}
+
+static char sn[CUSTOMER_SN_LEN + 1];
+char *sn_get(void)
+{
+    uint32_t size = CUSTOMER_SN_LEN + 1;
+    memset(sn, 0, size);
+    nvkey_read_data(NVKEYID_CUSTOMER_PRODUCT_INFO_SN, &sn, &size);
+
+    return sn;
 }

@@ -40,7 +40,6 @@ log_create_module(app_usb, PRINT_LEVEL_INFO);
 #define USB_CMD_GET_ADDRESS 0x0CD5
 #define USB_CMD_GET_SN 0x0A00
 #define USB_CMD_SET_SN 0x0A01
-#define CUSTOMER_SN_LEN 0x11
 #define USB_CMD_LED_SET 0x0101
 #define USB_CMD_FLASH1_GET 0x0102
 #define USB_CMD_FLASH2_GET 0x0103

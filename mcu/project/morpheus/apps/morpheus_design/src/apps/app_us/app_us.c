@@ -304,6 +304,7 @@ void bt_board_config(uint32_t msg_id, BoardConfig *board_cfg) {
         board_resp.device_name = "Easleep";
         board_resp.mac_addr.data = addr_str;
         board_resp.mac_addr.len = 12;
+        board_resp.sn = sn_get();
     }
 
     if (board_cfg->model) {

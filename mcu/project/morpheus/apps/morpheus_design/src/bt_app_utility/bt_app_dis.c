@@ -69,8 +69,8 @@ bt_status_t ble_dis_get_characteristic_value_callback(ble_dis_charc_type_t charc
         case BLE_DIS_CHARC_SERIAL_NUMBER: {
             if (value) {
                 ble_dis_string_t *buffer = (ble_dis_string_t *)value;
-                buffer->length = (uint16_t)strlen(SERIAL_NUMBER);
-                buffer->utf8_string = (uint8_t *)SERIAL_NUMBER;
+                buffer->length = (uint16_t)strlen(sn_get());
+                buffer->utf8_string = (uint8_t *)sn_get();
             }
             break;
         }
