@@ -449,22 +449,16 @@ void app_local_play_idx(uint32_t idx) {
 void app_local_music_volume_up() {
     if (m_player.volume >= 15) {
     } else {
-        if (m_player.volume == 0) {
-            audio_local_audio_control_set_mute(false);
-        }
         m_player.volume++;
-        audio_local_audio_control_set_volume(m_player.volume);
     }
+
+    audio_local_audio_control_set_volume(m_player.volume);
 }
 
 void app_local_music_volume_down() {
     if (m_player.volume == 0) {
     } else {
         m_player.volume--;
-        audio_local_audio_control_set_volume(m_player.volume);
     }
-
-    if (m_player.volume == 0) {
-        audio_local_audio_control_set_mute(true);
-    }
+    audio_local_audio_control_set_volume(m_player.volume);
 }
