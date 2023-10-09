@@ -299,6 +299,7 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
         if ((USB_CMD_KEY_ID_EVENT == usb_cmd) && (buf_size == 8)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
+            databuf[6] = 0x00;
 
             usb_race_key_app_event_send((uint16_t)((p_buf[7] << 8) + p_buf[6]));
         } else if ((USB_CMD_GET_VERSION == usb_cmd) && (buf_size == 7)) {
