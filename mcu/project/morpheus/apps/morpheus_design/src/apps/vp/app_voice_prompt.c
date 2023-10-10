@@ -1322,8 +1322,9 @@ static void app_voice_prompt_stop_and_play_next()
 {
     /* Stop vp and wait callback to play next one. */
     prompt_control_stop_tone();
-    vp_ctx.isToneStopping = true;
-    // app_voice_prompt_play_next();
+    /* 在这播放next，没有杂音 */
+    // vp_ctx.isToneStopping = true;
+    app_voice_prompt_play_next();
 }
 
 static void app_voice_prompt_play_next()
