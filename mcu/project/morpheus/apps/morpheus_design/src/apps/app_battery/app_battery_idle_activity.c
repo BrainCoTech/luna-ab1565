@@ -294,7 +294,7 @@ static bool _proc_ui_shell_group(
             memset(&s_battery_context, 0, sizeof(battery_local_context_type_t));
             s_battery_context.battery_percent = battery_management_get_battery_property(BATTERY_PROPERTY_CAPACITY);
             s_battery_context.charging_state = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_STATE);
-            s_battery_context.charger_exist_state = 0; //battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST);
+            s_battery_context.charger_exist_state = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST);
             s_battery_context.shutdown_state = calculate_shutdown_state(battery_management_get_battery_property(BATTERY_PROPERTY_VOLTAGE));
             s_battery_context.aws_state = BT_AWS_MCE_AGENT_STATE_INACTIVE;
             s_battery_context.partner_battery_percent = PARTNER_BATTERY_INVALID;
@@ -307,6 +307,9 @@ static bool _proc_ui_shell_group(
                 _shutdown_when_low_battery(self);
             } else {
 #if defined(APPS_DISABLE_BT_WHEN_CHARGING)
+                if (s_battery_context.charger_exist_state == 1) {
+                    main_controller_power_set(1, 0);
+                }
                 if (s_battery_context.charger_exist_state == 0) {
 #ifdef MTK_ANC_ENABLE
                     bool anc_ret = app_anc_service_resume();
@@ -431,7 +434,7 @@ static bool _proc_battery_event_group(
                 }
                 main_controller_power_set(1, 5);
             } else if (!s_battery_context.charger_exist_state
-                       && CHARGER_STATE_CHR_OFF != s_battery_context.charging_state) {
+                       && (0x0c == pmu_get_power_on_reason())) {
                 /* To remove the event sending in case APPS_EVENTS_BATTERY_CHARGER_STATE_CHANGE. */
                 ui_shell_remove_event(EVENT_GROUP_UI_SHELL_BATTERY,
                                       APPS_EVENTS_BATTERY_CHARGER_FULL_CHANGE);
