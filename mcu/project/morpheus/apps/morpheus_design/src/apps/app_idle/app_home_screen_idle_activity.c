@@ -753,6 +753,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 } else {
 					bt_cm_cancel_connect(NULL);
                 }
+                multi_ble_adv_manager_disconnect_ble(NULL);              
                 bt_device_manager_unpair_all();
                 bt_device_manager_db_flush_all(BT_DEVICE_MANAGER_DB_FLUSH_BLOCK);
                 main_controller_set_state(SYS_CONFIG__STATE__PAIR);
@@ -1562,6 +1563,10 @@ static bool _app_interaction_event_proc(ui_shell_activity_t *self, uint32_t even
             if (extra_data) {
                 need_rho = *((bool *)extra_data);
             }
+            main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
+            send_power_off_flag_to_app();
+            vTaskDelay(500);
+            audio_local_audio_control_set_volume(0);            
             APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY", Receive power off request", 0);
             if (BT_DEVICE_MANAGER_TEST_MODE_NONE != bt_device_manager_get_test_mode()
                 && !(BT_DEVICE_MANAGER_TEST_MODE_DUT_MIX == bt_device_manager_get_test_mode()
