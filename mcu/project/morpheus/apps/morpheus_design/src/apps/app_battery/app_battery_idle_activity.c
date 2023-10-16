@@ -342,6 +342,7 @@ static bool _proc_ui_shell_group(
                             if (temp_state == APP_BATTERY_STATE_LOW_CAP) {
                                 /* Play low battery VP if BT is not in classic off mode */
                                 apps_config_set_vp(VP_INDEX_LOW_BATTERY, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+                                main_controller_set_state(SYS_CONFIG__STATE__BAT_LOW_POWER);
                             }
                         }
                     }
@@ -473,13 +474,14 @@ static bool _proc_battery_event_group(
 #ifdef AIR_TILE_ENABLE
     const app_bt_state_service_status_t* bt_state_srv_status = app_bt_connection_service_get_current_status();
 #endif
-    if (bat_state == APP_BATTERY_STATE_LOW_CAP
+    if (bat_state == APP_BATTERY_STATE_LOW_CAP && bat_state != old_state
 #ifdef AIR_TILE_ENABLE
         && bt_state_srv_status != NULL && bt_state_srv_status->current_power_state != APP_HOME_SCREEN_BT_POWER_CLASSIC_DISABLED
         /* Play low battery VP if BT is not in classic off mode */
 #endif
     ) {
         apps_config_set_vp(VP_INDEX_LOW_BATTERY, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        main_controller_set_state(SYS_CONFIG__STATE__BAT_LOW_POWER);
     } else if (bat_state == old_state) {
         /* Do nothing when battery state not changed. */
     } else if ((bat_state == APP_BATTERY_STATE_SHUTDOWN)
@@ -488,7 +490,7 @@ static bool _proc_battery_event_group(
     } else if (bat_state == APP_BATTERY_STATE_CHARGING_FULL || old_state == APP_BATTERY_STATE_CHARGING)  {
         apps_config_set_foreground_led_pattern(LED_INDEX_CHARGING_FULL, 50, false);
         APPS_LOG_MSGID_I(LOG_TAG" Full charged", 0);
-        main_controller_set_state(41);
+        main_controller_set_state(SYS_CONFIG__STATE__BAT_FULL_CHARGED);
     }
 
 #ifdef APPS_DISABLE_BT_WHEN_CHARGING
