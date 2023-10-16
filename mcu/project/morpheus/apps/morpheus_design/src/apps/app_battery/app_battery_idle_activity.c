@@ -474,13 +474,15 @@ static bool _proc_battery_event_group(
 #ifdef AIR_TILE_ENABLE
     const app_bt_state_service_status_t* bt_state_srv_status = app_bt_connection_service_get_current_status();
 #endif
-    if (bat_state == APP_BATTERY_STATE_LOW_CAP && bat_state != old_state
+    if (bat_state == APP_BATTERY_STATE_LOW_CAP
 #ifdef AIR_TILE_ENABLE
         && bt_state_srv_status != NULL && bt_state_srv_status->current_power_state != APP_HOME_SCREEN_BT_POWER_CLASSIC_DISABLED
         /* Play low battery VP if BT is not in classic off mode */
 #endif
     ) {
-        apps_config_set_vp(VP_INDEX_LOW_BATTERY, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        if (bat_state != old_state) {
+            apps_config_set_vp(VP_INDEX_LOW_BATTERY, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+        }
         main_controller_set_state(SYS_CONFIG__STATE__BAT_LOW_POWER);
     } else if (bat_state == old_state) {
         /* Do nothing when battery state not changed. */
