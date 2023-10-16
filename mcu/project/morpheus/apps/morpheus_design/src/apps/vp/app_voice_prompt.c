@@ -1690,10 +1690,10 @@ uint16_t app_voice_prompt_play(uint32_t tone_idx, bool need_sync, uint32_t delay
                 }
 
                 /* Stop the playing vp. */
-                stop_success = app_voice_prompt_stop_internal(cur_item.id, cur_item.need_sync, cur_item.delay_time, false);
-                if (stop_success == false) {
-                    app_voice_prompt_msgid_report("Stop(cleanup) current medium vp fail", 0);
-                }                
+                // stop_success = app_voice_prompt_stop_internal(cur_item.id, cur_item.need_sync, cur_item.delay_time, false);
+                // if (stop_success == false) {
+                //     app_voice_prompt_msgid_report("Stop(cleanup) current medium vp fail", 0);
+                // }                
             } else {
                 /* Priority is lower than current VP, just enqueue and wait. */
                 app_voice_prompt_msgid_report("just queue idx: 0x%x", 1, tone_idx);
