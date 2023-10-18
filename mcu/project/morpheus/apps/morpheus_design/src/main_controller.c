@@ -250,8 +250,14 @@ void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
 	}
 
     if (cfg->vp_id > 0) {
-        apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
-                           cfg->preemption, app_vp_play_callback);
+        if (cfg->vp_id == VP_INDEX_CES_FOREHEAD) {
+            // 让CES挡位提前播放
+            apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_LOW,
+                               cfg->preemption, app_vp_play_callback);
+        } else {
+            apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
+                               cfg->preemption, app_vp_play_callback);
+        }
     }
 }
 
