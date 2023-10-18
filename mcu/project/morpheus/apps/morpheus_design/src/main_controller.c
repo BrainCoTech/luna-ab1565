@@ -240,7 +240,14 @@ void app_vp_play_callback(uint32_t idx, vp_err_code err) {
 }
 
 void prompt_config(uint32_t msg_id, PromptConfig *cfg) {
-    LOG_MSGID_I(MAIN_CONTR, "prompt id %d", 1, cfg->vp_id);
+    uint16_t  id = 0;
+
+    id = app_voice_prompt_get_current_index();
+    LOG_MSGID_I(MAIN_CONTR, "new prompt id %d, old prompt id %d", 2, cfg->vp_id, id);
+
+	if (id == cfg->vp_id) {
+        return;
+	}
 
     if (cfg->vp_id > 0) {
         apps_config_set_vp(cfg->vp_id, false, 0, VOICE_PROMPT_PRIO_MEDIUM,
