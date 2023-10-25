@@ -28,6 +28,8 @@
 log_create_module(MAIN_CONTR, PRINT_LEVEL_INFO);
 log_create_module(MUSIC_CONTR, PRINT_LEVEL_INFO);
 
+#define DISCONNECT_BT_WHEN_LOCAL_PLAY 0
+
 #define MAIN_POWEN_EN_PIN HAL_GPIO_9
 #define POWERKEY_PIN HAL_GPIO_10
 #define CLK_32K_EN_PIN HAL_GPIO_8
@@ -126,10 +128,11 @@ void main_controller_set_time(uint64_t time) {
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
     uint8_t volume = 0;
-
+#if DISCONNECT_BT_WHEN_LOCAL_PLAY
     if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
         disconnect_a2dp();
     }
+#endif
     if (m_music_mode != mode) {
         if (mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
             LOG_I(MUSIC_CONTR, "set music mode: %d, pause local music", mode);
