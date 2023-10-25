@@ -57,6 +57,7 @@ log_create_module(app_usb, PRINT_LEVEL_INFO);
 #define USB_CMD_BUTTON_GET 0x0110
 #define USB_CMD_KNOB_SET 0x0111
 #define USB_CMD_FACTORY_RESET 0x0112
+#define USB_CMD_MUSIC_FILE_STATUS 0x0113
 
 #define USB_MUX_PORT_RX_BUF_SIZE 512
 #define USB_MUX_PORT_TX_BUF_SIZE 512
@@ -627,6 +628,15 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
             nvkey_status_t nvkey_ret = nvkey_write_data(NVKEYID_BT_DUT_ENABLE, (uint8_t *)(&dut_config), dut_size);
 
             databuf[6] = 0x00;
+        } else if ((USB_CMD_MUSIC_FILE_STATUS == usb_cmd) && (buf_size == 7)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x03;
+
+            if (music_file_is_exist()) {
+                databuf[6] = 0x00;
+            } else {
+                databuf[6] = 0x01;
+            }
         } else {
             cmdFlag = false;
         }

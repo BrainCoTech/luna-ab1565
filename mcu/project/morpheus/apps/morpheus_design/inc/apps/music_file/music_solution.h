@@ -30,6 +30,8 @@ int music_file_sync_status_get(recv_file_t **file);
 
 int music_file_sync_status_set(const recv_file_t *file);
 
+int music_file_is_exist(void);
+
 #ifdef __cplusplus
 }
 #endif

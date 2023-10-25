@@ -34,6 +34,29 @@ int music_solution_read(music_sulotion_t **sulotion) {
     return ret;
 }
 
+int music_file_is_exist(void)
+{
+    int ret = 0;
+    int num = 0;
+
+    music_sulotion_t *sulotion = NULL;
+    music_solution_read(&sulotion);
+
+    if (sulotion != NULL) {
+        for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
+            if (m_music_solution.files[i].music_offset == m_music_solution.files[i].music_size) {
+                num++;
+            }
+        }
+    }
+
+    if (num == MUSIC_SOLUTION_NUMS) {
+        ret = 1;
+    }
+
+    return ret;
+}
+
 music_sulotion_t *music_solution_get() { return &m_music_solution; }
 
 int music_solution_write(const music_sulotion_t *sulotion) {
