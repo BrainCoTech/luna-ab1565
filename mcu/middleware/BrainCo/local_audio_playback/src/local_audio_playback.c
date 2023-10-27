@@ -167,7 +167,6 @@ void local_audio_playback_isr_handler(hal_audio_event_t event, void *data)
 	local_audio_context_t *ctx = local_audio_get_ctx();
 	local_audio_source_t *src = local_audio_get_src();
 
-	audio_src_srv_report("[LOCAL_AUDIO] play isr, event (%d) /r/n", 1, event);
 
 	switch (event) {
 	case HAL_AUDIO_EVENT_DATA_REQUEST:

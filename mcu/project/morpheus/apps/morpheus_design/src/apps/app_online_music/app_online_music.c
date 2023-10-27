@@ -339,11 +339,11 @@ void app_online_music_task(void) {
 
             music_sync_event_set(MUSIC_SYNC_RESUME);
 
-            if (!get_music_type()) {
+            main_controller_audio_config(AUDIO_ACTION_APP_PLAY);
+            if (main_controller_get_music_mode() == AUDIO_CONFIG__MODE__A2DP_MODE) {
+                main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
                 send_track_id_to_main(0, true);
             }
-            main_controller_audio_config(AUDIO_ACTION_APP_PLAY);
-            main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
         }
 
         if (cur_event.event == ONLINE_AVRCP_STATUS_PAUSE) {
@@ -354,18 +354,16 @@ void app_online_music_task(void) {
             }
             a2dp_playing_flag_set(false);
 
-            if (!get_music_type()) {
-                send_track_id_to_main(0, false);
-            }
             main_controller_audio_sm_reset();
 
             main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
+            send_track_id_to_main(0, false);
         }
 
         if (cur_event.event == MUSIC_EVENT_LOCAL_PLAY) {
             LOG_MSGID_I(MUSIC_CONTR, "local cmd: play", 0);
             cur_event.event = 0;
-
+            main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
             if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
                 wait_avrcp_paused_for_local_audio = 1;

@@ -47,7 +47,7 @@ xSemaphoreHandle g_xSemaphore_am_state = NULL;
 uint8_t          g_xSemaphore_cnt      = 0;
 void*    AUDIO_SRC_SRV_CURRENT_TASK = NULL;
 extern void *pxCurrentTCB;
-
+#define MTK_AUDIO_MANAGER_DEBUG 1
 // function declare
 static bool audio_src_srv_check_psedev_param(audio_src_srv_handle_t *handle);
 

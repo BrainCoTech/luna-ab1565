@@ -364,6 +364,8 @@ void local_audio_source_suspend(audio_src_srv_handle_t *handle, audio_src_srv_ha
 
     audio_src_srv_add_waiting_list(handle);
 
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+
     local_audio_update_state(ctx, LOCAL_AUDIO_STATE_SUSPEND);
 }
 
@@ -371,7 +373,9 @@ void local_audio_source_reject(audio_src_srv_handle_t *handle)
 {
     local_audio_context_t *ctx = local_audio_get_ctx();
 
-    local_audio_update_state(ctx, LOCAL_AUDIO_STATE_READY);
+    audio_src_srv_add_waiting_list(handle);
+
+    local_audio_update_state(ctx, LOCAL_AUDIO_STATE_SUSPEND);
 }
 
 void local_audio_source_exception(audio_src_srv_handle_t *handle, int32_t event, void *param)

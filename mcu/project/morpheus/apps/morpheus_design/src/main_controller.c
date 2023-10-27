@@ -127,29 +127,26 @@ void main_controller_set_time(uint64_t time) {
 
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
-    uint8_t volume = 0;
-#if DISCONNECT_BT_WHEN_LOCAL_PLAY
-    if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-        disconnect_a2dp();
-    }
-#endif
     if (m_music_mode != mode) {
         LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
         if (mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-            app_local_music_pause();
-            vTaskDelay(1000);
-            bt_sink_srv_music_set_mute(false);
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PLAY, NULL);
             music_sync_event_set(MUSIC_SYNC_RESUME);
+            main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
         }
         if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
-            vTaskDelay(1000);
+            main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
             music_sync_event_set(MUSIC_SYNC_PAUSE);
         }
         m_music_mode = mode;
     }
 }
+
+AudioConfig__Mode main_controller_get_music_mode(void) {
+    return m_music_mode;
+}
+
 extern uint32_t audio_id;
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     LOG_MSGID_I(MUSIC_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd,
@@ -201,11 +198,11 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
 
     switch (cfg->mode) {
         case AUDIO_CONFIG__MODE__A2DP_MODE:
-            // main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
+            main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
             break;
 
         case AUDIO_CONFIG__MODE__LOCAL_MODE:
-            // main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
+            main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
             music_event_set(MUSIC_EVENT_LOCAL_PLAY);
             break;
 
