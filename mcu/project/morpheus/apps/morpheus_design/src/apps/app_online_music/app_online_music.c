@@ -13,6 +13,7 @@
 #include "semphr.h"
 #include "stdbool.h"
 #include "timers.h"
+#include "music_file_receiver.h"
 
 #define A2DP_CHECK_TIMER_NAME "a2dp_check"
 #define A2DP_CHECK_TIMER_ID 4
@@ -35,7 +36,7 @@ static uint32_t last_music_id;
 
 #define EVENT_QUEUE_SIZE 20
 static QueueHandle_t event_queue;
-#define EVENT_WAIT_PROC_TIME 1000 /*ms*/
+#define EVENT_WAIT_PROC_TIME 500 /*ms*/
 static xSemaphoreHandle event_wait_proc_sem;
 
 static void a2dp_check_cb_function(TimerHandle_t xTimer);
@@ -285,20 +286,32 @@ void connect_a2dp(void) {
 void a2dp_play_handler(void) {
     online_music_event_t event;
     event.event = ONLINE_AVRCP_STATUS_PLAY;
+    event.ticks = xTaskGetTickCount();
     xQueueSend(event_queue, &event, 100/portTICK_PERIOD_MS);
 }
 
 void a2dp_pause_handler(void) {
     online_music_event_t event;
     event.event = ONLINE_AVRCP_STATUS_PAUSE;
+    event.ticks = xTaskGetTickCount();
     xQueueSend(event_queue, &event, 100/portTICK_PERIOD_MS);
 }
 
+void music_event_set(uint32_t event) {
+    online_music_event_t new_event;
+    new_event.event = event;
+    new_event.ticks = xTaskGetTickCount();
+    xQueueSend(event_queue, &new_event, 100/portTICK_PERIOD_MS);
+}
+
+uint32_t audio_id;
+static AudioConfig__Mode m_music_mode;
 void app_online_music_task(void) {
     online_music_event_t new_event;
     online_music_event_t cur_event;
     uint32_t count = 0;
-
+    int wait_avrcp_paused_for_local_audio = 0;
+    
     event_queue = xQueueCreate(EVENT_QUEUE_SIZE, sizeof(online_music_event_t));
     event_wait_proc_sem = xSemaphoreCreateBinary();
 
@@ -314,45 +327,60 @@ void app_online_music_task(void) {
             continue;
         }
 
-#if (0)
-        if (user_disconnect_a2dp) {
-            if (count++ > 5000/EVENT_WAIT_PROC_TIME) {
-                count = 0;
-                connect_a2dp();
-                user_disconnect_a2dp = false;
-            }
-        } else {
-            count = 0;
-        }
-#endif
-
         if (cur_event.event == ONLINE_AVRCP_STATUS_PLAY) {
             LOG_MSGID_I(MUSIC_CONTR, "avrcp state: play", 0);
             cur_event.event = 0;
 
-            main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
-
             a2dp_playing_flag_set(true);
-            // if (!get_music_type()) {
-            //     send_track_id_to_main(0, true);
-            // }
-            // main_controller_audio_config(AUDIO_ACTION_APP_PLAY);
 
-            // main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
+            // app_local_music_pause();
+
+            m_music_mode = AUDIO_CONFIG__MODE__A2DP_MODE;
+
+            music_sync_event_set(MUSIC_SYNC_RESUME);
+
+            if (!get_music_type()) {
+                send_track_id_to_main(0, true);
+            }
+            main_controller_audio_config(AUDIO_ACTION_APP_PLAY);
+            main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
         }
 
         if (cur_event.event == ONLINE_AVRCP_STATUS_PAUSE) {
             LOG_MSGID_I(MUSIC_CONTR, "avrcp state: pause", 0);
             cur_event.event = 0;
-
+            if (wait_avrcp_paused_for_local_audio == 1) {
+                wait_avrcp_paused_for_local_audio = 2;
+            }
             a2dp_playing_flag_set(false);
-            // if (!get_music_type()) {
-            //     send_track_id_to_main(0, false);
-            // }
-            // main_controller_audio_sm_reset();
 
-            // main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
+            if (!get_music_type()) {
+                send_track_id_to_main(0, false);
+            }
+            main_controller_audio_sm_reset();
+
+            main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
         }
 
+        if (cur_event.event == MUSIC_EVENT_LOCAL_PLAY) {
+            LOG_MSGID_I(MUSIC_CONTR, "local cmd: play", 0);
+            cur_event.event = 0;
+
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
+            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+                wait_avrcp_paused_for_local_audio = 1;
+            } else {
+                wait_avrcp_paused_for_local_audio = 2;
+            }
+             m_music_mode = AUDIO_CONFIG__MODE__LOCAL_MODE;
+            
+            music_sync_event_set(MUSIC_SYNC_PAUSE);
+        }
+
+        if (wait_avrcp_paused_for_local_audio == 2) {
+            wait_avrcp_paused_for_local_audio = 0;
+            app_local_play_idx(audio_id);
+            LOG_MSGID_I(MUSIC_CONTR, "online audio stopped, start local audio", 0);
+        }
     }
 }

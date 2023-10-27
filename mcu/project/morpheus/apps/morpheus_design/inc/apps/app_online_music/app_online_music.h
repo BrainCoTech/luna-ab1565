@@ -11,6 +11,7 @@ extern "C" {
 #define ONLINE_AVRCP_STATUS_PAUSE 2
 #define ONLINE_AVRCP_CMD_PLAY 3
 #define ONLINE_AVRCP_CMD_PAUSE 4
+#define MUSIC_EVENT_LOCAL_PLAY 5
 
 typedef struct {
     uint32_t event;
@@ -64,6 +65,8 @@ void app_online_music_task(void);
 bool is_user_disconnect_a2dp();
 
 void user_disconnect_a2dp_set(bool flag);
+
+void music_event_set(uint32_t event);
 
 #ifdef __cplusplus
 }

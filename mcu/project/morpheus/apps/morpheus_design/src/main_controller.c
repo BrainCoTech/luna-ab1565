@@ -134,23 +134,23 @@ void main_controller_set_music_mode(AudioConfig__Mode mode) {
     }
 #endif
     if (m_music_mode != mode) {
+        LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
         if (mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-            LOG_I(MUSIC_CONTR, "set music mode: %d, pause local music", mode);
             app_local_music_pause();
             vTaskDelay(1000);
             bt_sink_srv_music_set_mute(false);
             bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PLAY, NULL);
-            m_music_mode = mode;
             music_sync_event_set(MUSIC_SYNC_RESUME);
         }
         if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-            LOG_I(MUSIC_CONTR, "set music mode: %d, pause a2dp music", mode);
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
+            vTaskDelay(1000);
             music_sync_event_set(MUSIC_SYNC_PAUSE);
-            m_music_mode = mode;
         }
+        m_music_mode = mode;
     }
 }
-
+extern uint32_t audio_id;
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     LOG_MSGID_I(MUSIC_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd,
                 cfg->mode, cfg->audio_id);
@@ -201,11 +201,12 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
 
     switch (cfg->mode) {
         case AUDIO_CONFIG__MODE__A2DP_MODE:
-            main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
+            // main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
             break;
 
         case AUDIO_CONFIG__MODE__LOCAL_MODE:
-            main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
+            // main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
+            music_event_set(MUSIC_EVENT_LOCAL_PLAY);
             break;
 
         default:
@@ -216,7 +217,8 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
         if (cfg->audio_id > 4) {
             app_local_music_pause();
         } else {
-            app_local_play_idx(cfg->audio_id - 1);
+            // app_local_play_idx(cfg->audio_id - 1);
+            audio_id = cfg->audio_id - 1;
         }
     }
 
