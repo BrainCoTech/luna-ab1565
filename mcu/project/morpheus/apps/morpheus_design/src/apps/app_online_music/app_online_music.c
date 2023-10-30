@@ -290,8 +290,13 @@ void a2dp_play_handler(void) {
     xQueueSend(event_queue, &event, 100/portTICK_PERIOD_MS);
 }
 
+extern bool local_audio_is_suspend;
 void a2dp_pause_handler(void) {
     online_music_event_t event;
+
+    if (local_audio_is_suspend) {
+        // app_local_music_play();
+    }
     event.event = ONLINE_AVRCP_STATUS_PAUSE;
     event.ticks = xTaskGetTickCount();
     xQueueSend(event_queue, &event, 100/portTICK_PERIOD_MS);
@@ -330,16 +335,10 @@ void app_online_music_task(void) {
         if (cur_event.event == ONLINE_AVRCP_STATUS_PLAY) {
             LOG_MSGID_I(MUSIC_CONTR, "avrcp state: play", 0);
             cur_event.event = 0;
-
             a2dp_playing_flag_set(true);
-
-            // app_local_music_pause();
-
-            m_music_mode = AUDIO_CONFIG__MODE__A2DP_MODE;
 
             music_sync_event_set(MUSIC_SYNC_RESUME);
 
-            main_controller_audio_config(AUDIO_ACTION_APP_PLAY);
             if (main_controller_get_music_mode() == AUDIO_CONFIG__MODE__A2DP_MODE) {
                 main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
                 send_track_id_to_main(0, true);
@@ -349,12 +348,7 @@ void app_online_music_task(void) {
         if (cur_event.event == ONLINE_AVRCP_STATUS_PAUSE) {
             LOG_MSGID_I(MUSIC_CONTR, "avrcp state: pause", 0);
             cur_event.event = 0;
-            if (wait_avrcp_paused_for_local_audio == 1) {
-                wait_avrcp_paused_for_local_audio = 2;
-            }
             a2dp_playing_flag_set(false);
-
-            main_controller_audio_sm_reset();
 
             main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
             send_track_id_to_main(0, false);
@@ -362,23 +356,8 @@ void app_online_music_task(void) {
 
         if (cur_event.event == MUSIC_EVENT_LOCAL_PLAY) {
             LOG_MSGID_I(MUSIC_CONTR, "local cmd: play", 0);
-            cur_event.event = 0;
-            main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
-            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
-            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-                wait_avrcp_paused_for_local_audio = 1;
-            } else {
-                wait_avrcp_paused_for_local_audio = 2;
-            }
-             m_music_mode = AUDIO_CONFIG__MODE__LOCAL_MODE;
-            
+            cur_event.event = 0;         
             music_sync_event_set(MUSIC_SYNC_PAUSE);
-        }
-
-        if (wait_avrcp_paused_for_local_audio == 2) {
-            wait_avrcp_paused_for_local_audio = 0;
-            app_local_play_idx(audio_id);
-            LOG_MSGID_I(MUSIC_CONTR, "online audio stopped, start local audio", 0);
         }
     }
 }

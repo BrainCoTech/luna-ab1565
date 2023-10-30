@@ -1442,6 +1442,10 @@ static int32_t bt_sink_srv_a2dp_handle_suspend_streaming_ind(bt_a2dp_suspend_str
     if(a2dp_dev ) {
         a2dp_dev->a2dp_status = BT_SINK_SRV_A2DP_STATUS_SUSPEND;
         if(!(a2dp_dev->flag&BT_SINK_SRV_MUSIC_FLAG_A2DP_INTERRUPT)) {
+            audio_src_srv_handle_t *handle = audio_src_srv_get_runing_pseudo_device();
+            if (handle->type == AUDIO_SRC_SRV_PSEUDO_DEVICE_LOCAL) {
+                handle->priority = AUDIO_SRC_SRV_PRIORITY_LOW;
+            }
             audio_src_srv_del_waiting_list(a2dp_dev->handle);
         }
         BT_SINK_SRV_REMOVE_FLAG(a2dp_dev->op, BT_SINK_SRV_MUSIC_A2DP_HF_INTERRUPT);
@@ -2479,7 +2483,11 @@ void bt_sink_srv_a2dp_suspend(audio_src_srv_handle_t *handle, audio_src_srv_hand
         /* Add self in waiting list */
         if(!(a2dp_dev->avrcp_flag & BT_SINK_SRV_AVRCP_MUST_PLAY_RING_TONE_FLAG)) {
             BT_SINK_SRV_SET_FLAG(a2dp_dev->flag, BT_SINK_SRV_MUSIC_FLAG_A2DP_INTERRUPT);
-            bt_sink_srv_a2dp_add_waitinglist(handle);
+            if (int_hd->type == AUDIO_SRC_SRV_PSEUDO_DEVICE_LOCAL) {
+                audio_src_srv_del_waiting_list(handle);
+            } else {
+                bt_sink_srv_a2dp_add_waitinglist(handle);
+            }
             /* Set interrupt flag */
             /* Send pause cmd */
             if(dev_id_p.product_id == 0x1200 && dev_id_p.vender_id == 0x038f && a2dp_dev->a2dp_status == BT_SINK_SRV_A2DP_STATUS_STREAMING) {
