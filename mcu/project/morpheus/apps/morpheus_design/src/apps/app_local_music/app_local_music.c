@@ -227,8 +227,9 @@ void app_local_music_play() {
     app_local_music_lock();
     if (m_player.action != ACTION_NEW_ID) {
         m_player.action = ACTION_PLAY;
-        if (m_player.state == PLAY_IDLE) {
-            // xSemaphoreGive(local_music_start_sem);
+        if (m_player.audio_state == PLAY_IDLE) {
+            while(xSemaphoreTake( local_music_start_sem, ( TickType_t ) 0 ) != pdFAIL ) {;}
+            xSemaphoreGive(local_music_start_sem);
         }
     }
     LOG_MSGID_I(LOCAL_MUSIC, "app_local_music_play, action %d", 1, m_player.action);
@@ -257,7 +258,6 @@ void app_local_music_task(void) {
             case PLAY_IDLE:
                 LOG_MSGID_I(LOCAL_MUSIC, "wait music play", 0);
                 xSemaphoreTake(local_music_start_sem, portMAX_DELAY);
-
                 music_sync_event_set(MUSIC_SYNC_PAUSE);
                 app_local_music_lock();
                 app_local_music_update_id_from_flash();
@@ -443,6 +443,7 @@ void app_local_play_idx(uint32_t idx) {
         LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx new id %d, state %d", 2, idx, m_player.state);
         m_player.action = ACTION_NEW_ID;
     }
+    while(xSemaphoreTake( local_music_start_sem, ( TickType_t ) 0 ) != pdFAIL ) {;}
     xSemaphoreGive(local_music_start_sem);
     app_local_music_unlock();
 }

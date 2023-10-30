@@ -1590,6 +1590,33 @@ void bt_app_common_on_bt_sink_event_callback(bt_sink_srv_event_t event_id, void 
                 bt_app_common_check_ble_conn_interval(conn_handle, &event->state_change);
             }
         }
+       if (BT_SINK_SRV_EVENT_AVRCP_GET_ELEMENT_ATTRIBUTES_CNF == event_id) {
+            bt_handle_t conn_handle = bt_app_common_get_first_conneciton_handle();
+            LOG_MSGID_I(BT_APP, "get element attributes, conn_handle = %d", 1, conn_handle);
+            bt_sink_srv_avrcp_get_element_attributes_cnf_t *p = (bt_sink_srv_avrcp_get_element_attributes_cnf_t *)param;
+            
+            uint32_t parser_length = 0;
+            for(int i = 0; (i<p->number) && (parser_length < p->length); i++) {
+                bt_avrcp_get_element_attributes_response_value_t *attribute = (bt_avrcp_get_element_attributes_response_value_t *)(((void *)(p->attribute_list)) + parser_length);
+                parser_length += (sizeof(bt_avrcp_get_element_attributes_response_value_t) + attribute->attribute_value_length - 1);
+                if(attribute->attribute_value_length && attribute->attribute_id == 2) {
+                    uint8_t *data = (uint8_t *)bt_sink_srv_memory_alloc(attribute->attribute_value_length+1);
+                    bt_sink_srv_memset(data, 0, attribute->attribute_value_length+1);
+                    bt_sink_srv_memcpy(data, attribute->attribute_value, attribute->attribute_value_length);
+                    uint32_t fd = atoui(data);
+                    LOG_I(BT_APP, "get element attributes, name = %s, len %d", data, attribute->attribute_value_length);
+                    bt_sink_srv_memory_free(data);
+                }
+                if(attribute->attribute_value_length && attribute->attribute_id == 7) {
+                    uint8_t *data = (uint8_t *)bt_sink_srv_memory_alloc(attribute->attribute_value_length+1);
+                    bt_sink_srv_memset(data, 0, attribute->attribute_value_length+1);
+                    bt_sink_srv_memcpy(data, attribute->attribute_value, attribute->attribute_value_length);
+                    uint32_t time = atoui(data);
+                    LOG_MSGID_I(BT_APP, "get element attributes, i %d, time = %u %d", 3, i, time, attribute->attribute_value_length);
+                    bt_sink_srv_memory_free(data);
+                }
+            }
+        }        
     }
 }
 
