@@ -42,6 +42,8 @@ char *sn_get(void);
 
 void sn_set(char *sn);
 
+void get_element();
+
 #ifdef __cplusplus
 }
 #endif

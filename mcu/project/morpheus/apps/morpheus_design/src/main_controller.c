@@ -470,3 +470,25 @@ char *sn_get(void)
 
     return sn;
 }
+
+
+void get_element() {
+    bt_sink_srv_avrcp_get_element_attributes_parameter_t attribute_params;
+    attribute_params.accept_fragment = false;
+    attribute_params.attribute_size = 28;
+    bt_avrcp_get_element_attributes_t attribute_list[7];
+    attribute_list[0].attribute_id = 1;
+    attribute_list[1].attribute_id = 2;
+    attribute_list[2].attribute_id = 3;
+    attribute_list[3].attribute_id = 4;
+    attribute_list[4].attribute_id = 5;
+    attribute_list[5].attribute_id = 6;
+    attribute_list[6].attribute_id = 7;
+    attribute_params.address = NULL;
+    attribute_params.attribute_list = attribute_list;
+    bt_status_t result = bt_sink_srv_send_action(
+        BT_SINK_SRV_ACTION_GET_ELEMENT_ATTRIBUTE, &attribute_params);
+    if (result != BT_STATUS_SUCCESS) {
+        LOG_MSGID_I(MAIN_CONTR, "get element failed", 0);
+    }
+}
