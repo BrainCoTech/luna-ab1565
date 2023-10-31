@@ -1309,6 +1309,7 @@ static int32_t bt_sink_srv_a2dp_handle_start_streaming_ind(bt_a2dp_start_streami
 #endif
 #ifdef BT_SINK_SRV_CONTROL_MUSIC_BY_AVRCP_STATUS
     if(ctx->run_dev == dev && (dev->op & BT_SINK_SRV_MUSIC_OP_CODEC_OPEN)) {
+        bt_sink_srv_music_device_t *run_dev = ctx->run_dev; 
         BT_SINK_SRV_REMOVE_FLAG(dev->flag, BT_SINK_SRV_MUSIC_NEED_TO_RESPONSE_A2DP_START);
 #ifdef __BT_AWS_MCE_A2DP_SUPPORT__
         bt_sink_srv_aws_mce_a2dp_send_eir(BT_SINK_SRV_AWS_MCE_A2DP_EVT_START_STREAMING, (void *)(&(dev->a2dp_hd)));
@@ -1443,8 +1444,10 @@ static int32_t bt_sink_srv_a2dp_handle_suspend_streaming_ind(bt_a2dp_suspend_str
         a2dp_dev->a2dp_status = BT_SINK_SRV_A2DP_STATUS_SUSPEND;
         if(!(a2dp_dev->flag&BT_SINK_SRV_MUSIC_FLAG_A2DP_INTERRUPT)) {
             audio_src_srv_handle_t *handle = audio_src_srv_get_runing_pseudo_device();
-            if (handle->type == AUDIO_SRC_SRV_PSEUDO_DEVICE_LOCAL) {
-                handle->priority = AUDIO_SRC_SRV_PRIORITY_LOW;
+            if (handle) {
+                if (handle->type == AUDIO_SRC_SRV_PSEUDO_DEVICE_LOCAL) {
+                    handle->priority = AUDIO_SRC_SRV_PRIORITY_LOW;
+                }
             }
             audio_src_srv_del_waiting_list(a2dp_dev->handle);
         }

@@ -1327,7 +1327,7 @@ static void bt_sink_srv_avrcp_handle_play_status_notification(uint32_t handle, u
         if(dev->flag & BT_SINK_SRV_MUSIC_FLAG_WAIT_LIST_SINK_PLAY) {
             BT_SINK_SRV_REMOVE_FLAG(dev->flag, BT_SINK_SRV_MUSIC_FLAG_WAIT_LIST_SINK_PLAY);
             bt_sink_srv_report_id("[sink][a2dp]flag wait list sink play", 0);
-            return ret;
+            return;
         }
         if(ctx->run_dev && ctx->run_dev == dev) {
             BT_SINK_SRV_REMOVE_FLAG(dev->flag, BT_SINK_SRV_MUSIC_FLAG_REINITIAL_SYNC);

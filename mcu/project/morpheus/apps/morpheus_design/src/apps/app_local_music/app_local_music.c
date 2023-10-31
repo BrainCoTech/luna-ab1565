@@ -226,13 +226,7 @@ void app_local_music_stop() {
 
 void app_local_music_play() {
     app_local_music_lock();
-    if (m_player.action != ACTION_NEW_ID) {
-        m_player.action = ACTION_PLAY;
-        if (m_player.audio_state == PLAY_IDLE) {
-            while(xSemaphoreTake( local_music_start_sem, ( TickType_t ) 0 ) != pdFAIL ) {;}
-            xSemaphoreGive(local_music_start_sem);
-        }
-    }
+    m_player.action = ACTION_PLAY;
     LOG_MSGID_I(LOCAL_MUSIC, "app_local_music_play, action %d", 1, m_player.action);
     app_local_music_unlock();
 }
@@ -325,6 +319,7 @@ void app_local_music_task(void) {
                         m_player.last_action = m_player.action;
                     } else if (m_player.action == ACTION_STOP) {
                         LOG_MSGID_I(LOCAL_MUSIC, "playing -> stop, state %d", 1, m_player.state);
+                        xSemaphoreTake(local_music_start_sem, 100);
                         audio_local_audio_control_stop();
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_STOP;
@@ -415,11 +410,10 @@ void app_local_music_task(void) {
                 /* not need change id, goto PLAY_REPEAT */
 
             case PLAY_REPEAT:
-                if (wait_for_ready(LOCAL_AUDIO_STATE_READY, 1000) < 0) {
-                    LOG_MSGID_I(LOCAL_MUSIC, "PLAY_NEXT error, audio state %d",
-                                1, m_player.audio_state);
-                }
-                // audio_local_audio_control_deinit();
+                LOG_MSGID_I(LOCAL_MUSIC, "PLAY_NEXT error, audio state %d",
+                            1, m_player.audio_state);
+                wait_for_ready(LOCAL_AUDIO_STATE_READY, 2000);
+                audio_local_audio_control_deinit();
                 m_player.state = PLAY_START;
                 break;
 
@@ -443,15 +437,10 @@ void app_local_play_idx(uint32_t idx) {
         LOG_MSGID_I(LOCAL_MUSIC, "no music resource", 0);
         idx = 0;
     }
+
+    LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx new id %d, state %d", 2, idx, m_player.state);
+    m_player.action = ACTION_NEW_ID;
     m_player.index = idx;
-    if (m_player.state == PLAY_IDLE) {
-        LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx play", 0);
-        m_player.action = ACTION_PLAY;
-    } else {
-        LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx new id %d, state %d", 2, idx, m_player.state);
-        m_player.action = ACTION_NEW_ID;
-    }
-    while(xSemaphoreTake( local_music_start_sem, ( TickType_t ) 0 ) != pdFAIL ) {;}
     xSemaphoreGive(local_music_start_sem);
     app_local_music_unlock();
 }

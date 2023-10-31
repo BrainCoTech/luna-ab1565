@@ -54,7 +54,7 @@ void local_audio_ami_callback(bt_sink_srv_am_id_t aud_id, bt_sink_srv_am_cb_msg_
 
             local_audio_update_state(ctx, LOCAL_AUDIO_STATE_PLAYING);
             xTimerStart(m_proi_change_timer, 0);
-            // src->audio_hdl->priority = AUDIO_SRC_SRV_PRIORITY_LOW;
+            src->audio_hdl->priority = AUDIO_SRC_SRV_PRIORITY_LOW;
         } else if (ctx->state == LOCAL_AUDIO_STATE_PREPARE_PAUSE) {
             audio_src_srv_update_state(src->audio_hdl, AUDIO_SRC_SRV_EVT_READY);
 
