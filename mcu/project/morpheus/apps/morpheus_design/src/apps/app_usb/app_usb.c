@@ -15,6 +15,7 @@
 #include "task.h"
 #include "timers.h"
 #include "app_uart.h"
+#include "at_shell.h"
 
 log_create_module(app_usb, PRINT_LEVEL_INFO);
 
@@ -27,6 +28,8 @@ static mux_handle_t m_usb_handle;
 static StreamBufferHandle_t m_rx_stream;
 static QueueHandle_t m_tx_queue;
 static packet_unpacker_t unpacker;
+
+int usb_send_direct(const uint8_t *data, size_t len);
 
 void usb_mux_event_callback(mux_handle_t handle, mux_event_t event,
                             uint32_t data_len, void *user_data) {
@@ -107,6 +110,9 @@ void app_usb_init(void) {
     }
 
     LOG_MSGID_I(app_usb, "usb mux open success", 1);
+
+    at_cmd_init(usb_send_direct);
+
 }
 
 static void packet_unpacker_handler(int32_t src_id, int32_t dst_id,
@@ -126,6 +132,25 @@ static void packet_unpacker_handler(int32_t src_id, int32_t dst_id,
             memcpy(msg.data, data, size);
             app_uart_enqueue(&msg);
         }
+    }
+}
+
+int usb_send_direct(const uint8_t *data, size_t len)
+{
+    uint32_t send_done_data_len = 0; 
+    mux_buffer_t mux_buff;
+
+    mux_buff.p_buf = data;
+    mux_buff.buf_size = len;
+
+    mux_tx(m_usb_handle, &mux_buff, 1, &send_done_data_len);
+
+    return send_done_data_len;
+}
+
+void usb_at_cmd_handle(uint8_t *p_buf, uint32_t buf_size) {
+    for (int i = 0; i < buf_size; i++) {
+		at_cmd_process(p_buf[i]);
     }
 }
 
@@ -149,6 +174,8 @@ void app_usb_rx_task(void) {
         }
         bytes_read = xStreamBufferReceive(m_rx_stream, rx_buf,
                                           USB_RX_BUF_SIZE / 2, portMAX_DELAY);
+
+        usb_at_cmd_handle(rx_buf, bytes_read);
 
         packet_unpacker_enqueue(&unpacker, rx_buf, bytes_read);
         packet_unpacker_process(&unpacker);

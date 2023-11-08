@@ -127,6 +127,10 @@ int main_bt_msg_decode(const uint8_t *buf, uint16_t size) {
         if (msg->music_file) {
             main_bt_music_file_info(msg->msg_id, msg->music_file);
         }
+
+        if (msg->at_cmd_resp) {
+            main_bt_at_cmd_resp(msg->msg_id, msg->at_cmd_resp);
+        }
         
         main_bt__free_unpacked(msg, NULL);
     }
@@ -160,5 +164,9 @@ __attribute__((weak)) void play_mode_config(uint32_t msg_id, PlayModeConfig *cfg
 }  
 
 __attribute__((weak)) void main_bt_music_file_info(uint32_t msg_id, MusicFileInfo *cfg) {
+    // LOG_ERR("audio_config  is a weak function");
+}  
+
+__attribute__((weak)) void main_bt_at_cmd_resp(uint32_t msg_id, AtCommandResp *resp) {
     // LOG_ERR("audio_config  is a weak function");
 }  

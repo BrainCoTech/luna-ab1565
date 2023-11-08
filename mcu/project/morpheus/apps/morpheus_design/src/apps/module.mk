@@ -557,6 +557,8 @@ CFLAGS += -I$(SOURCE_DIR)/$(APPS_INC)/app_online_music
 
 C_FILES += $(APPS_SRC)/morpheus_utils.c
 C_FILES +=   $(APPS_SRC)/app_usb/app_usb.c
+C_FILES +=   $(APPS_SRC)/app_usb/at_shell.c
+C_FILES +=   $(APPS_SRC)/app_usb/at_cmds.c
 C_FILES +=   $(APPS_SRC)/app_us/app_us.c
 C_FILES +=   $(APPS_SRC)/app_uart/app_uart.c
 C_FILES +=   $(APPS_SRC)/app_spp/app_spp.c

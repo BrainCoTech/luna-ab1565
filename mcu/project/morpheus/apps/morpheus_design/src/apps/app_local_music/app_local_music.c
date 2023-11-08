@@ -422,12 +422,15 @@ void app_local_music_task(void) {
     }
 }
 
-void app_local_play_idx(uint32_t idx) {
-    app_local_music_lock();
+int app_local_play_idx(uint32_t idx) {
     if (m_player.music_ids_nums <= idx) {
         LOG_MSGID_I(LOCAL_MUSIC, "no music resource", 0);
         idx = 0;
+        return -1;
     }
+
+    app_local_music_lock();
+
     m_player.index = idx;
     if (m_player.state == PLAY_IDLE) {
         LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx play", 0);
@@ -438,6 +441,8 @@ void app_local_play_idx(uint32_t idx) {
     }
     xSemaphoreGive(local_music_start_sem);
     app_local_music_unlock();
+
+    return 0;
 }
 
 void app_local_music_volume_up() {
