@@ -111,10 +111,10 @@ void audio_src_srv_add_waiting_list(audio_src_srv_handle_t *handle)
     audio_src_srv_context_t *ctx = audio_src_srv_get_ctx();
     if (handle) {
         if ((ctx == NULL)? true : ((ctx->running == handle)? false : true)){
-            audio_src_srv_report("[AudSrc]add_waiting_list--hd: 0x%x, type: %d, state: %d\n", 3, handle, handle->type, handle->state);
+            audio_src_srv_report("[AudSrc]add_waiting_list--hd: 0x%x, type: %d, state: 0x%x\n", 3, handle, handle->type, handle->state);
             AUDIO_SRC_SRV_SET_FLAG(handle, AUDIO_SRC_SRV_FLAG_WAITING);
         } else {
-            audio_src_srv_report("[AudSrc]add_waiting_list(ignore)--hd = running: 0x%x, type: %d, state: %d\n", 3, handle, handle->type, handle->state);
+            audio_src_srv_report("[AudSrc]add_waiting_list(ignore)--hd = running: 0x%x, type: %d, state: 0x%x\n", 3, handle, handle->type, handle->state);
         }
     } else {
         audio_src_srv_report("[AudSrc]add_waiting_list(err)\n", 0);
@@ -129,7 +129,7 @@ void audio_src_srv_del_waiting_list(audio_src_srv_handle_t *handle)
     // mutex lock
     audio_src_srv_mutex_lock();
     if (handle) {
-        audio_src_srv_report("[AudSrc]del_waiting_list--hd: 0x%x, type: %d, state: %d\n", 3, handle, handle->type, handle->state);
+        audio_src_srv_report("[AudSrc]del_waiting_list--hd: 0x%x, type: %d, state: 0x%x\n", 3, handle, handle->type, handle->state);
         AUDIO_SRC_SRV_RESET_FLAG(handle, AUDIO_SRC_SRV_FLAG_WAITING);
     } else {
         audio_src_srv_report("[AudSrc]del_waiting_list(err)\n", 0);

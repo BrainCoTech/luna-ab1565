@@ -24,3 +24,4 @@ endif
 ###################################################
 CFLAGS  += -I$(SOURCE_DIR)/middleware/MTK/audio_manager/inc
 
+CFLAGS += -DMTK_AUDIO_MANAGER_DEBUG
