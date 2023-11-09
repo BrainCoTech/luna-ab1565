@@ -356,6 +356,8 @@ void local_audio_source_suspend(audio_src_srv_handle_t *handle, audio_src_srv_ha
 {
     local_audio_context_t *ctx = local_audio_get_ctx();
 
+    audio_src_srv_report("[LOCAL_AUDIO_CONTROL] pause, state %d\r\n", 1, ctx->state);
+
     if (AUD_EXECUTION_SUCCESS != bt_sink_srv_ami_audio_stop(ctx->aid)) {
         audio_src_srv_report("[LOCAL_AUDIO] src suspend, fail\r\n", 0);
     }
@@ -363,6 +365,8 @@ void local_audio_source_suspend(audio_src_srv_handle_t *handle, audio_src_srv_ha
     audio_src_srv_update_state(handle, AUDIO_SRC_SRV_EVT_READY);
 
     audio_src_srv_add_waiting_list(handle);
+
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 
     local_audio_update_state(ctx, LOCAL_AUDIO_STATE_SUSPEND);
 }

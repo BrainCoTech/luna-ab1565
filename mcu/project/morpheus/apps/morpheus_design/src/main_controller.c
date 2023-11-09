@@ -127,31 +127,30 @@ void main_controller_set_time(uint64_t time) {
 
 void main_controller_set_music_mode(AudioConfig__Mode mode) {
     LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
-    uint8_t volume = 0;
-#if DISCONNECT_BT_WHEN_LOCAL_PLAY
-    if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-        disconnect_a2dp();
-    }
-#endif
     if (m_music_mode != mode) {
+        LOG_I(MUSIC_CONTR, "set music mode: %d", mode);
         if (mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-            LOG_I(MUSIC_CONTR, "set music mode: %d, pause local music", mode);
-            app_local_music_pause();
-            vTaskDelay(1000);
-            bt_sink_srv_music_set_mute(false);
-            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PLAY, NULL);
-            m_music_mode = mode;
             music_sync_event_set(MUSIC_SYNC_RESUME);
+            main_controller_set_state(SYS_CONFIG__STATE__A2DP_PLAYING);
+            send_track_id_to_main(0, true);
         }
-        if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-            LOG_I(MUSIC_CONTR, "set music mode: %d, pause a2dp music", mode);
+        if (mode == AUDIO_CONFIG__MODE__LOCAL_MODE && m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
+            main_controller_set_state(SYS_CONFIG__STATE__A2DP_PAUSE);
+            send_track_id_to_main(0, false);
             music_sync_event_set(MUSIC_SYNC_PAUSE);
-            m_music_mode = mode;
         }
+        m_music_mode = mode;
     }
 }
 
+AudioConfig__Mode main_controller_get_music_mode(void) {
+    return m_music_mode;
+}
+
 void audio_config(uint32_t msg_id, AudioConfig *cfg) {
+    static uint32_t g_audio_id;
+
     LOG_MSGID_I(MUSIC_CONTR, "main2bt cmd: %d, mode %d, id %d", 3, cfg->cmd,
                 cfg->mode, cfg->audio_id);
     uint8_t status = 0;
@@ -159,21 +158,23 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
     switch (cfg->cmd) {
         case AUDIO_CONFIG__CMD__PLAY:
             if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
-                app_local_music_play();
-            }
-
-            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-                main_controller_audio_config(AUDIO_ACTION_SW_RESUME);
+                if (g_audio_id > 0) {
+                    app_local_play_idx(g_audio_id - 1);
+                    g_audio_id = 0;
+                } else {
+                    app_local_music_play();
+                }
+            } else if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+                LOG_MSGID_I(MUSIC_CONTR, "main2bt cmd: BT_SINK_SRV_ACTION_PLAY", 0);
+                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PLAY, NULL);
             }
             break;
 
         case AUDIO_CONFIG__CMD__PAUSE:
             if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
                 app_local_music_pause();
-            }
-
-            if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-                main_controller_audio_config(AUDIO_ACTION_SW_PAUSE);
+            } else if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
+                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
             }
             break;
 
@@ -184,15 +185,21 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
             }
 
             if (m_music_mode == AUDIO_CONFIG__MODE__A2DP_MODE) {
-                main_controller_audio_config(AUDIO_ACTION_SW_STOP);
+                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
                 LOG_MSGID_I(MUSIC_CONTR, "main2bt stop online", 0);
             }
             break;
 
         case AUDIO_CONFIG__CMD__LOCAL_PALY:
+            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
+                app_local_music_play();
+            }
             break;
 
         case AUDIO_CONFIG__CMD__LOCAL_PAUSE:
+            if (m_music_mode == AUDIO_CONFIG__MODE__LOCAL_MODE) {
+                app_local_music_pause();  
+            }
             break;
 
         default:
@@ -206,6 +213,7 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
 
         case AUDIO_CONFIG__MODE__LOCAL_MODE:
             main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
+            music_event_set(MUSIC_EVENT_LOCAL_PLAY);
             break;
 
         default:
@@ -216,7 +224,7 @@ void audio_config(uint32_t msg_id, AudioConfig *cfg) {
         if (cfg->audio_id > 4) {
             app_local_music_pause();
         } else {
-            app_local_play_idx(cfg->audio_id - 1);
+            g_audio_id = cfg->audio_id;
         }
     }
 
@@ -470,4 +478,26 @@ char *sn_get(void)
     nvkey_read_data(NVKEYID_CUSTOMER_PRODUCT_INFO_SN, &sn, &size);
 
     return sn;
+}
+
+
+void get_element() {
+    bt_sink_srv_avrcp_get_element_attributes_parameter_t attribute_params;
+    attribute_params.accept_fragment = false;
+    attribute_params.attribute_size = 28;
+    bt_avrcp_get_element_attributes_t attribute_list[7];
+    attribute_list[0].attribute_id = 1;
+    attribute_list[1].attribute_id = 2;
+    attribute_list[2].attribute_id = 3;
+    attribute_list[3].attribute_id = 4;
+    attribute_list[4].attribute_id = 5;
+    attribute_list[5].attribute_id = 6;
+    attribute_list[6].attribute_id = 7;
+    attribute_params.address = NULL;
+    attribute_params.attribute_list = attribute_list;
+    bt_status_t result = bt_sink_srv_send_action(
+        BT_SINK_SRV_ACTION_GET_ELEMENT_ATTRIBUTE, &attribute_params);
+    if (result != BT_STATUS_SUCCESS) {
+        LOG_MSGID_I(MAIN_CONTR, "get element failed", 0);
+    }
 }

@@ -1307,8 +1307,9 @@ static int32_t bt_sink_srv_a2dp_handle_start_streaming_ind(bt_a2dp_start_streami
         return ret;
     }
 #endif
-#ifdef BT_SINK_SRV_CONTROL_MUSIC_BY_AVRCP_STATUS
+#ifdef BT_SINK_SRV_CONTROL_MUSIC_BY_AVRCP_STATUS1
     if(ctx->run_dev == dev && (dev->op & BT_SINK_SRV_MUSIC_OP_CODEC_OPEN)) {
+        bt_sink_srv_music_device_t *run_dev = ctx->run_dev; 
         BT_SINK_SRV_REMOVE_FLAG(dev->flag, BT_SINK_SRV_MUSIC_NEED_TO_RESPONSE_A2DP_START);
 #ifdef __BT_AWS_MCE_A2DP_SUPPORT__
         bt_sink_srv_aws_mce_a2dp_send_eir(BT_SINK_SRV_AWS_MCE_A2DP_EVT_START_STREAMING, (void *)(&(dev->a2dp_hd)));
@@ -1442,6 +1443,12 @@ static int32_t bt_sink_srv_a2dp_handle_suspend_streaming_ind(bt_a2dp_suspend_str
     if(a2dp_dev ) {
         a2dp_dev->a2dp_status = BT_SINK_SRV_A2DP_STATUS_SUSPEND;
         if(!(a2dp_dev->flag&BT_SINK_SRV_MUSIC_FLAG_A2DP_INTERRUPT)) {
+            audio_src_srv_handle_t *handle = audio_src_srv_get_runing_pseudo_device();
+            if (handle) {
+                if (handle->type == AUDIO_SRC_SRV_PSEUDO_DEVICE_LOCAL) {
+                    handle->priority = AUDIO_SRC_SRV_PRIORITY_LOW;
+                }
+            }
             audio_src_srv_del_waiting_list(a2dp_dev->handle);
         }
         BT_SINK_SRV_REMOVE_FLAG(a2dp_dev->op, BT_SINK_SRV_MUSIC_A2DP_HF_INTERRUPT);
@@ -2479,7 +2486,16 @@ void bt_sink_srv_a2dp_suspend(audio_src_srv_handle_t *handle, audio_src_srv_hand
         /* Add self in waiting list */
         if(!(a2dp_dev->avrcp_flag & BT_SINK_SRV_AVRCP_MUST_PLAY_RING_TONE_FLAG)) {
             BT_SINK_SRV_SET_FLAG(a2dp_dev->flag, BT_SINK_SRV_MUSIC_FLAG_A2DP_INTERRUPT);
+#if (0)
             bt_sink_srv_a2dp_add_waitinglist(handle);
+#else
+            /* 如果A2DP被LOCAL_AUDIO打断，删除waiting_list，避免恢复播放 */
+            if (int_hd->type == AUDIO_SRC_SRV_PSEUDO_DEVICE_LOCAL) {
+                audio_src_srv_del_waiting_list(handle);
+            } else {
+                bt_sink_srv_a2dp_add_waitinglist(handle);
+            }
+#endif
             /* Set interrupt flag */
             /* Send pause cmd */
             if(dev_id_p.product_id == 0x1200 && dev_id_p.vender_id == 0x038f && a2dp_dev->a2dp_status == BT_SINK_SRV_A2DP_STATUS_STREAMING) {

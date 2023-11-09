@@ -26,11 +26,18 @@ log_create_module(LOCAL_MUSIC, PRINT_LEVEL_INFO);
 #include "bsp_external_flash_config.h"
 #include "bsp_flash.h"
 #include "music_file_receiver.h"
+#include "timers.h"
 
 static local_music_player_t m_player;
 xSemaphoreHandle local_music_finished_sem;
 xSemaphoreHandle local_music_start_sem;
-xSemaphoreHandle m_mutex;
+static xSemaphoreHandle m_mutex;
+
+#define LOCAL_AUDIO_SUSPEND_CHECK_TIMER_NAME "suspend_check"
+#define LOCAL_AUDIO_SUSPEND_CHECK_TIMER_ID 4
+#define LOCAL_AUDIO_SUSPEND_CHECK_TIMER_INTERVAL (5000)
+TimerHandle_t m_suspend_check_timer = NULL;
+static void suspend_check_cb_function(TimerHandle_t xTimer);
 
 static void local_stream_open(void *private_data) {
     local_music_player_t *player = (local_music_player_t *)private_data;
@@ -122,6 +129,18 @@ void app_local_music_init() {
 
     m_player.music_ids_nums = 0;
     m_player.audio_state = LOCAL_AUDIO_STATE_READY;
+
+    m_suspend_check_timer = xTimerCreate(
+        LOCAL_AUDIO_SUSPEND_CHECK_TIMER_NAME, LOCAL_AUDIO_SUSPEND_CHECK_TIMER_INTERVAL / portTICK_PERIOD_MS,
+        pdTRUE, LOCAL_AUDIO_SUSPEND_CHECK_TIMER_ID, suspend_check_cb_function);
+}
+
+static void suspend_check_cb_function(TimerHandle_t xTimer)
+{
+    LOG_MSGID_I(LOCAL_MUSIC, "SUSPEND TIMEOUT, should stop", 1);
+    m_player.action = ACTION_STOP;
+    main_controller_set_music_mode(AUDIO_CONFIG__MODE__A2DP_MODE);
+    xTimerStop(m_suspend_check_timer, 0);
 }
 
 void local_music_callback(local_audio_state_t state, void *user_data) {
@@ -129,16 +148,26 @@ void local_music_callback(local_audio_state_t state, void *user_data) {
 
     switch (state) {
         case LOCAL_AUDIO_STATE_READY:
+            if (m_suspend_check_timer) {
+                xTimerStop(m_suspend_check_timer, 0);
+            }
             break;
 
         case LOCAL_AUDIO_STATE_PLAYING:
+            if (m_suspend_check_timer) {
+                xTimerStop(m_suspend_check_timer, 0);
+            }
+            main_controller_set_music_mode(AUDIO_CONFIG__MODE__LOCAL_MODE);
             break;
 
         case LOCAL_AUDIO_STATE_PAUSE:
             break;
 
         case LOCAL_AUDIO_STATE_SUSPEND:
-            // m_player.action = ACTION_STOP;
+            if (m_suspend_check_timer) {
+                xTimerStop(m_suspend_check_timer, 0);
+                xTimerStart(m_suspend_check_timer, 0);
+            }
             break;
 
         case LOCAL_AUDIO_STATE_FINISH:
@@ -194,43 +223,8 @@ void app_local_music_stop() {
 
 void app_local_music_play() {
     app_local_music_lock();
-    if (m_player.action != ACTION_NEW_ID) {
         m_player.action = ACTION_PLAY;
-        if (m_player.state == PLAY_IDLE) {
-            xSemaphoreGive(local_music_start_sem);
-        }
-    }
-    app_local_music_unlock();
-}
-
-void app_local_music_play_pause() {
-    app_local_music_lock();
-
-    if (m_player.state == PLAY_IDLE) {
-        m_player.action = ACTION_PLAY;
-        xSemaphoreGive(local_music_start_sem);
-    } else if (m_player.state == PLAY_PLAYING) {
-        if (m_player.action == ACTION_PLAY) {
-            m_player.action = ACTION_PAUSE;
-        }
-    } else if (m_player.state == PLAY_PAUSE) {
-        if (m_player.action == ACTION_PAUSE) {
-            m_player.action = ACTION_PLAY;
-        }
-    }
-
-    app_local_music_unlock();
-}
-
-void app_local_music_play_next() {
-    app_local_music_lock();
-
-    if (m_player.state == PLAY_IDLE) {
-        m_player.action = ACTION_PLAY;
-    } else {
-        m_player.action = ACTION_FORWARD;
-    }
-    xSemaphoreGive(local_music_start_sem);
+    LOG_MSGID_I(LOCAL_MUSIC, "app_local_music_play, action %d", 1, m_player.action);
     app_local_music_unlock();
 }
 
@@ -306,6 +300,7 @@ void app_local_music_task(void) {
                 audio_local_audio_control_set_volume(m_player.volume);
                 LOG_MSGID_I(LOCAL_MUSIC, "play start --> playing", 0);
                 m_player.state = PLAY_PLAYING;
+                m_player.action = ACTION_IDLE;
                 m_player.last_action = ACTION_IDLE;
                 break;
 
@@ -316,24 +311,30 @@ void app_local_music_task(void) {
                 app_local_music_lock();
                 if (m_player.last_action != m_player.action) {
                     if (m_player.action == ACTION_PAUSE) {
+                        LOG_MSGID_I(LOCAL_MUSIC, "playing -> pause, state %d", 1, m_player.state);
                         audio_local_audio_control_pause();
                         m_player.state = PLAY_PAUSE;
                         m_player.last_action = m_player.action;
                     } else if (m_player.action == ACTION_STOP) {
+                        LOG_MSGID_I(LOCAL_MUSIC, "playing -> stop, state %d", 1, m_player.state);
+                        xSemaphoreTake(local_music_start_sem, 100);
                         audio_local_audio_control_stop();
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_STOP;
                     } else if (m_player.action == ACTION_FORWARD) {
+                        LOG_MSGID_I(LOCAL_MUSIC, "playing -> next, state %d", 1, m_player.state);
                         audio_local_audio_control_stop();
                         m_player.action = ACTION_PLAY;
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_NEXT;
                     } else if (m_player.action == ACTION_REPEAT) {
+                        LOG_MSGID_I(LOCAL_MUSIC, "playing -> repeat, state %d", 1, m_player.state);
                         audio_local_audio_control_stop();
                         m_player.action = ACTION_PLAY;
                         m_player.last_action = m_player.action;
                         m_player.state = PLAY_REPEAT;
                     } else if (m_player.action == ACTION_NEW_ID) {
+                        LOG_MSGID_I(LOCAL_MUSIC, "playing -> new, state %d", 1, m_player.state);
                         audio_local_audio_control_stop();
                         m_player.action = ACTION_PLAY;
                         m_player.last_action = m_player.action;
@@ -353,6 +354,7 @@ void app_local_music_task(void) {
                 // music_sync_event_set(MUSIC_SYNC_RESUME);
                 app_local_music_lock();
                 if (m_player.last_action != m_player.action) {
+                    LOG_MSGID_I(LOCAL_MUSIC, "pause, action %d, state %d", 2, m_player.action, m_player.state);
                     if (m_player.action == ACTION_PLAY) {
                         audio_local_audio_control_resume();
                         audio_local_audio_control_set_volume(m_player.volume);
@@ -406,10 +408,9 @@ void app_local_music_task(void) {
                 /* not need change id, goto PLAY_REPEAT */
 
             case PLAY_REPEAT:
-                if (wait_for_ready(LOCAL_AUDIO_STATE_READY, 1000) < 0) {
                     LOG_MSGID_I(LOCAL_MUSIC, "PLAY_NEXT error, audio state %d",
                                 1, m_player.audio_state);
-                }
+                wait_for_ready(LOCAL_AUDIO_STATE_READY, 2000);
                 audio_local_audio_control_deinit();
                 m_player.state = PLAY_START;
                 break;
@@ -434,14 +435,10 @@ void app_local_play_idx(uint32_t idx) {
         LOG_MSGID_I(LOCAL_MUSIC, "no music resource", 0);
         idx = 0;
     }
+
+    LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx new id %d, state %d", 2, idx, m_player.state);
+    m_player.action = ACTION_NEW_ID;
     m_player.index = idx;
-    if (m_player.state == PLAY_IDLE) {
-        LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx play", 0);
-        m_player.action = ACTION_PLAY;
-    } else {
-        LOG_MSGID_I(LOCAL_MUSIC, "app_local_play_idx new id, state %d", 2, m_player.state);
-        m_player.action = ACTION_NEW_ID;
-    }
     xSemaphoreGive(local_music_start_sem);
     app_local_music_unlock();
 }
