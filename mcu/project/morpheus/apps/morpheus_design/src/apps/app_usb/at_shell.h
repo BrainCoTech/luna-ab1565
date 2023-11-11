@@ -66,11 +66,11 @@ used to define the available AT commands for the application.
  */
 extern at_cmd_t at_cmds[];
 
-// This macro declares the number of commands available in the 'at_cmds' array.
-#define AT_CMDS_NUMS(cmds)	   cmds##_nums
-#define AT_CMDS_NUMS_DEF(cmds)	   size_t cmds##_nums = sizeof(cmds) / sizeof(cmds[0]);
-#define AT_CMDS_NUMS_DECLARE(cmds) extern size_t cmds##_nums;
-AT_CMDS_NUMS_DECLARE(at_cmds)
+/**
+ * @var at_cmds_size
+ * @brief User must define 'at_cmds_size'. This is the size of 'at_cmds' array.
+ */
+extern size_t at_cmds_size;
 
 /**
  * @typedef at_cmd_print_func_t

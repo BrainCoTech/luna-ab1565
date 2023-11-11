@@ -21,6 +21,10 @@ static int subfix_size[AT_CMD_NUMS] = {
 	0,  /* */
 };
 
+/**
+ * @brief Search the command in the command list
+ * Must be called after the header is found
+*/
 static at_cmd_t *at_cmd_search(at_cmd_type_t *type)
 {
 	int16_t i;
@@ -28,7 +32,8 @@ static at_cmd_t *at_cmd_search(at_cmd_type_t *type)
 	char *at_str = m_at_parser.buf;
 	int16_t len_str = m_at_parser.size;
 
-	if (len_str < AT_CMD_MIN_LEN) {
+	if (m_at_parser.size < AT_CMD_MIN_LEN ||
+		m_at_parser.size > AT_CMD_MAX_LEN) {
 		return NULL;
 	}
 
@@ -43,6 +48,7 @@ static at_cmd_t *at_cmd_search(at_cmd_type_t *type)
 		}
 		if (at_str[i] == '=') {
 			*type = AT_CMD_SET;
+			/* data ends with '/r/n', it will not overflow */
 			if (at_str[i + 1] == '?') {
 				*type = AT_CMD_TEST;
 			}
@@ -79,18 +85,24 @@ void at_cmd_print(const char *data, size_t len)
 
 static bool at_cmd_find_header(void)
 {
-	char * data = m_at_parser.buf;
+    char *data = m_at_parser.buf;
 
-	if ((data[0] != 'A') && (data[1] != 'T') && m_at_parser.size >= 2) {
-		memmove(data, data + 2, m_at_parser.size - 2);
-		m_at_parser.size -= 2;
-	}
-	
-	if ((data[0] == 'A') && (data[1] == 'T') && (data[m_at_parser.size - 2] == '\r') && (data[m_at_parser.size - 1] == '\n')) {
-		return true;
-	}
+    if (m_at_parser.size < 2) {
+        return false;
+    }
 
-	return false;
+    if (memcmp(data, "AT", 2) != 0) {
+        memmove(data, data + 2, m_at_parser.size - 2);
+		/* Adjust the size after moving the buffer */
+        m_at_parser.size -= 2;
+        return false;
+    }
+
+    if (m_at_parser.size < 4 || memcmp(data + m_at_parser.size - 2, "\r\n", 2) != 0) {
+        return false;
+    }
+
+    return true;
 }
 
 void at_cmd_init(at_cmd_print_func_t print)
@@ -98,7 +110,7 @@ void at_cmd_init(at_cmd_print_func_t print)
 	m_print = print;
 	m_at_parser.size = 0;
 	m_at_parser.cmds = at_cmds;
-	m_at_parser.cmds_nums = AT_CMDS_NUMS(at_cmds);
+	m_at_parser.cmds_nums = at_cmds_size;
 }
 
 inline int subfix_size_get(at_cmd_type_t type)

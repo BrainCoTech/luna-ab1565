@@ -280,4 +280,5 @@ at_cmd_t at_cmds[] = {
     {"AT+MUSIC", {NULL, NULL, at_set_music, NULL}},
 };
 
-AT_CMDS_NUMS_DEF(at_cmds)
+/* Defines the size of the 'at_cmds' array */
+size_t at_cmds_size = sizeof(at_cmds) / sizeof(at_cmds[0]);
