@@ -49,13 +49,14 @@
 #include "battery_management.h"
 #include "battery_management_core.h"
 #include <stdlib.h>
+#include "main_controller.h"
 
 /* The timer name of reading battery percentage. */
 #define BATTERY_EVENT_TIMER_NAME        "battery_event"
 /* The timer id of reading battery percentage. It's useful when multi timer for a same callback. */
 #define BATTERY_EVENT_TIMER_ID          0
 /* The interval of the timer callback will be called. */
-#define BATTERY_EVENT_TIMER_INTERVAL    (10 * 1000)
+#define BATTERY_EVENT_TIMER_INTERVAL    (5 * 1000)
 
 TimerHandle_t timer = NULL; /* The pointer of the timer instance. */
 /* The current battery percent, when the value is not change, don't send event. */
@@ -88,15 +89,18 @@ static void _timer_callback_function(TimerHandle_t xTimer)
     battery_event_shutdown_state_t shutdown_state;
     APPS_LOG_MSGID_I("Check battery timer", 0);
     /* The shutdown state, calculate from voltage. */
+    int32_t charger_exist = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST);
     int32_t battery_percent = battery_management_get_battery_property(BATTERY_PROPERTY_CAPACITY);
     int32_t battery_voltage = battery_management_get_battery_property(BATTERY_PROPERTY_VOLTAGE);
     /* Send event when value changed. */
     if (s_battary_percent != battery_percent) {
-        ui_shell_send_event(false, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_BATTERY,
-                            APPS_EVENTS_BATTERY_PERCENT_CHANGE, (void *)battery_percent, 0, NULL, 0);
-        s_battary_percent = battery_percent;
-        ble_bas_app_level_set(s_battary_percent);
-        APPS_LOG_MSGID_I("Send battery percent : %d", 1, battery_percent);
+        if ((battery_percent < s_battary_percent) || (charger_exist == 1)) { 
+            ui_shell_send_event(false, EVENT_PRIORITY_MIDDLE, EVENT_GROUP_UI_SHELL_BATTERY,
+                                APPS_EVENTS_BATTERY_PERCENT_CHANGE, (void *)battery_percent, 0, NULL, 0);
+            s_battary_percent = battery_percent;
+            ble_bas_app_level_set(s_battary_percent);
+            APPS_LOG_MSGID_I("Send battery percent : %d", 1, battery_percent);
+        }
     }
     shutdown_state = calculate_shutdown_state(battery_voltage);
     /* Send event when value changed. */
@@ -286,7 +290,7 @@ static atci_cmd_hdlr_item_t battery_simu_atci_cmd[] = {
     },
 };
 #endif
-
+#define MIN(A,B) ( (A) > (B) ? (B) : (A) )
 void apps_events_battery_event_init(void)
 {
     atci_status_t ret;
@@ -301,8 +305,24 @@ void apps_events_battery_event_init(void)
         return;
     }
     */
+    int battery_percent = nvdm_read_battery_level();
+    int charger_exist = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_EXIST);
     s_charging_status = battery_management_get_battery_property(BATTERY_PROPERTY_CHARGER_STATE);
     s_battary_percent = battery_management_get_battery_property(BATTERY_PROPERTY_CAPACITY);
+
+    if (charger_exist == 1) {
+        APPS_LOG_MSGID_I("charger_exist11 1", 0);
+        nvdm_write_battery_level(101);
+    } else {
+        APPS_LOG_MSGID_I("charger_exist11 2", 0);
+        if (battery_percent == 101) {
+            nvdm_write_battery_level(s_battary_percent);
+            APPS_LOG_MSGID_I("charger_exist11 2, new percent %d", 1, s_battary_percent);
+        } else {
+            APPS_LOG_MSGID_I("charger_exist11 2, percent old %d, new %d", 2, battery_percent, s_battary_percent);
+            s_battary_percent = MIN(s_battary_percent, battery_percent);
+        }
+    }
     ble_bas_app_level_set(s_battary_percent);
     APPS_LOG_MSGID_I("Start percent : %d", 1, s_battary_percent);
 
@@ -318,4 +338,9 @@ void apps_events_battery_event_init(void)
         xTimerStart(timer, 0);
     }
 
+}
+
+void store_battery_level_to_nvdm(void)
+{
+    nvdm_write_battery_level(s_battary_percent);
 }

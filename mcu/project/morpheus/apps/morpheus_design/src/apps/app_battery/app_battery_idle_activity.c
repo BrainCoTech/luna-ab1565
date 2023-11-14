@@ -481,7 +481,7 @@ static bool _proc_battery_event_group(
 #endif
     ) {
         if (bat_state != old_state) {
-            apps_config_set_vp(VP_INDEX_LOW_BATTERY, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
+            // apps_config_set_vp(VP_INDEX_LOW_BATTERY, false, 0, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
         }
         main_controller_set_state(SYS_CONFIG__STATE__BAT_LOW_POWER);
     } else if (bat_state == old_state) {

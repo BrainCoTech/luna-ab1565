@@ -501,3 +501,33 @@ void get_element() {
         LOG_MSGID_I(MAIN_CONTR, "get element failed", 0);
     }
 }
+
+#define NVDM_BAT_LEVEL  "bat_level"
+
+void nvdm_write_battery_level(int level) {
+    int32_t status;
+
+    status = nvdm_write_data_item(NVDM_INTERNAL_USE_GROUP, NVDM_BAT_LEVEL,
+                                  NVDM_DATA_ITEM_TYPE_RAW_DATA, &level,
+                                  sizeof(level));
+
+    LOG_MSGID_I(MAIN_CONTR, "set battery level %d, status %d", 2, level, status);
+}
+
+
+
+int nvdm_read_battery_level(void)
+{
+    int size = 4;
+    int level = 101;
+
+    int32_t status = nvdm_read_data_item(NVDM_INTERNAL_USE_GROUP,
+                                         NVDM_BAT_LEVEL, &level, &size);
+    if (status != NVDM_STATUS_OK) {
+        level = 101;
+    }
+
+    LOG_MSGID_I(MAIN_CONTR, "get battery level %d, status %d", 2, level, status);
+
+    return level;
+}

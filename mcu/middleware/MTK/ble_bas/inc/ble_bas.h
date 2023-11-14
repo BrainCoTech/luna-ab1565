@@ -163,6 +163,7 @@ uint8_t ble_bas_read_callback(ble_bas_event_t event, bt_handle_t conn_handle);
  */
 void ble_bas_write_callback(ble_bas_event_t event, bt_handle_t conn_handle, void *data);
 
+bt_status_t ble_bas_notify_battery_level_all(uint8_t battery_level);
 
 BT_EXTERN_C_END
 /**

@@ -15,4 +15,5 @@ uint8_t ble_bas_read_callback(ble_bas_event_t event, bt_handle_t conn_handle)
 void ble_bas_app_level_set(uint8_t bat_level)
 {
     m_battery_level = bat_level;
+    ble_bas_notify_battery_level_all(m_battery_level);
 }

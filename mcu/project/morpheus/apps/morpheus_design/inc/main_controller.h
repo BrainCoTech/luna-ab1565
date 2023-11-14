@@ -42,6 +42,12 @@ char *sn_get(void);
 
 void sn_set(char *sn);
 
+int nvdm_read_battery_level(void);
+
+void nvdm_write_battery_level(int level);
+
+void store_battery_level_to_nvdm(void);
+
 #ifdef __cplusplus
 }
 #endif

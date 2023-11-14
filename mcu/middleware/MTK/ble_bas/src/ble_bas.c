@@ -78,6 +78,8 @@ void default_ble_bas_write_callback(ble_bas_event_t event, bt_handle_t conn_hand
     return;
 }
 
+static uint16_t m_ble_conn;
+
 BT_GATTS_NEW_PRIMARY_SERVICE_16(ble_bas_primary_service, BT_GATT_UUID16_BATTERY_SERVICE);
 BT_GATTS_NEW_CHARC_16(ble_bas_char4_battery_level,
     BT_GATT_CHARC_PROP_READ|BT_GATT_CHARC_PROP_NOTIFY, BAS_BATTERY_LEVEL_VALUE_HANDLE, BT_SIG_UUID16_BATTERY_LEVEL);
@@ -108,7 +110,8 @@ static uint32_t ble_bas_battery_level_callback(const uint8_t rw, uint16_t handle
 {
     LOG_MSGID_I(BLE_BAS, "ble_bas_battery_level_callback, opcode:%d, size:%d \r\n", 2, rw, size);
 
-    if (handle > 0) {                    
+    if (handle > 0) {            
+        m_ble_conn = handle;        
         if (rw == BT_GATTS_CALLBACK_READ) {
             if (0 != size) {
                 uint8_t *read_rsp_value = (uint8_t*)data;
@@ -127,6 +130,7 @@ static uint32_t ble_bas_client_config_callback(const uint8_t rw, uint16_t handle
     LOG_MSGID_I(BLE_BAS, "ble_bas_client_config_callback, opcode:%d, size:%d \r\n", 2, rw, size);
     
     if (handle > 0) {
+        m_ble_conn = handle;   
         /** record for each connection. */                
         if (rw == BT_GATTS_CALLBACK_WRITE){
             if (size != sizeof(uint16_t)){ //Size check
@@ -168,4 +172,8 @@ bt_status_t ble_bas_notify_battery_level(bt_handle_t conn_handle, uint8_t batter
     return BT_STATUS_FAIL;
 }
 
+bt_status_t ble_bas_notify_battery_level_all(uint8_t battery_level)
+{
+    return ble_bas_notify_battery_level(m_ble_conn, battery_level);
+}
 

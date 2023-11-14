@@ -660,6 +660,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
             if ((discover_entry_ticks > 0) && (xTaskGetTickCount() - discover_entry_ticks < 3000)) {
                 break;
             }
+            store_battery_level_to_nvdm();
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
             send_power_off_flag_to_app();
             vTaskDelay(500);
