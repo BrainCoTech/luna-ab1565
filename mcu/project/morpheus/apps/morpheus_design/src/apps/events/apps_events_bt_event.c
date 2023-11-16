@@ -255,6 +255,7 @@ static void registered_bt_event_callback(bt_msg_type_t msg, bt_status_t status, 
             case BT_GAP_LE_DISCONNECT_IND:
                 buffer_size = sizeof(bt_gap_le_disconnect_ind_t);
                 main_controller_set_state(SYS_CONFIG__STATE__BLE_DISCONNECTED);
+                APPS_LOG_MSGID_I("ble11 disconnect", 0);
                 break;
 #ifdef AIR_TILE_ENABLE
             case BT_GAP_LE_READ_RSSI_CNF:
@@ -267,6 +268,7 @@ static void registered_bt_event_callback(bt_msg_type_t msg, bt_status_t status, 
             case BT_GAP_LE_CONNECT_IND:
                 buffer_size = sizeof(bt_gap_le_connection_ind_t);
                 main_controller_set_state(SYS_CONFIG__STATE__BLE_CONNECTED);
+                APPS_LOG_MSGID_I("ble11 connect", 0);
                 break;
             case BT_GAP_LE_RPA_ROTAION_IND:
                 buffer_size = sizeof(bt_gap_le_rpa_rotation_ind_t);
