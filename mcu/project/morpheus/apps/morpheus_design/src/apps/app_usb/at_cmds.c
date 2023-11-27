@@ -227,7 +227,7 @@ void at_query_ir(void *ctx) {
 }
 
 void at_query_sys_flash(void *ctx) {
-    at_cmd_excute(ctx, PARAMS_NUM_0, AT__CMD__FLASH1_STATUS_GET, RESP_NUM_1);
+    at_cmd_excute(ctx, PARAMS_NUM_0, AT__CMD__FLASH1_STATUS_GET, RESP_NUM_0);
 }
 
 #include "filesystem.h"
@@ -260,6 +260,17 @@ void at_set_music(void *ctx) {
     at_cmd_print(AT_CMD_NEXTLINE, strlen(AT_CMD_NEXTLINE));
 }
 
+void at_set_factory_reset(void *ctx) {
+    int status = 0;
+
+    if (status < 0) {
+        at_cmd_print(AT_CMD_RESP_ERROR, strlen(AT_CMD_RESP_ERROR));
+    } else {
+        at_cmd_print(AT_CMD_RESP_OK, strlen(AT_CMD_RESP_OK));
+    }
+    at_cmd_print(AT_CMD_NEXTLINE, strlen(AT_CMD_NEXTLINE));
+}
+
 at_cmd_t at_cmds[] = {
     //+++++++name+++++++++++++query_fun+++++++++++++++setup_fun+++++++++++++++++++++++++++execmd_fun++++
     {"AT+GD_VER", {NULL, at_query_gd_ver, NULL, NULL}},
@@ -275,9 +286,10 @@ at_cmd_t at_cmds[] = {
     {"AT+CES_MODE", {at_test_ces_mode, NULL, at_set_ces_mode, NULL}},
     {"AT+KEY", {NULL, NULL, at_set_key, NULL}},
     {"AT+IR", {NULL, at_query_ir, NULL, NULL}},
-    {"AT+SYS_FLASH", {NULL, at_query_bat_vol, NULL, NULL}},
-    {"AT+MUSIC_FLASH", {NULL, at_query_bat_vol, NULL, NULL}},
+    {"AT+SYS_FLASH", {NULL, at_query_sys_flash, NULL, NULL}},
+    {"AT+MUSIC_FLASH", {NULL, at_query_music_flash, NULL, NULL}},
     {"AT+MUSIC", {NULL, NULL, at_set_music, NULL}},
+    {"AT+FACTORY_RESET", {NULL, NULL, at_set_factory_reset, NULL}},
 };
 
 /* Defines the size of the 'at_cmds' array */

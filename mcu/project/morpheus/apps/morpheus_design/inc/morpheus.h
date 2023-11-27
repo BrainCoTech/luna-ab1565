@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "morpheus_utils.h"
 
-#define FW_VERSION "0.0.4"
+#define FW_VERSION "0.0.5"
 #define MODEL "MSP001"
 
 #define FIXED_LOCAL_VOLUME 1
