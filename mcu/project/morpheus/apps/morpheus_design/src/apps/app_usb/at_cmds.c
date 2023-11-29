@@ -289,7 +289,7 @@ at_cmd_t at_cmds[] = {
     {"AT+SYS_FLASH", {NULL, at_query_sys_flash, NULL, NULL}},
     {"AT+MUSIC_FLASH", {NULL, at_query_music_flash, NULL, NULL}},
     {"AT+MUSIC", {NULL, NULL, at_set_music, NULL}},
-    {"AT+FACTORY_RESET", {NULL, NULL, at_set_factory_reset, NULL}},
+    {"AT+FACTORY_RESET", {NULL, NULL, NULL, at_set_factory_reset}},
 };
 
 /* Defines the size of the 'at_cmds' array */
