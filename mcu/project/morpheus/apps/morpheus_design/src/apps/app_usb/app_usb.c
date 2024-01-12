@@ -60,8 +60,10 @@ log_create_module(app_usb, PRINT_LEVEL_INFO);
 #define USB_CMD_MUSIC_FILE_STATUS 0x0113
 #define USB_CMD_GET_BAT_SN 0x0114
 #define USB_CMD_SET_BAT_SN 0x0115
-#define USB_CMD_GET_TWS_SN 0x0116
-#define USB_CMD_SET_TWS_SN 0x0117
+#define USB_CMD_GET_TWS_L_SN 0x0116
+#define USB_CMD_SET_TWS_L_SN 0x0117
+#define USB_CMD_GET_TWS_R_SN 0x0118
+#define USB_CMD_SET_TWS_R_SN 0x0119
 
 #define USB_MUX_PORT_RX_BUF_SIZE 512
 #define USB_MUX_PORT_TX_BUF_SIZE 512
@@ -393,8 +395,8 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
             } else {
                 databuf[6] = 0x01;
             }
-        } else if ((USB_CMD_GET_TWS_SN == usb_cmd) && (buf_size == 10) &&
-                   (p_buf[6] == 0x00) && (p_buf[7] == 0xFE)) {
+        } else if ((USB_CMD_GET_TWS_L_SN == usb_cmd) && (buf_size == 10) &&
+                   (p_buf[6] == 0x20) && (p_buf[7] == 0xFD)) {
             uint32_t size = CUSTOMER_SN_LEN;
 
             databuf[1] = 0x5B;
@@ -402,21 +404,45 @@ bool usb_race_app_event_respond(uint8_t *p_buf, uint32_t buf_size) {
             databuf[6] = CUSTOMER_SN_LEN;
             databuf[7] = 0x00;
 
-            nvkey_read_data(NVKEYID_CUSTOMER_PRODUCT_INFO_TWS_SN, &databuf[8],
+            nvkey_read_data(NVKEYID_CUSTOMER_PRODUCT_INFO_TWS_L_SN, &databuf[8],
                             &size);
-        } else if ((USB_CMD_SET_TWS_SN == usb_cmd) &&
+        } else if ((USB_CMD_SET_TWS_L_SN == usb_cmd) &&
                    (buf_size == (4 + 4 + CUSTOMER_SN_LEN)) &&
-                   (p_buf[6] == 0x00) && (p_buf[7] == 0xFE)) {
+                   (p_buf[6] == 0x20) && (p_buf[7] == 0xFD)) {
             databuf[1] = 0x5B;
             databuf[2] = 0x03;
 
             if (NVKEY_STATUS_OK ==
-                nvkey_write_data(NVKEYID_CUSTOMER_PRODUCT_INFO_TWS_SN, &databuf[8],
+                nvkey_write_data(NVKEYID_CUSTOMER_PRODUCT_INFO_TWS_L_SN, &databuf[8],
                                  CUSTOMER_SN_LEN)) {
                 databuf[6] = 0x00;
             } else {
                 databuf[6] = 0x01;
             }            
+        } else if ((USB_CMD_GET_TWS_R_SN == usb_cmd) && (buf_size == 10) &&
+                   (p_buf[6] == 0x40) && (p_buf[7] == 0xFD)) {
+            uint32_t size = CUSTOMER_SN_LEN;
+
+            databuf[1] = 0x5B;
+            databuf[2] = 0x04 + CUSTOMER_SN_LEN;
+            databuf[6] = CUSTOMER_SN_LEN;
+            databuf[7] = 0x00;
+
+            nvkey_read_data(NVKEYID_CUSTOMER_PRODUCT_INFO_TWS_R_SN, &databuf[8],
+                            &size);
+        } else if ((USB_CMD_SET_TWS_R_SN == usb_cmd) &&
+                   (buf_size == (4 + 4 + CUSTOMER_SN_LEN)) &&
+                   (p_buf[6] == 0x40) && (p_buf[7] == 0xFD)) {
+            databuf[1] = 0x5B;
+            databuf[2] = 0x03;
+
+            if (NVKEY_STATUS_OK ==
+                nvkey_write_data(NVKEYID_CUSTOMER_PRODUCT_INFO_TWS_R_SN, &databuf[8],
+                                 CUSTOMER_SN_LEN)) {
+                databuf[6] = 0x00;
+            } else {
+                databuf[6] = 0x01;
+            }
         } else if ((USB_CMD_LED_SET == usb_cmd) && (buf_size == (4 + 4)) &&
                    (p_buf[6] < 0x03) && (p_buf[7] <= 1)) {
             databuf[1] = 0x5B;
