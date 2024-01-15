@@ -44,7 +44,8 @@ int music_file_is_exist(void)
 
     if (sulotion != NULL) {
         for (int i = 0; i < MUSIC_SOLUTION_NUMS; i++) {
-            if (m_music_solution.files[i].music_offset == m_music_solution.files[i].music_size) {
+            if (m_music_solution.files[i].music_offset == m_music_solution.files[i].music_size &&
+                m_music_solution.files[i].music_size != 0) {
                 num++;
             }
         }
