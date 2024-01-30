@@ -648,12 +648,16 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
         case KEY_BEFORE_POWER_OFF:
             discover_entry_ticks = 0;
             // apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
-            main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF_FAKE);
-            app_local_music_pause();
-            bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
-            audio_local_audio_control_set_volume(0);
-            APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY ", go to power off", 0);
-            break;
+            if (!app_bt_service_is_visible()) {
+                main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF_FAKE);
+                app_local_music_pause();
+                bt_sink_srv_send_action(BT_SINK_SRV_ACTION_PAUSE, NULL);
+                audio_local_audio_control_set_volume(0);
+                APPS_LOG_MSGID_I(UI_SHELL_IDLE_BT_CONN_ACTIVITY ", go to power off", 0);
+                break;
+            } else {
+                // goto KEY_POWER_OFF
+            }
 
         case KEY_POWER_OFF:
             if ((discover_entry_ticks > 0) && (xTaskGetTickCount() - discover_entry_ticks < 3000)) {
