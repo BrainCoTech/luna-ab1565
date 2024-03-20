@@ -71,9 +71,9 @@ log_create_module(VPC, PRINT_LEVEL_INFO);
 
 #ifdef MTK_AVM_DIRECT
 #ifdef MTK_PROMPT_SOUND_USING_CONFIG_DEFAULT_GAIN_LEVEL
-#define PROMPT_CONTROL_DEFAULT_GAIN_LEVEL bt_sink_srv_ami_get_vp_default_volume_level()
+#define PROMPT_CONTROL_DEFAULT_GAIN_LEVEL 5 //bt_sink_srv_ami_get_vp_default_volume_level()
 #else
-#define PROMPT_CONTROL_DEFAULT_GAIN_LEVEL 11
+#define PROMPT_CONTROL_DEFAULT_GAIN_LEVEL 5
 #endif
 #endif
 
