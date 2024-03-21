@@ -112,12 +112,12 @@ const apps_config_key_event_map_t temp_key_dlong_release_configs[] = {
 
 // For right side or default configurable mapping table
 const static apps_config_configurable_table_t default_configurable_table[] = {
-    {
-        APPS_CONFIG_KEY_SHORT_CLICK,
-        DEVICE_KEY_POWER,
-        KEY_CANCEL_DISCOVERABLE,
-        (1 << APP_CONNECTABLE)
-    },
+    // {
+    //     APPS_CONFIG_KEY_SHORT_CLICK,
+    //     DEVICE_KEY_POWER,
+    //     KEY_CANCEL_DISCOVERABLE,
+    //     (1 << APP_CONNECTABLE)
+    // },
     {
         APPS_CONFIG_KEY_LONG_PRESS_1,
         DEVICE_KEY_POWER,
@@ -125,7 +125,7 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
         (1 << APP_BT_OFF)
     },
     {
-        APPS_CONFIG_KEY_LONG_PRESS_1,
+        APPS_CONFIG_KEY_LONG_PRESS_2,
         DEVICE_KEY_POWER,
         KEY_BEFORE_POWER_OFF,
         (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
@@ -135,7 +135,7 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
         | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
     },
     {
-        APPS_CONFIG_KEY_LONG_PRESS_RELEASE_1,
+        APPS_CONFIG_KEY_LONG_PRESS_RELEASE_2,
         DEVICE_KEY_POWER,
         KEY_POWER_OFF,
         (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)
@@ -145,7 +145,7 @@ const static apps_config_configurable_table_t default_configurable_table[] = {
         | (1 << APP_LE_AUDIO_BIS_PLAYING) | (1 << APP_STATE_VA)
     },
     {
-        APPS_CONFIG_KEY_LONG_PRESS_2,
+        APPS_CONFIG_KEY_LONG_PRESS_3,
         DEVICE_KEY_POWER,
         KEY_DISCOVERABLE,
         (1 << APP_DISCONNECTED) | (1 << APP_CONNECTABLE) | (1 << APP_CONNECTED) | (1 << APP_HFP_INCOMING)

@@ -647,7 +647,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
     switch (action) {
         case KEY_BEFORE_POWER_OFF:
             discover_entry_ticks = 0;
-            // apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
+            apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
             if (!app_bt_service_is_visible()) {
                 main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF_FAKE);
                 app_local_music_pause();
@@ -664,7 +664,7 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
                 break;
             }
             store_battery_level_to_nvdm();
-            apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
+            // apps_config_set_vp(VP_INDEX_POWER_OFF, false, 0, VOICE_PROMPT_PRIO_MEDIUM, true, NULL);
             main_controller_set_state(SYS_CONFIG__STATE__POWER_OFF);
             send_power_off_flag_to_app();
             vTaskDelay(500);

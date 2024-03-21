@@ -167,7 +167,7 @@ static bool pre_proc_key_event_proc(ui_shell_activity_t *self, uint32_t event_id
 			*p_key_action = apps_config_key_event_remapper_map_action(key_id, key_event);
 
 			printf("...preproc special action %x", *p_key_action);
-			
+			return true;
 			if ((*p_key_action) == KEY_DISCOVERABLE)
 			{
 				printf("...preproc special action continue");

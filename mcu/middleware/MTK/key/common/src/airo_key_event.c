@@ -129,6 +129,16 @@ bool airo_key_event_init(void)
     for (uint32_t i = 0; i < AIRO_KEY_SUPPORT_NUMBER; i++) {
         LOG_MSGID_I(common, "[airo_key] key_data[%d] = 0x%x\r\n", 2, i, airo_key_config[i].key_data);
     }
+    LOG_MSGID_I(common, "[airo_key] time t_press %d, t_release %d\r\n", 2, airo_key_config[0].time.t_press, airo_key_config[0].time.t_release);
+    
+    airo_key_config[0].support.long_level = 3;
+    airo_key_config[0].support.multiple_click = 2;
+    airo_key_config[0].time.t_press = 100;
+    airo_key_config[0].time.t_release = 100;
+    airo_key_config[0].time.t_long_press_1 = 100;
+    airo_key_config[0].time.t_long_press_2 = 1500;
+    airo_key_config[0].time.t_long_press_3 = 3000;
+    airo_key_config[0].time.t_slong = 100;
 
     airo_key_event_state.has_initilized = true;
 
