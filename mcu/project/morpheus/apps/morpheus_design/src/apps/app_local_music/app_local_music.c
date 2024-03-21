@@ -241,7 +241,7 @@ void app_local_music_task(void) {
     int ret = 0;
 
     app_local_music_init();
-    m_player.volume = LOCAL_DEFAULT_VOLUME;
+    m_player.volume = get_volume_from_local();
     app_local_music_update_id_from_flash();
 
     while (1) {

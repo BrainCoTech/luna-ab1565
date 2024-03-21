@@ -956,7 +956,7 @@ static uint8_t audio_get_percentage_out_a2dp(uint8_t level)
     }
 
     totalLevel   = pNvdmA2dpVol->a2dpVolPara.totalSoundLevel;
-    defaultLevel = pNvdmA2dpVol->a2dpVolPara.defaultSoundLevel;
+    defaultLevel = 7; pNvdmA2dpVol->a2dpVolPara.defaultSoundLevel;
 
     /*For dynamic volume level changes by tool*/
     AUD_A2DP_VOL_OUT_MAX = totalLevel - 1;
