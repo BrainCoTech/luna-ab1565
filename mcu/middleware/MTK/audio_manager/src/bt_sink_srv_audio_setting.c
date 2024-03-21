@@ -979,6 +979,22 @@ static uint8_t audio_get_percentage_out_a2dp(uint8_t level)
 
     pA2dpPercentageTable = ((uint8_t *)pNvdmA2dpVol) + sizeof(bt_sink_srv_audio_setting_vol_para) + totalLevel/*AVRCP*/ + totalLevel/*BeepTone*/;
     percentage = pA2dpPercentageTable[level];
+    if (level == 0) percentage = 1;
+    if (level == 1) percentage = 34;
+    if (level == 2) percentage = 39;
+    if (level == 3) percentage = 44;
+    if (level == 4) percentage = 49;
+    if (level == 5) percentage = 54;
+    if (level == 6) percentage = 59;
+    if (level == 7) percentage = 63;
+    if (level == 8) percentage = 67;
+    if (level == 9) percentage = 71;
+    if (level == 10) percentage = 75;
+    if (level == 11) percentage = 78;
+    if (level == 12) percentage = 81;
+    if (level == 13) percentage = 84;
+    if (level == 14) percentage = 87;
+    if (level == 15) percentage = 90;
     audio_src_srv_report("[Sink][Setting]audio_get_percentage_out_a2dp level[%d] percentage:%d\n",2, level, percentage);
 
     vPortFree(pNvdmA2dpVol);
