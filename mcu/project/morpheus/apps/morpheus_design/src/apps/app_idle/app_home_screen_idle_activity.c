@@ -759,8 +759,8 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
 					bt_cm_cancel_connect(NULL);
                 }
                 multi_ble_adv_manager_disconnect_ble(NULL);              
-                bt_device_manager_unpair_all();
-                bt_device_manager_db_flush_all(BT_DEVICE_MANAGER_DB_FLUSH_BLOCK);
+                // bt_device_manager_unpair_all();
+                // bt_device_manager_db_flush_all(BT_DEVICE_MANAGER_DB_FLUSH_BLOCK);
                 main_controller_set_state(SYS_CONFIG__STATE__PAIR);
                 app_bt_state_service_set_bt_visible(true, false, VISIBLE_TIMEOUT);
                 apps_config_set_vp(VP_INDEX_PAIRING, true, 100, VOICE_PROMPT_PRIO_MEDIUM, false, NULL);
