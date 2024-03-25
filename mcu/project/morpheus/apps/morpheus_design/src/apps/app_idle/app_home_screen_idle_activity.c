@@ -643,6 +643,36 @@ static bool _proc_key_event_group(ui_shell_activity_t *self,
     if (event_id == (0x5200 | (KEY_POWER_ON & 0xFF))) action = KEY_POWER_ON;
     if (event_id == (0x5200 | (KEY_DISCOVERABLE & 0xFF))) action = KEY_DISCOVERABLE;
     if (event_id == (0x5200 | (KEY_ANC & 0xFF))) action = KEY_ANC;
+    
+    {
+        /* 修复充电过程中，按着按键拔电，导致10mA漏洞 */
+		static bool waitKeyUpFlag = false;
+
+		if (waitKeyUpFlag 
+		   && ((key_event==AIRO_KEY_LONG_PRESS_RELEASE_1)
+			||(key_event==AIRO_KEY_LONG_PRESS_RELEASE_2)                    
+			||(key_event==AIRO_KEY_LONG_PRESS_RELEASE_3)  
+			||(key_event==AIRO_KEY_SLONG_RELEASE)
+			||(key_event==AIRO_KEY_DLONG_RELEASE)))
+		{
+			printf("...home powerkey release power off");
+			waitKeyUpFlag = false;
+			action = KEY_POWER_OFF;
+		}
+
+		if (event_id == (0x5200 | (KEY_POWER_OFF & 0xFF))) 
+		{
+			if (pmu_get_pwrkey_state())
+			{
+				printf("...home wait powerkey release");
+				waitKeyUpFlag = true;
+
+				action = KEY_ACTION_INVALID;
+				ret = true;
+			}
+		}
+	}
+
     static uint32_t discover_entry_ticks;
     switch (action) {
         case KEY_BEFORE_POWER_OFF:
